@@ -3,4 +3,5 @@ Example.vc*
 Debug/
 Release/
 .vs/
+Makefile
 
