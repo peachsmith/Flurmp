@@ -3,6 +3,7 @@
  */
 
 #include "flurmp.h"
+#include "rectangle.h"
 
 int fl_initialize()
 {
@@ -44,7 +45,18 @@ fl_context fl_create_context()
 	context.keystates = SDL_GetKeyboardState(NULL);
 
 	context.entities = NULL;
+	context.count = 0;
 	context.done = 0;
+
+	/* create some entities */
+	fl_entity* ground = fl_create_rectangle(115, 300, 400, 50);
+	fl_entity* left_wall = fl_create_rectangle(65, 100, 50, 250);
+	fl_entity* right_wall = fl_create_rectangle(515, 100, 50, 250);
+
+	/* add the entities to the context */
+	fl_add_entity(&context, ground);
+	fl_add_entity(&context, left_wall);
+	fl_add_entity(&context, right_wall);
 
 	return context;
 }
@@ -122,6 +134,11 @@ int fl_poll_event(fl_context *context)
 void fl_handle_event(fl_context *context)
 {
 	if (context->event.type == FLURMP_QUIT) context->done = 1;
+}
+
+void fl_handle_input(fl_context* context)
+{
+	if (context->keystates[FLURMP_SC_ESCAPE]) context->done = 1;
 }
 
 void fl_update(fl_context context)

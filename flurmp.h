@@ -1,4 +1,5 @@
 #ifndef FLURMP_H
+#define FLURMP_H
 
 /* implementation-specific typedefs */
 #if defined (FLURMP_SDL)
@@ -40,6 +41,8 @@ enum fl_entity_type_e {
  * with one another to change the state of the application
  */
 struct fl_entity_s {
+
+	fl_entity_type type;
 
 	/* position */
 	int x;
@@ -168,6 +171,11 @@ int fl_poll_event(fl_context*);
  * handles events
  */
 void fl_handle_event(fl_context*);
+
+/**
+* handles user input
+*/
+void fl_handle_input(fl_context*);
 
 /**
  * Updates the state of the context

@@ -46,7 +46,7 @@ int main(int argc, char** argv)
 		}
 
 		/* handle input */
-		if (context.keystates[FLURMP_SC_ESCAPE]) context.done = 1;
+		fl_handle_input(&context);
 
 		/* update the state */
 		fl_update(context);
