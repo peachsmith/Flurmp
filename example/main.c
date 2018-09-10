@@ -33,20 +33,20 @@ int main(int argc, char** argv)
 	}
 
 	/* create the context */
-	fl_context context = fl_create_context();
+	fl_context* context = fl_create_context();
 
 	/* while not done */
-	while (!context.done)
+	while (!context->done)
 	{
 		/* poll for events */
-		while (fl_poll_event(&context))
+		while (fl_poll_event(context))
 		{
 			/* handle events */
-			fl_handle_event(&context);
+			fl_handle_event(context);
 		}
 
 		/* handle input */
-		fl_handle_input(&context);
+		fl_handle_input(context);
 
 		/* update the state */
 		fl_update(context);

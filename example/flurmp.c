@@ -4,6 +4,9 @@
 
 #include "flurmp.h"
 #include "rectangle.h"
+#include "player.h"
+
+#include <stdlib.h>
 
 int fl_initialize()
 {
@@ -22,31 +25,34 @@ const char* fl_get_error()
 	return SDL_GetError();
 }
 
-fl_context fl_create_context()
+fl_context* fl_create_context()
 {
-	fl_context context;
+	fl_context* context = malloc(sizeof(fl_context));
 
-	context.window = SDL_CreateWindow("test", 100, 100,
+	context->window = SDL_CreateWindow("test", 100, 100,
 		FLURMP_WINDOW_WIDTH,
 		FLURMP_WINDOW_HEIGHT,
 		SDL_WINDOW_SHOWN);
 
-	if (context.window == NULL)
+	if (context->window == NULL)
 	{
-		context.error = 1;
+		context->error = 1;
 		return context;
 	}
 
-	context.renderer = SDL_CreateRenderer(context.window, -1,
+	context->renderer = SDL_CreateRenderer(context->window, -1,
 		SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
 
-	if (context.renderer == NULL) context.error = 2;
+	if (context->renderer == NULL) context->error = 2;
 
-	context.keystates = SDL_GetKeyboardState(NULL);
+	context->keystates = SDL_GetKeyboardState(NULL);
 
-	context.entities = NULL;
-	context.count = 0;
-	context.done = 0;
+	context->entities = NULL;
+	context->count = 0;
+	context->done = 0;
+
+	/* create a player */
+	fl_entity* player = fl_create_player(200, 200, 50, 50);
 
 	/* create some entities */
 	fl_entity* ground = fl_create_rectangle(115, 300, 400, 50);
@@ -54,18 +60,22 @@ fl_context fl_create_context()
 	fl_entity* right_wall = fl_create_rectangle(515, 100, 50, 250);
 
 	/* add the entities to the context */
-	fl_add_entity(&context, ground);
-	fl_add_entity(&context, left_wall);
-	fl_add_entity(&context, right_wall);
+	fl_add_entity(context, player);
+	fl_add_entity(context, ground);
+	fl_add_entity(context, left_wall);
+	fl_add_entity(context, right_wall);
+
+	/* set the primary control object */
+	context->pco = player;
 
 	return context;
 }
 
-void fl_destroy_context(fl_context context)
+void fl_destroy_context(fl_context* context)
 {
-	if (context.renderer != NULL) SDL_DestroyRenderer(context.renderer);
-	if (context.window != NULL) SDL_DestroyWindow(context.window);
-	fl_entity *en = context.entities;
+	if (context->renderer != NULL) SDL_DestroyRenderer(context->renderer);
+	if (context->window != NULL) SDL_DestroyWindow(context->window);
+	fl_entity *en = context->entities;
 	fl_entity *next;
 	while (en != NULL)
 	{
@@ -73,6 +83,7 @@ void fl_destroy_context(fl_context context)
 		free(en);
 		en = next;
 	}
+	free(context);
 }
 
 void fl_add_entity(fl_context *context, fl_entity *entity)
@@ -139,11 +150,17 @@ void fl_handle_event(fl_context *context)
 void fl_handle_input(fl_context* context)
 {
 	if (context->keystates[FLURMP_SC_ESCAPE]) context->done = 1;
+
+	if (context->keystates[FLURMP_SC_Z])
+	{
+		context->pco->x = 200;
+		context->pco->y = 200;
+	}
 }
 
-void fl_update(fl_context context)
+void fl_update(fl_context *context)
 {
-	fl_entity *en = context.entities;
+	fl_entity *en = context->entities;
 	fl_entity *next;
 
 	/* update state with respect to X axis */
@@ -153,7 +170,7 @@ void fl_update(fl_context context)
 		en = en->next;
 	}
 
-	en = context.entities;
+	en = context->entities;
 
 	/* handle collisions with respect to X axis */
 	while (en != NULL)
@@ -170,7 +187,7 @@ void fl_update(fl_context context)
 		en = en->next;
 	}
 
-	en = context.entities;
+	en = context->entities;
 
 	/* update state with respect to Y axis */
 	while (en != NULL)
@@ -179,7 +196,7 @@ void fl_update(fl_context context)
 		en = en->next;
 	}
 
-	en = context.entities;
+	en = context->entities;
 
 	/* handle collisions with respect to Y axis */
 	while (en != NULL)
@@ -197,12 +214,12 @@ void fl_update(fl_context context)
 	}
 }
 
-void fl_render(fl_context context)
+void fl_render(fl_context *context)
 {
-	SDL_SetRenderDrawColor(context.renderer, 0, 0, 0, 255);
-	SDL_RenderClear(context.renderer);
+	SDL_SetRenderDrawColor(context->renderer, 0, 0, 0, 255);
+	SDL_RenderClear(context->renderer);
 
-	fl_entity *en = context.entities;
+	fl_entity *en = context->entities;
 
 	while (en != NULL)
 	{
@@ -210,7 +227,7 @@ void fl_render(fl_context context)
 		en = en->next;
 	}
 
-	SDL_RenderPresent(context.renderer);
+	SDL_RenderPresent(context->renderer);
 }
 
 void fl_sleep(int ms)

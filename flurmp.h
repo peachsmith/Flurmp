@@ -8,6 +8,12 @@
 #define FLURMP_QUIT SDL_QUIT
 
 #define FLURMP_SC_ESCAPE SDL_SCANCODE_ESCAPE
+#define FLURMP_SC_Z SDL_SCANCODE_Z
+#define FLURMP_SC_X SDL_SCANCODE_X
+#define FLURMP_SC_W SDL_SCANCODE_W
+#define FLURMP_SC_A SDL_SCANCODE_A
+#define FLURMP_SC_S SDL_SCANCODE_S
+#define FLURMP_SC_D SDL_SCANCODE_D
 
 typedef SDL_Event fl_event;
 typedef SDL_Window fl_window;
@@ -57,9 +63,9 @@ struct fl_entity_s {
 	int h;
 
 	/* entity operations */
-	void(*collide) (fl_context, fl_entity*, fl_entity*, int, int);
-	void(*update) (fl_context, fl_entity*, int);
-	void(*render) (fl_context, fl_entity*);
+	void(*collide) (fl_context*, fl_entity*, fl_entity*, int, int);
+	void(*update) (fl_context*, fl_entity*, int);
+	void(*render) (fl_context*, fl_entity*);
 
 	/* list pointers */
 	fl_entity *next;
@@ -85,6 +91,9 @@ struct fl_context_s {
 
 	/* a list of all the entities in the current context */
 	fl_entity *entities;
+
+	/* the primary control object */
+	fl_entity* pco;
 
 	/* the number of entities */
 	int count;
@@ -131,12 +140,12 @@ const char* fl_get_error();
  * Returns:
  *   a context
  */
-fl_context fl_create_context();
+fl_context* fl_create_context();
 
 /**
 * Frees resources allocated for the context
 */
-void fl_destroy_context(fl_context);
+void fl_destroy_context(fl_context*);
 
 /**
  * Adds an entity to the current context
@@ -180,12 +189,12 @@ void fl_handle_input(fl_context*);
 /**
  * Updates the state of the context
  */
-void fl_update(fl_context);
+void fl_update(fl_context*);
 
 /**
 * Renders the current contents of the context to the screen
 */
-void fl_render(fl_context);
+void fl_render(fl_context*);
 
 /**
  * Waits for at least the specified number of milliseconds
