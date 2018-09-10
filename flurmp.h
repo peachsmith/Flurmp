@@ -95,6 +95,9 @@ struct fl_context_s {
 	/* the primary control object */
 	fl_entity* pco;
 
+	/* state flag */
+	unsigned int state;
+
 	/* the number of entities */
 	int count;
 

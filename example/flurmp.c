@@ -8,6 +8,8 @@
 
 #include <stdlib.h>
 
+static void fl_test_input(fl_context*);
+
 int fl_initialize()
 {
 	if (SDL_Init(SDL_INIT_VIDEO)) return 0;
@@ -67,6 +69,8 @@ fl_context* fl_create_context()
 
 	/* set the primary control object */
 	context->pco = player;
+
+	context->state = 0;
 
 	return context;
 }
@@ -149,12 +153,9 @@ void fl_handle_event(fl_context *context)
 
 void fl_handle_input(fl_context* context)
 {
-	if (context->keystates[FLURMP_SC_ESCAPE]) context->done = 1;
-
-	if (context->keystates[FLURMP_SC_Z])
+	if (context->state == 0)
 	{
-		context->pco->x = 200;
-		context->pco->y = 200;
+		fl_test_input(context);
 	}
 }
 
@@ -233,4 +234,20 @@ void fl_render(fl_context *context)
 void fl_sleep(int ms)
 {
 	SDL_Delay(ms);
+}
+
+static void fl_test_input(fl_context* context)
+{
+	if (context->keystates[FLURMP_SC_ESCAPE]) context->done = 1;
+
+	if (context->keystates[FLURMP_SC_Z])
+	{
+		context->pco->x = 200;
+		context->pco->y = 200;
+	}
+
+	if (context->keystates[FLURMP_SC_A])
+	{
+		context->state = 1;
+	}
 }

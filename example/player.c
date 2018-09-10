@@ -1,7 +1,5 @@
 #include "player.h"
 
-#include <stdio.h>
-
 /* entity function prototypes */
 static void fl_collide_player(fl_context*, fl_entity*, fl_entity*, int, int);
 static void fl_update_player(fl_context*, fl_entity*, int);
