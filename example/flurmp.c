@@ -245,9 +245,4 @@ static void fl_test_input(fl_context* context)
 		context->pco->x = 200;
 		context->pco->y = 200;
 	}
-
-	if (context->keystates[FLURMP_SC_A])
-	{
-		context->state = 1;
-	}
 }
