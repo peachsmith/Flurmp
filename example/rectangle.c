@@ -24,6 +24,7 @@ fl_entity* fl_create_rectangle(int x, int y, int w, int h)
 	rect->collide = fl_collide_rectangle;
 	rect->update = fl_update_rectangle;
 	rect->render = fl_render_rectangle;
+	rect->texture = NULL;
 
 	return rect;
 }

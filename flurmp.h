@@ -75,6 +75,9 @@ struct fl_entity_s {
 	int w;
 	int h;
 
+	/* sprite data */
+	SDL_Texture *texture;
+
 	/* entity operations */
 	void(*collide) (fl_context*, fl_entity*, fl_entity*, int, int);
 	void(*update) (fl_context*, fl_entity*, int);

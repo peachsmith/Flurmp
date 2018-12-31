@@ -24,6 +24,7 @@ fl_entity* fl_create_player(int x, int y, int w, int h)
 	rect->collide = fl_collide_player;
 	rect->update = fl_update_player;
 	rect->render = fl_render_player;
+	rect->texture = NULL;
 
 	return rect;
 }
@@ -83,7 +84,9 @@ static void fl_render_player(fl_context* context, fl_entity* self)
 	r.w = self->w;
 	r.h = self->h;
 
-	SDL_SetRenderDrawColor(context->renderer, 0, 180, 20, 255);
-	SDL_RenderFillRect(context->renderer, &r);
-	SDL_SetRenderDrawColor(context->renderer, 0, 0, 0, 255);
+	//SDL_SetRenderDrawColor(context->renderer, 0, 180, 20, 255);
+	//SDL_RenderFillRect(context->renderer, &r);
+	//SDL_SetRenderDrawColor(context->renderer, 0, 0, 0, 255);
+
+	SDL_RenderCopy(context->renderer, self->texture, NULL, &r);
 }

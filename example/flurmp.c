@@ -57,6 +57,13 @@ fl_context* fl_create_context()
 	/* create a player */
 	fl_entity* player = fl_create_player(200, 200, 50, 50);
 
+	/* create the player sprite here for now */
+	SDL_Surface *surface = SDL_LoadBMP("./images/person.bmp");
+	SDL_Texture *player_texture = SDL_CreateTextureFromSurface(context->renderer, surface);
+	SDL_FreeSurface(surface);
+
+	player->texture = player_texture;
+
 	/* create some entities */
 	fl_entity* ground = fl_create_rectangle(115, 300, 400, 50);
 	fl_entity* left_wall = fl_create_rectangle(65, 100, 50, 250);
