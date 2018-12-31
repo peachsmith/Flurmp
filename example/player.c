@@ -78,15 +78,17 @@ static void fl_update_player(fl_context* context, fl_entity* self, int axis)
 
 static void fl_render_player(fl_context* context, fl_entity* self)
 {
-	SDL_Rect r;
-	r.x = self->x;
-	r.y = self->y;
-	r.w = self->w;
-	r.h = self->h;
+	SDL_Rect dest;
+	dest.x = self->x;
+	dest.y = self->y;
+	dest.w = self->w;
+	dest.h = self->h;
 
-	//SDL_SetRenderDrawColor(context->renderer, 0, 180, 20, 255);
-	//SDL_RenderFillRect(context->renderer, &r);
-	//SDL_SetRenderDrawColor(context->renderer, 0, 0, 0, 255);
+	SDL_Rect src;
+	src.x = 0;
+	src.y = 0;
+	src.w = 50;
+	src.h = 50;
 
-	SDL_RenderCopy(context->renderer, self->texture, NULL, &r);
+	SDL_RenderCopy(context->renderer, self->texture, &src, &dest);
 }

@@ -59,6 +59,7 @@ fl_context* fl_create_context()
 
 	/* create the player sprite here for now */
 	SDL_Surface *surface = SDL_LoadBMP("./images/person.bmp");
+	SDL_SetColorKey(surface, 1, SDL_MapRGB(surface->format, 255, 0, 255));
 	SDL_Texture *player_texture = SDL_CreateTextureFromSurface(context->renderer, surface);
 	SDL_FreeSurface(surface);
 
