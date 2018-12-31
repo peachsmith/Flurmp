@@ -110,28 +110,28 @@ int fl_detect_collision(fl_entity* a, fl_entity* b)
 {
 	int collision = 0;
 
-	if (a->x >= b->x && a->x <= b->x + b->w)
+	if (a->x >= b->x && a->x < b->x + b->w)
 	{
-		if (a->y >= b->y && a->y <= b->y + b->h)
+		if (a->y > b->y && a->y < b->y + b->h)
 		{
 			/* bottom right */
 			collision = 1;
 		}
-		else if (a->y + a->h >= b->y && a->y <= b->y + b->h)
+		else if (a->y + a->h > b->y && a->y < b->y + b->h)
 		{
 			/* top right */
 			collision = 2;
 		}
 	}
 
-	if (b->x >= a->x && b->x <= a->x + a->w)
+	if (b->x >= a->x && b->x < a->x + a->w)
 	{
-		if (b->y >= a->y && b->y <= a->y + a->h)
+		if (b->y > a->y && b->y < a->y + a->h)
 		{
 			/* top left */
 			collision = 3;
 		}
-		else if (b->y + b->h >= a->y && b->y <= a->y + a->h)
+		else if (b->y + b->h > a->y && b->y < a->y + a->h)
 		{
 			/* bottom left */
 			collision = 4;
@@ -181,7 +181,11 @@ void fl_update(fl_context *context)
 		while (next != NULL)
 		{
 			int collided = fl_detect_collision(en, next);
-			if (collided) en->collide(context, en, next, collided, FLURMP_AXIS_X);
+			if (collided)
+			{
+				en->collide(context, en, next, collided, FLURMP_AXIS_X);
+				next->collide(context, next, en, collided, FLURMP_AXIS_X);
+			}
 			next = next->next;
 		}
 
@@ -207,7 +211,11 @@ void fl_update(fl_context *context)
 		while (next != NULL)
 		{
 			int collided = fl_detect_collision(en, next);
-			if (collided) en->collide(context, en, next, collided, FLURMP_AXIS_Y);
+			if (collided)
+			{
+				en->collide(context, en, next, collided, FLURMP_AXIS_Y);
+				next->collide(context, next, en, collided, FLURMP_AXIS_Y);
+			}
 			next = next->next;
 		}
 

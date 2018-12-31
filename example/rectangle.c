@@ -29,7 +29,33 @@ fl_entity* fl_create_rectangle(int x, int y, int w, int h)
 
 static void fl_collide_rectangle(fl_context* context, fl_entity* self, fl_entity* other, int collided, int axis)
 {
+	if (axis == FLURMP_AXIS_X)
+	{
+		if (collided == 3 || collided == 4)
+		{
+			/* left */
+			other->x = other->x - (other->x + other->w - self->x);// -1;
+		}
+		else if (collided == 1 || collided == 2)
+		{
+			/* right */
+			other->x = other->x + (self->x + self->w - other->x);// +1;
+		}
+	}
 
+	if (axis == FLURMP_AXIS_Y)
+	{
+		if (collided == 2 || collided == 3)
+		{
+			/* top */
+			other->y = other->y - (other->y + other->h - self->y);// -1;
+		}
+		else if (collided == 1 || collided == 4)
+		{
+			/* bottom */
+			other->y = other->y + (self->y + self->h - other->y);// +1;
+		}
+	}
 }
 
 static void fl_update_rectangle(fl_context* context, fl_entity* self, int axis)

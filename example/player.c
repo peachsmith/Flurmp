@@ -29,33 +29,51 @@ fl_entity* fl_create_player(int x, int y, int w, int h)
 
 static void fl_collide_player(fl_context* context, fl_entity* self, fl_entity* other, int collided, int axis)
 {
-	if (axis == FLURMP_AXIS_X)
-	{
 
-	}
-	else if (axis == FLURMP_AXIS_Y)
-	{
-		if (collided == 2 || collided == 3)
-		{
-			self->y_v = 0;
-			self->y -= (self->y + self->h) - other->y;
-		}
-	}
 }
 
 static void fl_update_player(fl_context* context, fl_entity* self, int axis)
 {
-	if (axis == FLURMP_AXIS_X)
+	if (context->keystates[FLURMP_SC_A])
 	{
-		self->x += self->x_v;
+		if (axis == FLURMP_AXIS_X)
+		{
+			self->x -= 2;
+		}
 	}
-	else if (axis == FLURMP_AXIS_Y)
+	if (context->keystates[FLURMP_SC_D])
 	{
-		/* gravity */
-		if (self->y_v < 4) self->y_v += 1;
+		if (axis == FLURMP_AXIS_X)
+		{
+			self->x += 2;
+		}
+	}
+	if (context->keystates[FLURMP_SC_W])
+	{
+		if (axis == FLURMP_AXIS_Y)
+		{
+			self->y -= 2;
+		}
+	}
+	if (context->keystates[FLURMP_SC_S])
+	{
+		if (axis == FLURMP_AXIS_Y)
+		{
+			self->y += 2;
+		}
+	}
 
-		self->y += self->y_v;
-	}
+	//if (axis == FLURMP_AXIS_X)
+	//{
+	//	self->x += self->x_v;
+	//}
+	//else if (axis == FLURMP_AXIS_Y)
+	//{
+	//	/* gravity */
+	//	//if (self->y_v < 4) self->y_v += 1;
+
+	//	self->y += self->y_v;
+	//}
 }
 
 static void fl_render_player(fl_context* context, fl_entity* self)
