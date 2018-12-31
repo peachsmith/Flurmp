@@ -8,12 +8,22 @@
 #define FLURMP_QUIT SDL_QUIT
 
 #define FLURMP_SC_ESCAPE SDL_SCANCODE_ESCAPE
+#define FLURMP_SC_SPACE SDL_SCANCODE_SPACE
 #define FLURMP_SC_Z SDL_SCANCODE_Z
 #define FLURMP_SC_X SDL_SCANCODE_X
 #define FLURMP_SC_W SDL_SCANCODE_W
 #define FLURMP_SC_A SDL_SCANCODE_A
 #define FLURMP_SC_S SDL_SCANCODE_S
 #define FLURMP_SC_D SDL_SCANCODE_D
+
+#define FLURMP_JUMP_FLAG 0x01
+#define FLURMP_FLAG_2 0x02
+#define FLURMP_FLAG_3 0x04
+#define FLURMP_FLAG_4 0x08
+#define FLURMP_FLAG_5 0x10
+#define FLURMP_FLAG_6 0x20
+#define FLURMP_FLAG_7 0x40
+#define FLURMP_FLAG_8 0x80
 
 typedef SDL_Event fl_event;
 typedef SDL_Window fl_window;
@@ -49,6 +59,9 @@ enum fl_entity_type_e {
 struct fl_entity_s {
 
 	fl_entity_type type;
+
+	/* flags */
+	unsigned char flags;
 
 	/* position */
 	int x;

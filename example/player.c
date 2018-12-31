@@ -14,6 +14,7 @@ fl_entity* fl_create_player(int x, int y, int w, int h)
 	rect->next = NULL;
 	rect->tail = NULL;
 	rect->type = FL_PCO;
+	rect->flags = 0;
 	rect->x_v = 0;
 	rect->y_v = 0;
 	rect->x = x;
@@ -34,46 +35,44 @@ static void fl_collide_player(fl_context* context, fl_entity* self, fl_entity* o
 
 static void fl_update_player(fl_context* context, fl_entity* self, int axis)
 {
+	/* horizontal movement */
 	if (context->keystates[FLURMP_SC_A])
 	{
-		if (axis == FLURMP_AXIS_X)
+		if (self->x_v > -2)
 		{
-			self->x -= 2;
+			self->x_v--;
 		}
 	}
 	if (context->keystates[FLURMP_SC_D])
 	{
-		if (axis == FLURMP_AXIS_X)
+		if (self->x_v < 2)
 		{
-			self->x += 2;
-		}
-	}
-	if (context->keystates[FLURMP_SC_W])
-	{
-		if (axis == FLURMP_AXIS_Y)
-		{
-			self->y -= 2;
-		}
-	}
-	if (context->keystates[FLURMP_SC_S])
-	{
-		if (axis == FLURMP_AXIS_Y)
-		{
-			self->y += 2;
+			self->x_v++;
 		}
 	}
 
-	//if (axis == FLURMP_AXIS_X)
-	//{
-	//	self->x += self->x_v;
-	//}
-	//else if (axis == FLURMP_AXIS_Y)
-	//{
-	//	/* gravity */
-	//	//if (self->y_v < 4) self->y_v += 1;
+	/* jumping */
+	if (context->keystates[FLURMP_SC_SPACE] && self->flags & FLURMP_JUMP_FLAG)
+	{
+		self->y_v -= 12;
+		self->flags &= ~(FLURMP_JUMP_FLAG);
+	}
 
-	//	self->y += self->y_v;
-	//}
+	if (axis == FLURMP_AXIS_X)
+	{
+		self->x += self->x_v;
+
+		/* x inertia */
+		if (self->x_v > 0) self->x_v--;
+		if (self->x_v < 0) self->x_v++;
+	}
+	else if (axis == FLURMP_AXIS_Y)
+	{
+		/* gravity */
+		if (self->y_v < 4) self->y_v += 1;
+
+		self->y += self->y_v;
+	}
 }
 
 static void fl_render_player(fl_context* context, fl_entity* self)

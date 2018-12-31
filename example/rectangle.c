@@ -14,6 +14,7 @@ fl_entity* fl_create_rectangle(int x, int y, int w, int h)
 	rect->next = NULL;
 	rect->tail = NULL;
 	rect->type = FL_SOLID;
+	rect->flags = 0;
 	rect->x_v = 0;
 	rect->y_v = 0;
 	rect->x = x;
@@ -31,6 +32,8 @@ static void fl_collide_rectangle(fl_context* context, fl_entity* self, fl_entity
 {
 	if (axis == FLURMP_AXIS_X)
 	{
+		other->x_v = 0;
+
 		if (collided == 3 || collided == 4)
 		{
 			/* left */
@@ -45,10 +48,13 @@ static void fl_collide_rectangle(fl_context* context, fl_entity* self, fl_entity
 
 	if (axis == FLURMP_AXIS_Y)
 	{
+		other->y_v = 0;
+
 		if (collided == 2 || collided == 3)
 		{
 			/* top */
 			other->y = other->y - (other->y + other->h - self->y);// -1;
+			other->flags |= FLURMP_JUMP_FLAG;
 		}
 		else if (collided == 1 || collided == 4)
 		{
