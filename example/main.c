@@ -38,6 +38,8 @@ int main(int argc, char** argv)
 	/* while not done */
 	while (!context->done)
 	{
+		fl_begin_frame(context);
+
 		/* poll for events */
 		while (fl_poll_event(context))
 		{
@@ -55,7 +57,7 @@ int main(int argc, char** argv)
 		fl_render(context);
 
 		/* regulate framerate */
-		fl_sleep(10);
+		fl_end_frame(context);
 	}
 
 	/* destroy the context */

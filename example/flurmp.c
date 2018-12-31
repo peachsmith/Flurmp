@@ -52,6 +52,7 @@ fl_context* fl_create_context()
 	context->entities = NULL;
 	context->count = 0;
 	context->done = 0;
+	context->fps = 60;
 
 	/* create a player */
 	fl_entity* player = fl_create_player(200, 200, 50, 50);
@@ -242,6 +243,19 @@ void fl_render(fl_context *context)
 void fl_sleep(int ms)
 {
 	SDL_Delay(ms);
+}
+
+void fl_begin_frame(fl_context* context)
+{
+	context->ticks = SDL_GetTicks();
+}
+
+void fl_end_frame(fl_context* context)
+{
+	if (1000 / context->fps > SDL_GetTicks() - context->ticks)
+	{
+		SDL_Delay(1000 / context->fps - (SDL_GetTicks() - context->ticks));
+	}
 }
 
 static void fl_test_input(fl_context* context)

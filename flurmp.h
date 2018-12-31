@@ -114,6 +114,12 @@ struct fl_context_s {
 	/* the number of entities */
 	int count;
 
+	/* frames per second */
+	int fps;
+
+	/* tick count */
+	unsigned long ticks;
+
 	/* completion flag */
 	int done;
 
@@ -213,8 +219,13 @@ void fl_update(fl_context*);
 void fl_render(fl_context*);
 
 /**
- * Waits for at least the specified number of milliseconds
+ * begins an iteration of the main loop
  */
-void fl_sleep(int);
+void fl_begin_frame(fl_context* context);
+
+/**
+* concludes an iteration of the main loop
+*/
+void fl_end_frame(fl_context* context);
 
 #endif /* !FLURMP_H */
