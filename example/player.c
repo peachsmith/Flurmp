@@ -60,22 +60,21 @@ static void fl_update_player(fl_context* context, fl_entity* self, int axis)
 		{
 			context->inputs[FLURMP_INPUT_SPACE] = 1;
 
-			if (context->keystates[FLURMP_SC_SPACE] && !(self->flags & FLURMP_JUMP_FLAG))
+			if (!(self->flags & FLURMP_JUMP_FLAG))
 			{
 				self->y_v -= 12;
 				self->flags |= FLURMP_JUMP_FLAG;
-			}
-			else
-			{
-				if (self->x_v < 0 && !(self->flags & FLURMP_LEFT_FLAG))
-					self->flags |= FLURMP_LEFT_FLAG;
-				else if (self->x_v > 0 && self->flags & FLURMP_LEFT_FLAG)
-					self->flags &= ~(FLURMP_LEFT_FLAG);
 			}
 		}
 	}
 	else if (context->inputs[FLURMP_INPUT_SPACE])
 		context->inputs[FLURMP_INPUT_SPACE] = 0;
+
+	/* determine which direction the player is facing */
+	if (self->x_v < 0 && !(self->flags & FLURMP_LEFT_FLAG))
+		self->flags |= FLURMP_LEFT_FLAG;
+	else if (self->x_v > 0 && self->flags & FLURMP_LEFT_FLAG)
+		self->flags &= ~(FLURMP_LEFT_FLAG);
 
 	/* entity interaction */
 	if (context->keystates[FLURMP_SC_Z])
@@ -117,10 +116,8 @@ static void fl_update_player(fl_context* context, fl_entity* self, int axis)
 	else if (self->x_v != 0)
 	{
 		/* walking */
-		if (self->frame < 30)
-			self->frame++;
-		else
-			self->frame = 0;
+		if (self->frame < 30) self->frame++;
+		else self->frame = 0;
 	}
 	else
 		/* standing */
