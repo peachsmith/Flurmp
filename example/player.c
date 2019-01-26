@@ -77,6 +77,10 @@ static void fl_update_player(fl_context* context, fl_entity* self, int axis)
 		self->flags &= ~(FLURMP_LEFT_FLAG);
 
 	/* entity interaction */
+
+	if (self->flags & FLURMP_INTERACT_FLAG)
+		self->flags &= ~(FLURMP_INTERACT_FLAG);
+
 	if (context->keystates[FLURMP_SC_Z])
 	{
 		if (!context->inputs[FLURMP_INPUT_Z])
@@ -91,6 +95,7 @@ static void fl_update_player(fl_context* context, fl_entity* self, int axis)
 	}
 	else if (context->inputs[FLURMP_INPUT_Z])
 		context->inputs[FLURMP_INPUT_Z] = 0;
+
 
 	/* intertia and gravity */
 	if (axis == FLURMP_AXIS_X)
