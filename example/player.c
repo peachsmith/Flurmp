@@ -54,30 +54,55 @@ static void fl_update_player(fl_context* context, fl_entity* self, int axis)
 	}
 
 	/* jumping */
-	if (context->keystates[FLURMP_SC_SPACE] && !(self->flags & FLURMP_JUMP_FLAG))
+	if (context->keystates[FLURMP_SC_SPACE])
 	{
-		self->y_v -= 12;
-		self->flags |= FLURMP_JUMP_FLAG;
-	}
-	else
-	{
-		if (self->x_v < 0 && !(self->flags & FLURMP_LEFT_FLAG))
-			self->flags |= FLURMP_LEFT_FLAG;
-		else if (self->x_v > 0 && self->flags & FLURMP_LEFT_FLAG)
-			self->flags &= ~(FLURMP_LEFT_FLAG);
-	}
+		if (!context->inputs[FLURMP_INPUT_SPACE])
+		{
+			context->inputs[FLURMP_INPUT_SPACE] = 1;
 
+			if (context->keystates[FLURMP_SC_SPACE] && !(self->flags & FLURMP_JUMP_FLAG))
+			{
+				self->y_v -= 12;
+				self->flags |= FLURMP_JUMP_FLAG;
+			}
+			else
+			{
+				if (self->x_v < 0 && !(self->flags & FLURMP_LEFT_FLAG))
+					self->flags |= FLURMP_LEFT_FLAG;
+				else if (self->x_v > 0 && self->flags & FLURMP_LEFT_FLAG)
+					self->flags &= ~(FLURMP_LEFT_FLAG);
+			}
+		}
+	}
+	else if (context->inputs[FLURMP_INPUT_SPACE])
+		context->inputs[FLURMP_INPUT_SPACE] = 0;
+
+	/* entity interaction */
+	if (context->keystates[FLURMP_SC_Z])
+	{
+		if (!context->inputs[FLURMP_INPUT_Z])
+		{
+			context->inputs[FLURMP_INPUT_Z] = 1;
+
+			if (!(self->flags & FLURMP_INTERACT_FLAG))
+			{
+				self->flags |= FLURMP_INTERACT_FLAG;
+			}
+		}
+	}
+	else if (context->inputs[FLURMP_INPUT_Z])
+		context->inputs[FLURMP_INPUT_Z] = 0;
+
+	/* intertia and gravity */
 	if (axis == FLURMP_AXIS_X)
 	{
 		self->x += self->x_v;
 
-		/* x inertia */
 		if (self->x_v > 0) self->x_v--;
 		if (self->x_v < 0) self->x_v++;
 	}
 	else if (axis == FLURMP_AXIS_Y)
 	{
-		/* gravity */
 		if (self->y_v < 4) self->y_v += 1;
 
 		self->y += self->y_v;

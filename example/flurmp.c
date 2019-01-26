@@ -4,6 +4,7 @@
 
 #include "flurmp.h"
 #include "rectangle.h"
+#include "interactable.h"
 #include "player.h"
 
 #include <stdlib.h>
@@ -49,6 +50,9 @@ fl_context* fl_create_context()
 
 	context->keystates = SDL_GetKeyboardState(NULL);
 
+	int i;
+	for (i = 0; i < 2; i++) context->inputs[i] = 0;
+
 	context->entities = NULL;
 	context->count = 0;
 	context->done = 0;
@@ -57,7 +61,7 @@ fl_context* fl_create_context()
 	/* create a player */
 	fl_entity* player = fl_create_player(200, 200, 30, 40);
 
-	/* create the player sprite here for now */
+	/* load the sprite for the player */
 	SDL_Surface *surface = SDL_LoadBMP("./images/person.bmp");
 	SDL_SetColorKey(surface, 1, SDL_MapRGB(surface->format, 255, 0, 255));
 	SDL_Texture *player_texture = SDL_CreateTextureFromSurface(context->renderer, surface);
@@ -65,16 +69,20 @@ fl_context* fl_create_context()
 
 	player->texture = player_texture;
 
-	/* create some entities */
-	fl_entity* ground = fl_create_rectangle(115, 300, 400, 50);
-
+	/* block to stand on */
 	fl_entity* block_1 = fl_create_rectangle(380, 250, 70, 20);
 	fl_entity* block_2 = fl_create_rectangle(440, 220, 50, 20);
 
+	/* walls and floor */
+	fl_entity* ground = fl_create_rectangle(115, 300, 400, 50);
 	fl_entity* left_wall = fl_create_rectangle(65, 100, 50, 250);
 	fl_entity* right_wall = fl_create_rectangle(515, 100, 50, 250);
 
+	/* something to interact with */
+	fl_entity* sign = fl_create_interactable(310, 270, 30, 30);
+
 	/* add the entities to the context */
+	fl_add_entity(context, sign);
 	fl_add_entity(context, player);
 	fl_add_entity(context, ground);
 	fl_add_entity(context, block_1);
@@ -276,7 +284,7 @@ static void fl_test_input(fl_context* context)
 {
 	if (context->keystates[FLURMP_SC_ESCAPE]) context->done = 1;
 
-	if (context->keystates[FLURMP_SC_Z])
+	if (context->keystates[FLURMP_SC_C])
 	{
 		context->pco->x = 200;
 		context->pco->y = 200;

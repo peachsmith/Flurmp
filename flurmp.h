@@ -9,12 +9,16 @@
 
 #define FLURMP_SC_ESCAPE SDL_SCANCODE_ESCAPE
 #define FLURMP_SC_SPACE SDL_SCANCODE_SPACE
+#define FLURMP_SC_C SDL_SCANCODE_C
 #define FLURMP_SC_Z SDL_SCANCODE_Z
 #define FLURMP_SC_X SDL_SCANCODE_X
 #define FLURMP_SC_W SDL_SCANCODE_W
 #define FLURMP_SC_A SDL_SCANCODE_A
 #define FLURMP_SC_S SDL_SCANCODE_S
 #define FLURMP_SC_D SDL_SCANCODE_D
+
+#define FLURMP_INPUT_Z 0
+#define FLURMP_INPUT_SPACE 1
 
 #define FLURMP_JUMP_FLAG     0x01
 #define FLURMP_LEFT_FLAG     0x02
@@ -107,6 +111,9 @@ struct fl_context_s {
 
 	/* keeps track of button states for user input */
 	fl_keystate *keystates;
+
+	/* keeps track of what inputs have been received */
+	int inputs[2];
 
 	/* a list of all the entities in the current context */
 	fl_entity *entities;

@@ -31,7 +31,15 @@ fl_entity* fl_create_rectangle(int x, int y, int w, int h)
 
 static void fl_collide_rectangle(fl_context* context, fl_entity* self, fl_entity* other, int collided, int axis)
 {
-	if (other->type == FL_SOLID) return;
+	switch (other->type)
+	{
+	case FL_SOLID:
+	case FL_INTERACT:
+		return;
+
+	default:
+		break;
+	}
 
 	if (axis == FLURMP_AXIS_X)
 	{
@@ -82,5 +90,4 @@ static void fl_render_rectangle(fl_context* context, fl_entity* self)
 
 	SDL_SetRenderDrawColor(context->renderer, 100, 80, 0, 255);
 	SDL_RenderFillRect(context->renderer, &r);
-	SDL_SetRenderDrawColor(context->renderer, 0, 0, 0, 255);
 }
