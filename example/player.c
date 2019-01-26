@@ -54,10 +54,17 @@ static void fl_update_player(fl_context* context, fl_entity* self, int axis)
 	}
 
 	/* jumping */
-	if (context->keystates[FLURMP_SC_SPACE] && self->flags & FLURMP_JUMP_FLAG)
+	if (context->keystates[FLURMP_SC_SPACE] && !(self->flags & FLURMP_JUMP_FLAG))
 	{
 		self->y_v -= 12;
-		self->flags &= ~(FLURMP_JUMP_FLAG);
+		self->flags |= FLURMP_JUMP_FLAG;
+	}
+	else
+	{
+		if (self->x_v < 0 && !(self->flags & FLURMP_LEFT_FLAG))
+			self->flags |= FLURMP_LEFT_FLAG;
+		else if (self->x_v > 0 && self->flags & FLURMP_LEFT_FLAG)
+			self->flags &= ~(FLURMP_LEFT_FLAG);
 	}
 
 	if (axis == FLURMP_AXIS_X)
@@ -77,7 +84,7 @@ static void fl_update_player(fl_context* context, fl_entity* self, int axis)
 	}
 
 	/* update animation frame */
-	if (!(self->flags & FLURMP_JUMP_FLAG))
+	if (self->flags & FLURMP_JUMP_FLAG)
 
 		/* int the air */
 		self->frame = 1;
@@ -108,7 +115,7 @@ static void fl_render_player(fl_context* context, fl_entity* self)
 	/* calculate the sprite coordinate based on
 	 * frame count and entity state
 	 */
-	if (!(self->flags & FLURMP_JUMP_FLAG))
+	if (self->flags & FLURMP_JUMP_FLAG)
 		f = 1;
 	else if (self->frame > 10 && self->frame < 20)
 		f = 1;
@@ -121,15 +128,8 @@ static void fl_render_player(fl_context* context, fl_entity* self)
 	src.w = 50;
 	src.h = 50;
 
-	//SDL_RenderCopy(context->renderer, self->texture, &src, &dest);
-
-	if (self->flags & FLURMP_JUMP_FLAG)
-	{
-		if (self->x_v < 0)
-			SDL_RenderCopyEx(context->renderer, self->texture, &src, &dest, 0, NULL, SDL_FLIP_HORIZONTAL);
-		else
-			SDL_RenderCopyEx(context->renderer, self->texture, &src, &dest, 0, NULL, SDL_FLIP_NONE);
-	}
+	if (self->flags & FLURMP_LEFT_FLAG)
+		SDL_RenderCopyEx(context->renderer, self->texture, &src, &dest, 0, NULL, SDL_FLIP_HORIZONTAL);
 	else
 		SDL_RenderCopyEx(context->renderer, self->texture, &src, &dest, 0, NULL, SDL_FLIP_NONE);
 }

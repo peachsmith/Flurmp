@@ -55,7 +55,7 @@ static void fl_collide_rectangle(fl_context* context, fl_entity* self, fl_entity
 		{
 			/* top */
 			other->y = other->y - (other->y + other->h - self->y);// -1;
-			other->flags |= FLURMP_JUMP_FLAG;
+			other->flags &= ~(FLURMP_JUMP_FLAG);
 		}
 		else if (collided == 1 || collided == 4)
 		{
