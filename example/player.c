@@ -121,5 +121,15 @@ static void fl_render_player(fl_context* context, fl_entity* self)
 	src.w = 50;
 	src.h = 50;
 
-	SDL_RenderCopy(context->renderer, self->texture, &src, &dest);
+	//SDL_RenderCopy(context->renderer, self->texture, &src, &dest);
+
+	if (self->flags & FLURMP_JUMP_FLAG)
+	{
+		if (self->x_v < 0)
+			SDL_RenderCopyEx(context->renderer, self->texture, &src, &dest, 0, NULL, SDL_FLIP_HORIZONTAL);
+		else
+			SDL_RenderCopyEx(context->renderer, self->texture, &src, &dest, 0, NULL, SDL_FLIP_NONE);
+	}
+	else
+		SDL_RenderCopyEx(context->renderer, self->texture, &src, &dest, 0, NULL, SDL_FLIP_NONE);
 }
