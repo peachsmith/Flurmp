@@ -75,6 +75,9 @@ struct fl_entity_s {
 	int w;
 	int h;
 
+	/* animation */
+	int frame;
+
 	/* sprite data */
 	SDL_Texture *texture;
 

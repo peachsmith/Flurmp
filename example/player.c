@@ -21,6 +21,7 @@ fl_entity* fl_create_player(int x, int y, int w, int h)
 	rect->y = y;
 	rect->w = w;
 	rect->h = h;
+	rect->frame = 0;
 	rect->collide = fl_collide_player;
 	rect->update = fl_update_player;
 	rect->render = fl_render_player;
@@ -74,6 +75,24 @@ static void fl_update_player(fl_context* context, fl_entity* self, int axis)
 
 		self->y += self->y_v;
 	}
+
+	/* update animation frame */
+	if (!(self->flags & FLURMP_JUMP_FLAG))
+
+		/* int the air */
+		self->frame = 1;
+
+	else if (self->x_v != 0)
+	{
+		/* walking */
+		if (self->frame < 30)
+			self->frame++;
+		else
+			self->frame = 0;
+	}
+	else
+		/* standing */
+		self->frame = 0;
 }
 
 static void fl_render_player(fl_context* context, fl_entity* self)
@@ -84,8 +103,20 @@ static void fl_render_player(fl_context* context, fl_entity* self)
 	dest.w = self->w;
 	dest.h = self->h;
 
+	int f = 0;
+
+	/* calculate the sprite coordinate based on
+	 * frame count and entity state
+	 */
+	if (!(self->flags & FLURMP_JUMP_FLAG))
+		f = 1;
+	else if (self->frame > 10 && self->frame < 20)
+		f = 1;
+	else if (self->frame > 20 && self->frame < 30)
+		f = 2;
+
 	SDL_Rect src;
-	src.x = 0;
+	src.x = 50 * f;
 	src.y = 0;
 	src.w = 50;
 	src.h = 50;
