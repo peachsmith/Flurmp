@@ -16,14 +16,14 @@
 #define FLURMP_SC_S SDL_SCANCODE_S
 #define FLURMP_SC_D SDL_SCANCODE_D
 
-#define FLURMP_JUMP_FLAG 0x01
-#define FLURMP_LEFT_FLAG 0x02
-#define FLURMP_FLAG_3 0x04
-#define FLURMP_FLAG_4 0x08
-#define FLURMP_FLAG_5 0x10
-#define FLURMP_FLAG_6 0x20
-#define FLURMP_FLAG_7 0x40
-#define FLURMP_FLAG_8 0x80
+#define FLURMP_JUMP_FLAG     0x01
+#define FLURMP_LEFT_FLAG     0x02
+#define FLURMP_INTERACT_FLAG 0x04
+#define FLURMP_FLAG_4        0x08
+#define FLURMP_FLAG_5        0x10
+#define FLURMP_FLAG_6        0x20
+#define FLURMP_FLAG_7        0x40
+#define FLURMP_FLAG_8        0x80
 
 typedef SDL_Event fl_event;
 typedef SDL_Window fl_window;
