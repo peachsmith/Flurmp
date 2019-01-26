@@ -40,18 +40,13 @@ static void fl_update_player(fl_context* context, fl_entity* self, int axis)
 	/* horizontal movement */
 	if (context->keystates[FLURMP_SC_A])
 	{
-		if (self->x_v > -2)
-		{
-			self->x_v--;
-		}
+		if (self->x_v > -2) self->x_v--;
 	}
 	if (context->keystates[FLURMP_SC_D])
 	{
-		if (self->x_v < 2)
-		{
-			self->x_v++;
-		}
+		if (self->x_v < 2) self->x_v++;
 	}
+
 
 	/* jumping */
 	if (context->keystates[FLURMP_SC_SPACE])
@@ -70,14 +65,15 @@ static void fl_update_player(fl_context* context, fl_entity* self, int axis)
 	else if (context->inputs[FLURMP_INPUT_SPACE])
 		context->inputs[FLURMP_INPUT_SPACE] = 0;
 
+
 	/* determine which direction the player is facing */
 	if (self->x_v < 0 && !(self->flags & FLURMP_LEFT_FLAG))
 		self->flags |= FLURMP_LEFT_FLAG;
 	else if (self->x_v > 0 && self->flags & FLURMP_LEFT_FLAG)
 		self->flags &= ~(FLURMP_LEFT_FLAG);
 
-	/* entity interaction */
 
+	/* entity interaction */
 	if (self->flags & FLURMP_INTERACT_FLAG)
 		self->flags &= ~(FLURMP_INTERACT_FLAG);
 
