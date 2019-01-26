@@ -31,6 +31,8 @@ fl_entity* fl_create_rectangle(int x, int y, int w, int h)
 
 static void fl_collide_rectangle(fl_context* context, fl_entity* self, fl_entity* other, int collided, int axis)
 {
+	if (other->type == FL_SOLID) return;
+
 	if (axis == FLURMP_AXIS_X)
 	{
 		other->x_v = 0;

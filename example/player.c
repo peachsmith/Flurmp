@@ -105,10 +105,10 @@ static void fl_update_player(fl_context* context, fl_entity* self, int axis)
 static void fl_render_player(fl_context* context, fl_entity* self)
 {
 	SDL_Rect dest;
-	dest.x = self->x;
-	dest.y = self->y;
-	dest.w = self->w;
-	dest.h = self->h;
+	dest.x = self->x - 10;
+	dest.y = self->y - 8;
+	dest.w = self->w + 20;
+	dest.h = self->h + 10;
 
 	int f = 0;
 
@@ -128,8 +128,17 @@ static void fl_render_player(fl_context* context, fl_entity* self)
 	src.w = 50;
 	src.h = 50;
 
+	SDL_Rect hb;
+	hb.x = self->x;
+	hb.y = self->y;
+	hb.w = self->w;
+	hb.h = self->h;
+
 	if (self->flags & FLURMP_LEFT_FLAG)
 		SDL_RenderCopyEx(context->renderer, self->texture, &src, &dest, 0, NULL, SDL_FLIP_HORIZONTAL);
 	else
 		SDL_RenderCopyEx(context->renderer, self->texture, &src, &dest, 0, NULL, SDL_FLIP_NONE);
+
+	SDL_SetRenderDrawColor(context->renderer, 255, 0, 255, 255);
+	SDL_RenderDrawRect(context->renderer, &hb);
 }

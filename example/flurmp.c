@@ -55,7 +55,7 @@ fl_context* fl_create_context()
 	context->fps = 60;
 
 	/* create a player */
-	fl_entity* player = fl_create_player(200, 200, 50, 50);
+	fl_entity* player = fl_create_player(200, 200, 30, 40);
 
 	/* create the player sprite here for now */
 	SDL_Surface *surface = SDL_LoadBMP("./images/person.bmp");
@@ -67,12 +67,18 @@ fl_context* fl_create_context()
 
 	/* create some entities */
 	fl_entity* ground = fl_create_rectangle(115, 300, 400, 50);
+
+	fl_entity* block_1 = fl_create_rectangle(380, 250, 70, 20);
+	fl_entity* block_2 = fl_create_rectangle(440, 220, 50, 20);
+
 	fl_entity* left_wall = fl_create_rectangle(65, 100, 50, 250);
 	fl_entity* right_wall = fl_create_rectangle(515, 100, 50, 250);
 
 	/* add the entities to the context */
 	fl_add_entity(context, player);
 	fl_add_entity(context, ground);
+	fl_add_entity(context, block_1);
+	fl_add_entity(context, block_2);
 	fl_add_entity(context, left_wall);
 	fl_add_entity(context, right_wall);
 
@@ -234,7 +240,7 @@ void fl_update(fl_context *context)
 
 void fl_render(fl_context *context)
 {
-	SDL_SetRenderDrawColor(context->renderer, 0, 0, 0, 255);
+	SDL_SetRenderDrawColor(context->renderer, 145, 219, 255, 255);
 	SDL_RenderClear(context->renderer);
 
 	fl_entity *en = context->entities;
