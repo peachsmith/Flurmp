@@ -1,5 +1,7 @@
 #include "player.h"
 
+#include <stdio.h>
+
 /* entity function prototypes */
 static void fl_collide_player(fl_context*, fl_entity*, fl_entity*, int, int);
 static void fl_update_player(fl_context*, fl_entity*, int);
@@ -37,18 +39,45 @@ static void fl_collide_player(fl_context* context, fl_entity* self, fl_entity* o
 
 static void fl_update_player(fl_context* context, fl_entity* self, int axis)
 {
-	/* horizontal movement */
-	if (context->keystates[FLURMP_SC_A])
+	/* horizontal movement (x axis) */
+	if (axis == FLURMP_AXIS_X && context->keystates[FLURMP_SC_A])
 	{
-		if (self->x_v > -2) self->x_v--;
+		if (self->x_v > -2) self->x_v -= 2;
 	}
-	if (context->keystates[FLURMP_SC_D])
+	if (axis == FLURMP_AXIS_X && context->keystates[FLURMP_SC_D])
 	{
-		if (self->x_v < 2) self->x_v++;
+		if (self->x_v < 2) self->x_v += 2;
+	}
+
+	/* inertia (x axis) */
+	if (axis == FLURMP_AXIS_X)
+	{
+		self->x += self->x_v;
+
+		if (self->x_v > 0) self->x_v--;
+		if (self->x_v < 0) self->x_v++;
+	}
+
+	/* determine horizontal direction (x axis) */
+	if (axis == FLURMP_AXIS_X)
+	{
+		if (self->x_v < 0 && !(self->flags & FLURMP_LEFT_FLAG))
+			self->flags |= FLURMP_LEFT_FLAG;
+		else if (self->x_v > 0 && self->flags & FLURMP_LEFT_FLAG)
+			self->flags &= ~(FLURMP_LEFT_FLAG);
 	}
 
 
-	/* jumping */
+	/* gravity (y axis) */
+	if (axis == FLURMP_AXIS_Y)
+	{
+		if (self->y_v < 4) self->y_v += 1;
+
+		self->y += self->y_v;
+	}
+
+
+	/* jumping (either axis) */
 	if (context->keystates[FLURMP_SC_SPACE])
 	{
 		if (!context->inputs[FLURMP_INPUT_SPACE])
@@ -65,15 +94,7 @@ static void fl_update_player(fl_context* context, fl_entity* self, int axis)
 	else if (context->inputs[FLURMP_INPUT_SPACE])
 		context->inputs[FLURMP_INPUT_SPACE] = 0;
 
-
-	/* determine which direction the player is facing */
-	if (self->x_v < 0 && !(self->flags & FLURMP_LEFT_FLAG))
-		self->flags |= FLURMP_LEFT_FLAG;
-	else if (self->x_v > 0 && self->flags & FLURMP_LEFT_FLAG)
-		self->flags &= ~(FLURMP_LEFT_FLAG);
-
-
-	/* entity interaction */
+	/* entity interaction (either axis) */
 	if (self->flags & FLURMP_INTERACT_FLAG)
 		self->flags &= ~(FLURMP_INTERACT_FLAG);
 
@@ -92,27 +113,10 @@ static void fl_update_player(fl_context* context, fl_entity* self, int axis)
 	else if (context->inputs[FLURMP_INPUT_Z])
 		context->inputs[FLURMP_INPUT_Z] = 0;
 
-
-	/* intertia and gravity */
-	if (axis == FLURMP_AXIS_X)
-	{
-		self->x += self->x_v;
-
-		if (self->x_v > 0) self->x_v--;
-		if (self->x_v < 0) self->x_v++;
-	}
-	else if (axis == FLURMP_AXIS_Y)
-	{
-		if (self->y_v < 4) self->y_v += 1;
-
-		self->y += self->y_v;
-	}
-
-	/* update animation frame */
+	/* animation frame (either axis) */
 	if (self->flags & FLURMP_JUMP_FLAG)
 
-		/* int the air */
-		self->frame = 1;
+		self->frame = 1; /* in the air */
 
 	else if (self->x_v != 0)
 	{
@@ -121,10 +125,9 @@ static void fl_update_player(fl_context* context, fl_entity* self, int axis)
 		else self->frame = 0;
 	}
 	else
-		/* standing */
-		self->frame = 0;
+		self->frame = 0; /* standing */
 
-	/* reset flags */
+	/* reset flags (depends on which flag) */
 	if (axis == FLURMP_AXIS_Y)
 		self->flags |= FLURMP_JUMP_FLAG;
 }
