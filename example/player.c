@@ -123,6 +123,10 @@ static void fl_update_player(fl_context* context, fl_entity* self, int axis)
 	else
 		/* standing */
 		self->frame = 0;
+
+	/* reset flags */
+	if (axis == FLURMP_AXIS_Y)
+		self->flags |= FLURMP_JUMP_FLAG;
 }
 
 static void fl_render_player(fl_context* context, fl_entity* self)
