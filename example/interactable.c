@@ -48,7 +48,7 @@ static void fl_update_interactable(fl_context* context, fl_entity* self, int axi
 static void fl_render_interactable(fl_context* context, fl_entity* self)
 {
 	SDL_Rect r;
-	r.x = self->x;
+	r.x = self->x - context->cam_x;
 	r.y = self->y;
 	r.w = self->w;
 	r.h = self->h;

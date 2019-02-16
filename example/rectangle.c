@@ -83,8 +83,8 @@ static void fl_update_rectangle(fl_context* context, fl_entity* self, int axis)
 static void fl_render_rectangle(fl_context* context, fl_entity* self)
 {
 	SDL_Rect r;
-	r.x = self->x;
-	r.y = self->y;
+	r.x = self->x - context->cam_x;
+	r.y = self->y;// -context->cam_y;
 	r.w = self->w;
 	r.h = self->h;
 

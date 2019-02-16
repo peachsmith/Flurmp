@@ -54,12 +54,14 @@ fl_context* fl_create_context()
 	for (i = 0; i < 2; i++) context->inputs[i] = 0;
 
 	context->entities = NULL;
+	context->cam_x = 0;
+	context->cam_y = 0;
 	context->count = 0;
 	context->done = 0;
 	context->fps = 60;
 
 	/* create a player */
-	fl_entity* player = fl_create_player(200, 200, 30, 40);
+	fl_entity* player = fl_create_player(250, 260, 30, 40);
 
 	/* load the sprite for the player */
 	SDL_Surface *surface = SDL_LoadBMP("./images/person.bmp");
@@ -74,9 +76,9 @@ fl_context* fl_create_context()
 	fl_entity* block_2 = fl_create_rectangle(440, 220, 50, 20);
 
 	/* walls and floor */
-	fl_entity* ground = fl_create_rectangle(115, 300, 400, 50);
-	fl_entity* left_wall = fl_create_rectangle(65, 100, 50, 250);
-	fl_entity* right_wall = fl_create_rectangle(515, 100, 50, 250);
+	fl_entity* ground = fl_create_rectangle(0, 300, 715, 50);
+	fl_entity* left_wall = fl_create_rectangle(-70, 100, 50, 250);
+	fl_entity* right_wall = fl_create_rectangle(715, 100, 50, 250);
 
 	/* something to interact with */
 	fl_entity* sign = fl_create_interactable(310, 270, 30, 30);

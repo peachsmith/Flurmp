@@ -122,6 +122,10 @@ struct fl_context_s {
 	/* the primary control object */
 	fl_entity* pco;
 
+	/* camera position */
+	int cam_x;
+	int cam_y;
+
 	/* state flag */
 	unsigned int state;
 
