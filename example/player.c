@@ -15,7 +15,7 @@ fl_entity* fl_create_player(int x, int y, int w, int h)
 
 	rect->next = NULL;
 	rect->tail = NULL;
-	rect->type = FL_PCO;
+	rect->type = FL_PLAYER;
 	rect->flags = 0;
 	rect->x_v = 0;
 	rect->y_v = 0;
@@ -52,11 +52,11 @@ static void fl_update_player(fl_context* context, fl_entity* self, int axis)
 	/* inertia (x axis) */
 	if (axis == FLURMP_AXIS_X)
 	{
-		if (self->x <= 200 && self->x_v < 0)
+		if (self->x <= FLURMP_LEFT_BOUNDARY && self->x_v < 0)
 		{
 			context->cam_x += self->x_v;
 		}
-		else if (self->x >= 300 && self->x_v > 0)
+		else if (self->x >= FLURMP_RIGHT_BOUNDARY && self->x_v > 0)
 		{
 			context->cam_x += self->x_v;
 		}
@@ -67,7 +67,7 @@ static void fl_update_player(fl_context* context, fl_entity* self, int axis)
 
 		self->x += self->x_v;
 
-		printf("\rcam_x: %d   ", context->cam_x);
+		printf("\rcam_x: %d   x_v: %d    x: %d    ", context->cam_x, self->x_v, self->x);
 
 		if (self->x_v > 0) self->x_v--;
 		if (self->x_v < 0) self->x_v++;
@@ -150,8 +150,25 @@ static void fl_update_player(fl_context* context, fl_entity* self, int axis)
 
 static void fl_render_player(fl_context* context, fl_entity* self)
 {
+	/* determine where to render the player on the x axis */
+
+	int real_x = self->x;
+
+	//if (self->x <= FLURMP_LEFT_BOUNDARY)
+	//{
+	//	real_x = FLURMP_LEFT_BOUNDARY;
+	//}
+	//else if (self->x >= FLURMP_RIGHT_BOUNDARY)
+	//{
+	//	real_x = FLURMP_RIGHT_BOUNDARY;
+	//}
+	//else
+	//	real_x = self->x;
+
 	SDL_Rect dest;
-	dest.x = self->x - 10 - context->cam_x;
+
+	dest.x = real_x - 10 - context->cam_x;
+	//dest.x = real_x;
 	dest.y = self->y - 8;
 	dest.w = self->w + 20;
 	dest.h = self->h + 10;
@@ -175,7 +192,7 @@ static void fl_render_player(fl_context* context, fl_entity* self)
 	src.h = 50;
 
 	SDL_Rect hb;
-	hb.x = self->x - context->cam_x;
+	hb.x = real_x - context->cam_x;
 	hb.y = self->y;
 	hb.w = self->w;
 	hb.h = self->h;

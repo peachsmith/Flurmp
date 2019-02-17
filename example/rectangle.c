@@ -1,5 +1,7 @@
 #include "rectangle.h"
 
+#include <stdio.h>
+
 /* entity function prototypes */
 static void fl_collide_rectangle(fl_context*, fl_entity*, fl_entity*, int, int);
 static void fl_update_rectangle(fl_context*, fl_entity*, int);
@@ -48,12 +50,24 @@ static void fl_collide_rectangle(fl_context* context, fl_entity* self, fl_entity
 		if (collided == 3 || collided == 4)
 		{
 			/* left */
-			other->x = other->x - (other->x + other->w - self->x);// -1;
+			int dif = other->x + other->w - self->x;
+			other->x = other->x - dif;// -1;
+
+			if (other->type == FL_PLAYER && context->cam_x > 0)
+			{
+				context->cam_x -= dif;
+			}
 		}
 		else if (collided == 1 || collided == 2)
 		{
 			/* right */
-			other->x = other->x + (self->x + self->w - other->x);// +1;
+			int dif = self->x + self->w - other->x;
+			other->x = other->x + dif;// +1;
+
+			if (other->type == FL_PLAYER && context->cam_x < 0)
+			{
+				context->cam_x += dif;
+			}
 		}
 	}
 
