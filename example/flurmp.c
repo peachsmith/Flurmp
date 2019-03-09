@@ -61,7 +61,7 @@ fl_context* fl_create_context()
 	context->fps = 60;
 
 	/* create a player */
-	fl_entity* player = fl_create_player(250, 260, 30, 40);
+	fl_entity* player = fl_create_player(280, 260, 30, 40);
 
 	/* load the sprite for the player */
 	SDL_Surface *surface = SDL_LoadBMP("./images/person.bmp");
@@ -72,8 +72,8 @@ fl_context* fl_create_context()
 	player->texture = player_texture;
 
 	/* block to stand on */
-	fl_entity* block_1 = fl_create_rectangle(380, 250, 70, 20);
-	fl_entity* block_2 = fl_create_rectangle(440, 220, 50, 20);
+	fl_entity* block_1 = fl_create_rectangle(440, 250, 70, 20);
+	fl_entity* block_2 = fl_create_rectangle(500, 220, 50, 20);
 
 	/* walls and floor */
 	fl_entity* ground = fl_create_rectangle(0, 300, 715, 50);
@@ -260,6 +260,10 @@ void fl_render(fl_context *context)
 		en->render(context, en);
 		en = en->next;
 	}
+
+	SDL_SetRenderDrawColor(context->renderer, 255, 0, 255, 255);
+	SDL_RenderDrawLine(context->renderer, FLURMP_LEFT_BOUNDARY, 0, FLURMP_LEFT_BOUNDARY, FLURMP_WINDOW_HEIGHT);
+	SDL_RenderDrawLine(context->renderer, FLURMP_RIGHT_BOUNDARY, 0, FLURMP_RIGHT_BOUNDARY, FLURMP_WINDOW_HEIGHT);
 
 	SDL_RenderPresent(context->renderer);
 }

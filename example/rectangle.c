@@ -52,22 +52,12 @@ static void fl_collide_rectangle(fl_context* context, fl_entity* self, fl_entity
 			/* left */
 			int dif = other->x + other->w - self->x;
 			other->x = other->x - dif;// -1;
-
-			if (other->type == FL_PLAYER && context->cam_x > 0)
-			{
-				context->cam_x -= dif;
-			}
 		}
 		else if (collided == 1 || collided == 2)
 		{
 			/* right */
 			int dif = self->x + self->w - other->x;
 			other->x = other->x + dif;// +1;
-
-			if (other->type == FL_PLAYER && context->cam_x < 0)
-			{
-				context->cam_x += dif;
-			}
 		}
 	}
 
