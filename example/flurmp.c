@@ -76,9 +76,12 @@ fl_context* fl_create_context()
 	fl_entity* block_2 = fl_create_rectangle(500, 220, 50, 20);
 
 	/* walls and floor */
-	fl_entity* ground = fl_create_rectangle(0, 300, 715, 50);
+	fl_entity* ground1 = fl_create_rectangle(0, 300, 200, 50);
+	fl_entity* ground2 = fl_create_rectangle(260, 300, 480, 50);
 	fl_entity* left_wall = fl_create_rectangle(-70, 100, 50, 250);
 	fl_entity* right_wall = fl_create_rectangle(715, 100, 50, 250);
+
+	fl_entity* lower_floor = fl_create_rectangle(0, 400, 715, 50);
 
 	/* something to interact with */
 	fl_entity* sign = fl_create_interactable(310, 270, 30, 30);
@@ -86,11 +89,13 @@ fl_context* fl_create_context()
 	/* add the entities to the context */
 	fl_add_entity(context, sign);
 	fl_add_entity(context, player);
-	fl_add_entity(context, ground);
+	fl_add_entity(context, ground1);
+	fl_add_entity(context, ground2);
 	fl_add_entity(context, block_1);
 	fl_add_entity(context, block_2);
 	fl_add_entity(context, left_wall);
 	fl_add_entity(context, right_wall);
+	fl_add_entity(context, lower_floor);
 
 	/* set the primary control object */
 	context->pco = player;
