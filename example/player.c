@@ -52,34 +52,17 @@ static void fl_update_player(fl_context* context, fl_entity* self, int axis)
 	/* inertia (x axis) */
 	if (axis == FLURMP_AXIS_X)
 	{
-		//if (self->x <= FLURMP_LEFT_BOUNDARY && self->x_v < 0)
-		//{
-		//	context->cam_x += self->x_v;
-		//}
-		//else if (self->x >= FLURMP_RIGHT_BOUNDARY && self->x_v > 0)
-		//{
-		//	context->cam_x += self->x_v;
-		//}
-		//else
-		//{
-		//	//self->x += self->x_v;
-		//}
-
 		self->x += self->x_v;
 
 		if (self->x_v < 0 && self->x - context->cam_x <= FLURMP_LEFT_BOUNDARY)
 		{
-			//self->x = FLURMP_LEFT_BOUNDARY;
 			context->cam_x += self->x_v;
 		}
 
 		if (self->x_v > 0 && self->x + self->w - context->cam_x >= FLURMP_RIGHT_BOUNDARY)
 		{
-			//self->x = FLURMP_RIGHT_BOUNDARY - self->w;
 			context->cam_x += self->x_v;
 		}
-
-		printf("\rcam_x: %d   x_v: %d    x: %d    ", context->cam_x, self->x_v, self->x);
 
 		if (self->x_v > 0) self->x_v--;
 		if (self->x_v < 0) self->x_v++;
@@ -101,7 +84,16 @@ static void fl_update_player(fl_context* context, fl_entity* self, int axis)
 		if (self->y_v < 4) self->y_v += 1;
 
 		self->y += self->y_v;
-		//context->cam_y += self->y_v;
+
+		if (self->y_v < 0 && self->y - context->cam_y <= FLURMP_UPPER_BOUNDARY)
+		{
+			context->cam_y += self->y_v;
+		}
+
+		if (self->y_v > 0 && self->y + self->h - context->cam_y >= FLURMP_LOWER_BOUNDARY)
+		{
+			context->cam_y += self->y_v;
+		}
 	}
 
 
@@ -180,7 +172,7 @@ static void fl_render_player(fl_context* context, fl_entity* self)
 	SDL_Rect dest;
 
 	dest.x = self->x - 10 - context->cam_x;
-	dest.y = self->y - 8;
+	dest.y = self->y - 8 - context->cam_y;
 	dest.w = self->w + 20;
 	dest.h = self->h + 10;
 
@@ -204,7 +196,7 @@ static void fl_render_player(fl_context* context, fl_entity* self)
 
 	SDL_Rect hb;
 	hb.x = self->x - context->cam_x;
-	hb.y = self->y;
+	hb.y = self->y - context->cam_y;
 	hb.w = self->w;
 	hb.h = self->h;
 

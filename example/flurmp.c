@@ -270,9 +270,13 @@ void fl_render(fl_context *context)
 		en = en->next;
 	}
 
-	SDL_SetRenderDrawColor(context->renderer, 255, 0, 255, 255);
+	SDL_SetRenderDrawColor(context->renderer, 255, 255, 0, 255);
 	SDL_RenderDrawLine(context->renderer, FLURMP_LEFT_BOUNDARY, 0, FLURMP_LEFT_BOUNDARY, FLURMP_WINDOW_HEIGHT);
 	SDL_RenderDrawLine(context->renderer, FLURMP_RIGHT_BOUNDARY, 0, FLURMP_RIGHT_BOUNDARY, FLURMP_WINDOW_HEIGHT);
+
+	SDL_SetRenderDrawColor(context->renderer, 110, 100, 255, 255);
+	SDL_RenderDrawLine(context->renderer, 0, FLURMP_UPPER_BOUNDARY, FLURMP_WINDOW_WIDTH, FLURMP_UPPER_BOUNDARY);
+	SDL_RenderDrawLine(context->renderer, 0, FLURMP_LOWER_BOUNDARY, FLURMP_WINDOW_WIDTH, FLURMP_LOWER_BOUNDARY);
 
 	SDL_RenderPresent(context->renderer);
 }

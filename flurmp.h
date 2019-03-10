@@ -46,6 +46,8 @@ typedef const Uint8 fl_keystate;
 
 #define FLURMP_LEFT_BOUNDARY 220
 #define FLURMP_RIGHT_BOUNDARY 430
+#define FLURMP_UPPER_BOUNDARY 230
+#define FLURMP_LOWER_BOUNDARY 320
 
 typedef enum fl_entity_type_e fl_entity_type;
 typedef struct fl_entity_s fl_entity;

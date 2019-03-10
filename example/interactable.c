@@ -49,7 +49,7 @@ static void fl_render_interactable(fl_context* context, fl_entity* self)
 {
 	SDL_Rect r;
 	r.x = self->x - context->cam_x;
-	r.y = self->y;
+	r.y = self->y - context->cam_y;
 	r.w = self->w;
 	r.h = self->h;
 
