@@ -81,7 +81,9 @@ fl_context* fl_create_context()
 	fl_entity* left_wall = fl_create_rectangle(-70, 100, 50, 250);
 	fl_entity* right_wall = fl_create_rectangle(715, 100, 50, 250);
 
-	fl_entity* lower_floor = fl_create_rectangle(0, 400, 715, 50);
+	fl_entity* lower_floor1 = fl_create_rectangle(0, 400, 500, 50);
+	fl_entity* lower_floor2 = fl_create_rectangle(500, 450, 100, 50);
+	fl_entity* lower_floor3 = fl_create_rectangle(600, 500, 100, 50);
 
 	/* something to interact with */
 	fl_entity* sign = fl_create_interactable(310, 270, 30, 30);
@@ -95,7 +97,9 @@ fl_context* fl_create_context()
 	fl_add_entity(context, block_2);
 	fl_add_entity(context, left_wall);
 	fl_add_entity(context, right_wall);
-	fl_add_entity(context, lower_floor);
+	fl_add_entity(context, lower_floor1);
+	fl_add_entity(context, lower_floor2);
+	fl_add_entity(context, lower_floor3);
 
 	/* set the primary control object */
 	context->pco = player;
@@ -297,7 +301,9 @@ static void fl_test_input(fl_context* context)
 
 	if (context->keystates[FLURMP_SC_C])
 	{
-		context->pco->x = 200;
+		context->pco->x = 250;
 		context->pco->y = 200;
+		context->cam_x = 0;
+		context->cam_y = 0;
 	}
 }
