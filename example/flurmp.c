@@ -61,7 +61,7 @@ fl_context* fl_create_context()
 	context->fps = 60;
 
 	/* create a player */
-	fl_entity* player = fl_create_player(280, 260, 30, 40);
+	fl_entity* player = fl_create_player(260, 260, 30, 40);
 
 	/* load the sprite for the player */
 	SDL_Surface *surface = SDL_LoadBMP("./images/person.bmp");
@@ -305,8 +305,8 @@ static void fl_test_input(fl_context* context)
 
 	if (context->keystates[FLURMP_SC_C])
 	{
-		context->pco->x = 250;
-		context->pco->y = 200;
+		context->pco->x = 260;
+		context->pco->y = 260;
 		context->cam_x = 0;
 		context->cam_y = 0;
 	}
