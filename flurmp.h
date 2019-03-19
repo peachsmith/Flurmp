@@ -1,6 +1,6 @@
 #ifndef FLURMP_H
 #define FLURMP_H
-
+/* test */
 /* implementation-specific typedefs */
 #if defined (FLURMP_SDL)
 #include <SDL/SDL.h>
