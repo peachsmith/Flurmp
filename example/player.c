@@ -39,41 +39,6 @@ static void fl_collide_player(fl_context* context, fl_entity* self, fl_entity* o
 
 static void fl_update_player(fl_context* context, fl_entity* self, int axis)
 {
-	/* horizontal movement (x axis) */
-	if (axis == FLURMP_AXIS_X && context->keystates[FLURMP_SC_A])
-	{
-		if (!(self->flags & FLURMP_LEFT_FLAG))
-			self->flags |= FLURMP_LEFT_FLAG;
-
-		if (self->x_v > -2) self->x_v -= 2;
-	}
-	if (axis == FLURMP_AXIS_X && context->keystates[FLURMP_SC_D])
-	{
-		if (self->flags & FLURMP_LEFT_FLAG)
-			self->flags &= ~(FLURMP_LEFT_FLAG);
-
-		if (self->x_v < 2) self->x_v += 2;
-	}
-
-	/* inertia (x axis) */
-	if (axis == FLURMP_AXIS_X)
-	{
-		self->x += self->x_v;
-
-		if (self->x_v < 0 && self->x - context->cam_x <= FLURMP_LEFT_BOUNDARY)
-		{
-			context->cam_x += self->x_v;
-		}
-
-		if (self->x_v > 0 && self->x + self->w - context->cam_x >= FLURMP_RIGHT_BOUNDARY)
-		{
-			context->cam_x += self->x_v;
-		}
-
-		if (self->x_v > 0) self->x_v--;
-		if (self->x_v < 0) self->x_v++;
-	}
-
 	/* adjust the camera */
 	if (axis == FLURMP_AXIS_X)
 	{
@@ -92,6 +57,16 @@ static void fl_update_player(fl_context* context, fl_entity* self, int axis)
 					context->cam_x -= correction;
 				}
 			}
+			else if (self->x_v == 0 && cam_d > -290)
+			{
+				context->cam_x -= 2;
+
+				if (context->cam_x - self->x < -290)
+				{
+					int correction = -290 - (context->cam_x - self->x);
+					context->cam_x += correction;
+				}
+			}
 		}
 		else if (self->flags & FLURMP_LEFT_FLAG)
 		{
@@ -101,13 +76,66 @@ static void fl_update_player(fl_context* context, fl_entity* self, int axis)
 
 				if (context->cam_x - self->x < -330)
 				{
-					int correction = (-330 - (context->cam_x - self->x));
+					int correction = -330 - (context->cam_x - self->x);
 					context->cam_x += correction;
+				}
+			}
+			else if (self->x_v == 0 && cam_d < -330)
+			{
+				context->cam_x += 2;
+
+				if (context->cam_x - self->x > -330)
+				{
+					int correction = (context->cam_x - self->x) + 330;
+					context->cam_x -= correction;
 				}
 			}
 		}
 	}
 
+	/* horizontal movement (x axis) */
+	if (axis == FLURMP_AXIS_X && context->keystates[FLURMP_SC_A])
+	{
+		if (!(self->flags & FLURMP_LEFT_FLAG))
+			self->flags |= FLURMP_LEFT_FLAG;
+
+		if (self->x_v > -2)
+			self->x_v -= 2;
+	}
+	if (axis == FLURMP_AXIS_X && context->keystates[FLURMP_SC_D])
+	{
+		if (self->flags & FLURMP_LEFT_FLAG)
+			self->flags &= ~(FLURMP_LEFT_FLAG);
+
+		if (self->x_v < 2)
+			self->x_v += 2;
+	}
+
+	/* inertia (x axis) */
+	if (axis == FLURMP_AXIS_X)
+	{
+		/*
+			if the player's x velocity is not 0, then the
+			camera x axis adjustment doesn't occur.
+		*/
+		self->x += self->x_v;
+
+		if (self->x_v < 0 && self->x - context->cam_x <= FLURMP_LEFT_BOUNDARY)
+		{
+			context->cam_x += self->x_v;
+		}
+
+		if (self->x_v > 0 && self->x + self->w - context->cam_x >= FLURMP_RIGHT_BOUNDARY)
+		{
+			context->cam_x += self->x_v;
+		}
+
+		if (self->x_v > 0)
+			self->x_v--;
+
+		if (self->x_v < 0)
+			self->x_v++;
+	}
 
 	/* gravity (y axis) */
 	if (axis == FLURMP_AXIS_Y)
