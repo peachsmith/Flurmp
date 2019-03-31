@@ -42,10 +42,16 @@ static void fl_update_player(fl_context* context, fl_entity* self, int axis)
 	/* horizontal movement (x axis) */
 	if (axis == FLURMP_AXIS_X && context->keystates[FLURMP_SC_A])
 	{
+		if (!(self->flags & FLURMP_LEFT_FLAG))
+			self->flags |= FLURMP_LEFT_FLAG;
+
 		if (self->x_v > -2) self->x_v -= 2;
 	}
 	if (axis == FLURMP_AXIS_X && context->keystates[FLURMP_SC_D])
 	{
+		if (self->flags & FLURMP_LEFT_FLAG)
+			self->flags &= ~(FLURMP_LEFT_FLAG);
+
 		if (self->x_v < 2) self->x_v += 2;
 	}
 
@@ -68,13 +74,40 @@ static void fl_update_player(fl_context* context, fl_entity* self, int axis)
 		if (self->x_v < 0) self->x_v++;
 	}
 
-	/* determine horizontal direction (x axis) */
+	/* adjust the camera */
 	if (axis == FLURMP_AXIS_X)
 	{
-		if (self->x_v < 0 && !(self->flags & FLURMP_LEFT_FLAG))
-			self->flags |= FLURMP_LEFT_FLAG;
-		else if (self->x_v > 0 && self->flags & FLURMP_LEFT_FLAG)
-			self->flags &= ~(FLURMP_LEFT_FLAG);
+		int dif = context->cam_x - self->x;
+		printf("\rcam - x: %d        ",
+			context->cam_x - self->x);
+
+		/* -221 to -399 */
+		if (!(self->flags & FLURMP_LEFT_FLAG))
+		{
+			if (self->x_v == 0 && dif < -290)
+			{
+				context->cam_x += 2;
+				if (context->cam_x - self->x > -290)
+				{
+					int d = (-290 - (context->cam_x - self->x));
+					printf("d: %d\n", d);
+					context->cam_x -= d;
+				}
+			}
+		}
+		else if (self->flags & FLURMP_LEFT_FLAG)
+		{
+			if (self->x_v == 0 && dif > -330)
+			{
+				context->cam_x -= 2;
+				if (context->cam_x - self->x < -330)
+				{
+					int d = (-330 - (context->cam_x - self->x));
+					printf("d: %d\n", d);
+					context->cam_x += d;
+				}
+			}
+		}
 	}
 
 

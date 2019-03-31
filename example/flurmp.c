@@ -61,7 +61,7 @@ fl_context* fl_create_context()
 	context->fps = 60;
 
 	/* create a player */
-	fl_entity* player = fl_create_player(260, 260, 30, 40);
+	fl_entity* player = fl_create_player(300, 260, 30, 40);
 
 	/* load the sprite for the player */
 	SDL_Surface *surface = SDL_LoadBMP("./images/person.bmp");
