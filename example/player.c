@@ -77,34 +77,32 @@ static void fl_update_player(fl_context* context, fl_entity* self, int axis)
 	/* adjust the camera */
 	if (axis == FLURMP_AXIS_X)
 	{
-		int dif = context->cam_x - self->x;
-		printf("\rcam - x: %d        ",
-			context->cam_x - self->x);
+		int cam_d = context->cam_x - self->x;
 
-		/* -221 to -399 */
+		/* camera x window: [-221, -399] */
 		if (!(self->flags & FLURMP_LEFT_FLAG))
 		{
-			if (self->x_v == 0 && dif < -290)
+			if (self->x_v == 0 && cam_d < -290)
 			{
 				context->cam_x += 2;
+
 				if (context->cam_x - self->x > -290)
 				{
-					int d = (-290 - (context->cam_x - self->x));
-					printf("d: %d\n", d);
-					context->cam_x -= d;
+					int correction = (context->cam_x - self->x) + 290;
+					context->cam_x -= correction;
 				}
 			}
 		}
 		else if (self->flags & FLURMP_LEFT_FLAG)
 		{
-			if (self->x_v == 0 && dif > -330)
+			if (self->x_v == 0 && cam_d > -330)
 			{
 				context->cam_x -= 2;
+
 				if (context->cam_x - self->x < -330)
 				{
-					int d = (-330 - (context->cam_x - self->x));
-					printf("d: %d\n", d);
-					context->cam_x += d;
+					int correction = (-330 - (context->cam_x - self->x));
+					context->cam_x += correction;
 				}
 			}
 		}
