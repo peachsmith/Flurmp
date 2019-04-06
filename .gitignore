@@ -5,4 +5,7 @@ Release/
 .vs/
 Makefile
 example/Example/
+example/example
+.vscode
+.DS_Store/
 
