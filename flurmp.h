@@ -7,15 +7,48 @@
 
 #define FLURMP_QUIT SDL_QUIT
 
-#define FLURMP_SC_ESCAPE SDL_SCANCODE_ESCAPE
-#define FLURMP_SC_SPACE SDL_SCANCODE_SPACE
-#define FLURMP_SC_C SDL_SCANCODE_C
-#define FLURMP_SC_Z SDL_SCANCODE_Z
-#define FLURMP_SC_X SDL_SCANCODE_X
-#define FLURMP_SC_W SDL_SCANCODE_W
+
 #define FLURMP_SC_A SDL_SCANCODE_A
-#define FLURMP_SC_S SDL_SCANCODE_S
+#define FLURMP_SC_B SDL_SCANCODE_B
+#define FLURMP_SC_C SDL_SCANCODE_C
 #define FLURMP_SC_D SDL_SCANCODE_D
+#define FLURMP_SC_E SDL_SCANCODE_E
+#define FLURMP_SC_F SDL_SCANCODE_F
+#define FLURMP_SC_G SDL_SCANCODE_G
+#define FLURMP_SC_H SDL_SCANCODE_H
+#define FLURMP_SC_I SDL_SCANCODE_I
+#define FLURMP_SC_J SDL_SCANCODE_J
+#define FLURMP_SC_K SDL_SCANCODE_K
+#define FLURMP_SC_L SDL_SCANCODE_L
+#define FLURMP_SC_M SDL_SCANCODE_M
+#define FLURMP_SC_N SDL_SCANCODE_N
+#define FLURMP_SC_O SDL_SCANCODE_O
+#define FLURMP_SC_P SDL_SCANCODE_P
+#define FLURMP_SC_Q SDL_SCANCODE_Q
+#define FLURMP_SC_R SDL_SCANCODE_R
+#define FLURMP_SC_S SDL_SCANCODE_S
+#define FLURMP_SC_T SDL_SCANCODE_T
+#define FLURMP_SC_U SDL_SCANCODE_U
+#define FLURMP_SC_V SDL_SCANCODE_V
+#define FLURMP_SC_W SDL_SCANCODE_W
+#define FLURMP_SC_X SDL_SCANCODE_X
+#define FLURMP_SC_Y SDL_SCANCODE_Y
+#define FLURMP_SC_Z SDL_SCANCODE_Z
+#define FLURMP_SC_0 SDL_SCANCODE_0
+#define FLURMP_SC_1 SDL_SCANCODE_1
+#define FLURMP_SC_2 SDL_SCANCODE_2
+#define FLURMP_SC_3 SDL_SCANCODE_3
+#define FLURMP_SC_4 SDL_SCANCODE_4
+#define FLURMP_SC_5 SDL_SCANCODE_5
+#define FLURMP_SC_6 SDL_SCANCODE_6
+#define FLURMP_SC_7 SDL_SCANCODE_7
+#define FLURMP_SC_8 SDL_SCANCODE_8
+#define FLURMP_SC_9 SDL_SCANCODE_9
+#define FLURMP_SC_COMMA SDL_SCANCODE_COMMA
+#define FLURMP_SC_PERIOD SDL_SCANCODE_PERIOD
+#define FLURMP_SC_SPACE SDL_SCANCODE_SPACE
+#define FLURMP_SC_ESCAPE SDL_SCANCODE_ESCAPE
+
 
 typedef SDL_Event fl_event;
 typedef SDL_Window fl_window;
@@ -102,6 +135,17 @@ struct fl_entity_s {
 };
 
 /**
+ * represents a text console for debugging and stuff
+ */
+typedef struct console_t
+{
+	int x;
+	int y;
+	int w;
+	int h;
+}console_t;
+
+/**
  * a structure to contain the state of the application
  */
 struct fl_context_s {
@@ -148,6 +192,12 @@ struct fl_context_s {
 
 	/* error flag */
 	int error;
+
+	/* pause flag */
+	int paused;
+
+	/* dev console */
+	console_t* console;
 };
 
 /**

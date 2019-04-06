@@ -6,6 +6,7 @@
 #include "rectangle.h"
 #include "interactable.h"
 #include "player.h"
+#include "console.h"
 
 #include <stdlib.h>
 
@@ -46,6 +47,8 @@ fl_context* fl_create_context()
 	context->renderer = SDL_CreateRenderer(context->window, -1,
 		SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
 
+	SDL_SetRenderDrawBlendMode(context->renderer, SDL_BLENDMODE_BLEND);
+
 	if (context->renderer == NULL) context->error = 2;
 
 	context->keystates = SDL_GetKeyboardState(NULL);
@@ -59,6 +62,7 @@ fl_context* fl_create_context()
 	context->count = 0;
 	context->done = 0;
 	context->fps = 60;
+	context->paused = 0;
 
 	/* create a player */
 	fl_entity* player = fl_create_player(300, 260, 30, 40);
@@ -106,11 +110,17 @@ fl_context* fl_create_context()
 
 	context->state = 0;
 
+	/* add the dev console */
+	console_t* console = fl_create_console();
+
+	context->console = console;
+
 	return context;
 }
 
 void fl_destroy_context(fl_context* context)
 {
+	if (context->console != NULL) fl_destroy_console(context->console);
 	if (context->renderer != NULL) SDL_DestroyRenderer(context->renderer);
 	if (context->window != NULL) SDL_DestroyWindow(context->window);
 	fl_entity *en = context->entities;
@@ -195,6 +205,9 @@ void fl_handle_input(fl_context* context)
 
 void fl_update(fl_context *context)
 {
+	if (context->paused)
+		return;
+
 	fl_entity *en = context->entities;
 	fl_entity *next;
 
@@ -257,6 +270,17 @@ void fl_update(fl_context *context)
 	}
 }
 
+static void render_camera_boundaries(fl_context* context)
+{
+	SDL_SetRenderDrawColor(context->renderer, 255, 255, 0, 255);
+	SDL_RenderDrawLine(context->renderer, FLURMP_LEFT_BOUNDARY, 0, FLURMP_LEFT_BOUNDARY, FLURMP_WINDOW_HEIGHT);
+	SDL_RenderDrawLine(context->renderer, FLURMP_RIGHT_BOUNDARY, 0, FLURMP_RIGHT_BOUNDARY, FLURMP_WINDOW_HEIGHT);
+
+	SDL_SetRenderDrawColor(context->renderer, 110, 100, 255, 255);
+	SDL_RenderDrawLine(context->renderer, 0, FLURMP_UPPER_BOUNDARY, FLURMP_WINDOW_WIDTH, FLURMP_UPPER_BOUNDARY);
+	SDL_RenderDrawLine(context->renderer, 0, FLURMP_LOWER_BOUNDARY, FLURMP_WINDOW_WIDTH, FLURMP_LOWER_BOUNDARY);
+}
+
 void fl_render(fl_context *context)
 {
 	SDL_SetRenderDrawColor(context->renderer, 145, 219, 255, 255);
@@ -270,13 +294,9 @@ void fl_render(fl_context *context)
 		en = en->next;
 	}
 
-	SDL_SetRenderDrawColor(context->renderer, 255, 255, 0, 255);
-	SDL_RenderDrawLine(context->renderer, FLURMP_LEFT_BOUNDARY, 0, FLURMP_LEFT_BOUNDARY, FLURMP_WINDOW_HEIGHT);
-	SDL_RenderDrawLine(context->renderer, FLURMP_RIGHT_BOUNDARY, 0, FLURMP_RIGHT_BOUNDARY, FLURMP_WINDOW_HEIGHT);
+	/* render_camera_boundaries(context); */
 
-	SDL_SetRenderDrawColor(context->renderer, 110, 100, 255, 255);
-	SDL_RenderDrawLine(context->renderer, 0, FLURMP_UPPER_BOUNDARY, FLURMP_WINDOW_WIDTH, FLURMP_UPPER_BOUNDARY);
-	SDL_RenderDrawLine(context->renderer, 0, FLURMP_LOWER_BOUNDARY, FLURMP_WINDOW_WIDTH, FLURMP_LOWER_BOUNDARY);
+	fl_render_console(context, context->console);
 
 	SDL_RenderPresent(context->renderer);
 }
@@ -293,15 +313,21 @@ void fl_begin_frame(fl_context* context)
 
 void fl_end_frame(fl_context* context)
 {
-	if (1000 / context->fps > SDL_GetTicks() - context->ticks)
+	if (1000U / context->fps > SDL_GetTicks() - context->ticks)
 	{
-		SDL_Delay(1000 / context->fps - (SDL_GetTicks() - context->ticks));
+		SDL_Delay(1000U / context->fps - (SDL_GetTicks() - context->ticks));
 	}
 }
 
 static void fl_test_input(fl_context* context)
 {
 	if (context->keystates[FLURMP_SC_ESCAPE]) context->done = 1;
+
+	if (context->keystates[FLURMP_SC_P] && !context->paused)
+	{
+		if (context->paused) context->paused = 0;
+		else context->paused = 1;
+	}
 
 	if (context->keystates[FLURMP_SC_C])
 	{
