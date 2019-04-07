@@ -25,6 +25,12 @@ void fl_destroy_console(console_t* console)
 	return;
 }
 
+/*
+	font sheet currently 552 x 32
+	each character is 12 x 18
+*/
+
+
 void fl_render_console(fl_context* context, console_t* console)
 {
 	SDL_SetRenderDrawColor(context->renderer, 150, 50, 150, 120);
@@ -43,5 +49,5 @@ void fl_render_console(fl_context* context, console_t* console)
 
 void fl_print(console_t* console, const char* s)
 {
-
+	
 }
