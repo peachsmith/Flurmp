@@ -296,7 +296,10 @@ void fl_render(fl_context *context)
 
 	/* render_camera_boundaries(context); */
 
-	fl_render_console(context, context->console);
+	if (context->paused)
+	{
+		fl_render_console(context, context->console);
+	}
 
 	SDL_RenderPresent(context->renderer);
 }
@@ -321,13 +324,23 @@ void fl_end_frame(fl_context* context)
 
 static void fl_test_input(fl_context* context)
 {
-	if (context->keystates[FLURMP_SC_ESCAPE]) context->done = 1;
-
-	if (context->keystates[FLURMP_SC_P] && !context->paused)
+	if (context->keystates[FLURMP_SC_ESCAPE])
 	{
-		if (context->paused) context->paused = 0;
-		else context->paused = 1;
+		if (!context->inputs[FLURMP_INPUT_ESCAPE])
+		{
+			context->inputs[FLURMP_INPUT_ESCAPE] = 1;
+
+			if (!context->paused)
+				context->paused = 1;
+			else
+				context->paused = 0;
+		}
 	}
+	else if (context->inputs[FLURMP_INPUT_ESCAPE])
+	{
+		context->inputs[FLURMP_INPUT_ESCAPE] = 0;
+	}
+
 
 	if (context->keystates[FLURMP_SC_C])
 	{

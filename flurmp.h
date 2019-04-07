@@ -7,8 +7,8 @@
 
 #define FLURMP_QUIT SDL_QUIT
 
-
-#define FLURMP_SC_A SDL_SCANCODE_A
+/* currently 42 values */
+#define FLURMP_SC_A SDL_SCANCODE_A /* 1st scancode */
 #define FLURMP_SC_B SDL_SCANCODE_B
 #define FLURMP_SC_C SDL_SCANCODE_C
 #define FLURMP_SC_D SDL_SCANCODE_D
@@ -27,13 +27,13 @@
 #define FLURMP_SC_Q SDL_SCANCODE_Q
 #define FLURMP_SC_R SDL_SCANCODE_R
 #define FLURMP_SC_S SDL_SCANCODE_S
-#define FLURMP_SC_T SDL_SCANCODE_T
+#define FLURMP_SC_T SDL_SCANCODE_T /* 20th scancode */
 #define FLURMP_SC_U SDL_SCANCODE_U
 #define FLURMP_SC_V SDL_SCANCODE_V
 #define FLURMP_SC_W SDL_SCANCODE_W
 #define FLURMP_SC_X SDL_SCANCODE_X
 #define FLURMP_SC_Y SDL_SCANCODE_Y
-#define FLURMP_SC_Z SDL_SCANCODE_Z
+#define FLURMP_SC_Z SDL_SCANCODE_Z /* 26th scancode */
 #define FLURMP_SC_0 SDL_SCANCODE_0
 #define FLURMP_SC_1 SDL_SCANCODE_1
 #define FLURMP_SC_2 SDL_SCANCODE_2
@@ -43,11 +43,13 @@
 #define FLURMP_SC_6 SDL_SCANCODE_6
 #define FLURMP_SC_7 SDL_SCANCODE_7
 #define FLURMP_SC_8 SDL_SCANCODE_8
-#define FLURMP_SC_9 SDL_SCANCODE_9
+#define FLURMP_SC_9 SDL_SCANCODE_9 /* 36 scancode */
 #define FLURMP_SC_COMMA SDL_SCANCODE_COMMA
 #define FLURMP_SC_PERIOD SDL_SCANCODE_PERIOD
 #define FLURMP_SC_SPACE SDL_SCANCODE_SPACE
-#define FLURMP_SC_ESCAPE SDL_SCANCODE_ESCAPE
+#define FLURMP_SC_ESCAPE SDL_SCANCODE_ESCAPE /* 40 scancode */
+#define FLURMP_SC_LSHIFT SDL_SCANCODE_LSHIFT
+#define FLURMP_SC_RSHIFT SDL_SCANCODE_RSHIFT /* 42nd scancode */
 
 
 typedef SDL_Event fl_event;
@@ -57,8 +59,47 @@ typedef const Uint8 fl_keystate;
 #endif /* FLURMP_SDL */
 
 /* input control */
-#define FLURMP_INPUT_Z 0
-#define FLURMP_INPUT_SPACE 1
+#define FLURMP_INPUT_A 0
+#define FLURMP_INPUT_B 1
+#define FLURMP_INPUT_C 2
+#define FLURMP_INPUT_D 3
+#define FLURMP_INPUT_E 4
+#define FLURMP_INPUT_F 5
+#define FLURMP_INPUT_G 6
+#define FLURMP_INPUT_H 7
+#define FLURMP_INPUT_I 8
+#define FLURMP_INPUT_J 9
+#define FLURMP_INPUT_K 10
+#define FLURMP_INPUT_L 11
+#define FLURMP_INPUT_M 12
+#define FLURMP_INPUT_N 13
+#define FLURMP_INPUT_O 14
+#define FLURMP_INPUT_P 15
+#define FLURMP_INPUT_Q 16
+#define FLURMP_INPUT_R 17
+#define FLURMP_INPUT_S 18
+#define FLURMP_INPUT_T 19
+#define FLURMP_INPUT_U 20
+#define FLURMP_INPUT_V 21
+#define FLURMP_INPUT_W 22
+#define FLURMP_INPUT_X 23
+#define FLURMP_INPUT_Y 24
+#define FLURMP_INPUT_Z 25
+#define FLURMP_INPUT_0 26
+#define FLURMP_INPUT_1 27
+#define FLURMP_INPUT_2 28
+#define FLURMP_INPUT_3 29
+#define FLURMP_INPUT_4 30
+#define FLURMP_INPUT_5 31
+#define FLURMP_INPUT_6 32
+#define FLURMP_INPUT_7 33
+#define FLURMP_INPUT_8 34
+#define FLURMP_INPUT_9 35
+#define FLURMP_INPUT_COMMA 36
+#define FLURMP_INPUT_PERIOD 37
+#define FLURMP_INPUT_SPACE 38
+#define FLURMP_INPUT_ESCAPE 39
+#define FLURMP_INPUT_SHIFT 40
 
 /* entity state flags */
 #define FLURMP_JUMP_FLAG     0x01
@@ -163,7 +204,7 @@ struct fl_context_s {
 	fl_keystate *keystates;
 
 	/* keeps track of what inputs have been received */
-	int inputs[2];
+	int inputs[41];
 
 	/* a list of all the entities in the current context */
 	fl_entity *entities;
