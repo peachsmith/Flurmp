@@ -59,6 +59,31 @@ console_t* fl_create_console(fl_context* context)
 	fl_putc(con, 'a');
 	fl_putc(con, 'b');
 	fl_putc(con, 'c');
+	fl_putc(con, 'd');
+	fl_putc(con, 'e');
+	fl_putc(con, 'f');
+	fl_putc(con, 'g');
+	fl_putc(con, 'h');
+	fl_putc(con, 'i');
+	fl_putc(con, 'j');
+	fl_putc(con, 'k');
+	fl_putc(con, 'l');
+	fl_putc(con, 'm');
+	fl_putc(con, 'n');
+	fl_putc(con, 'o');
+	fl_putc(con, 'p');
+	fl_putc(con, 'q');
+	fl_putc(con, 'r');
+	fl_putc(con, 's');
+	fl_putc(con, 't');
+	fl_putc(con, 'u');
+	fl_putc(con, 'v');
+	fl_putc(con, 'w');
+	//fl_putc(con, 'x');
+	//fl_putc(con, 'y');
+	//fl_putc(con, 'z');
+
+	//TODO: fix rendering more than 24 characters
 
 	return con;
 }
@@ -105,14 +130,10 @@ void fl_render_console(fl_context* context, console_t* console)
 		if (buffer[i] >= 'a' && buffer[i] <= 'z')
 		{
 			SDL_Rect dest;
-			//dest.x = console->cursor_x * FL_CHAR_WIDTH + console->x;
-			//dest.y = console->cursor_y * FL_CHAR_HEIGHT + console->y;
 			dest.x = (i - FL_CON_WIDTH * console->cursor_y) * FL_CHAR_WIDTH + console->x;
 			dest.y = ((i - console->cursor_x) / FL_CON_WIDTH) * FL_CHAR_HEIGHT + console->y;
 			dest.w = FL_CHAR_WIDTH;
 			dest.h = FL_CHAR_HEIGHT;
-
-			/* (a, z) =  (97, 122) */
 
 			SDL_Rect src;
 			src.x = (buffer[i] - 'a') * FL_CHAR_WIDTH;
@@ -121,17 +142,6 @@ void fl_render_console(fl_context* context, console_t* console)
 			src.h = FL_CHAR_HEIGHT;
 
 			SDL_RenderCopy(context->renderer, console->font, &src, &dest);
-
-			///* TODO: add support for newline, backspace, etc. */
-			//if (console->cursor_x >= FL_CON_WIDTH - 1)
-			//{
-			//	console->cursor_x = 0;
-			//	console->cursor_y++;
-			//}
-			//else
-			//{
-			//	console->cursor_x++;
-			//}
 		}
 	}
 }
