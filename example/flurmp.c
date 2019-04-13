@@ -111,7 +111,7 @@ fl_context* fl_create_context()
 	context->state = 0;
 
 	/* add the dev console */
-	console_t* console = fl_create_console();
+	console_t* console = fl_create_console(context);
 
 	context->console = console;
 

@@ -184,6 +184,9 @@ typedef struct console_t
 	int y;
 	int w;
 	int h;
+	int cursor_x;
+	int cursor_y;
+	SDL_Texture* font;
 }console_t;
 
 /**

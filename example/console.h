@@ -3,7 +3,7 @@
 
 #include "flurmp.h"
 
-console_t* fl_create_console();
+console_t* fl_create_console(fl_context* context);
 
 void fl_destroy_console(console_t* console);
 
