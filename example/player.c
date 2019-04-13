@@ -264,6 +264,7 @@ static void fl_render_player(fl_context* context, fl_entity* self)
 	else
 		SDL_RenderCopyEx(context->renderer, self->texture, &src, &dest, 0, NULL, SDL_FLIP_NONE);
 
-	SDL_SetRenderDrawColor(context->renderer, 255, 0, 255, 255);
-	SDL_RenderDrawRect(context->renderer, &hb);
+	/* render player hitbox */
+	/* SDL_SetRenderDrawColor(context->renderer, 255, 0, 255, 255);
+	SDL_RenderDrawRect(context->renderer, &hb); */
 }

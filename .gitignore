@@ -7,5 +7,5 @@ Makefile
 example/Example/
 example/example
 .vscode
-.DS_Store/
+.DS_Store
 
