@@ -1,6 +1,6 @@
 #include "console.h"
 
-#define FL_CON_WIDTH 24
+#define FL_CON_WIDTH 48
 #define FL_CON_HEIGHT 4
 #define FL_CHAR_WIDTH 12
 #define FL_CHAR_HEIGHT 18
@@ -79,9 +79,63 @@ console_t* fl_create_console(fl_context* context)
 	fl_putc(con, 'u');
 	fl_putc(con, 'v');
 	fl_putc(con, 'w');
-	//fl_putc(con, 'x');
-	//fl_putc(con, 'y');
-	//fl_putc(con, 'z');
+	fl_putc(con, 'x');
+	fl_putc(con, 'y');
+	fl_putc(con, 'z');
+
+	fl_putc(con, 'a');
+	fl_putc(con, 'b');
+	fl_putc(con, 'c');
+	fl_putc(con, 'd');
+	fl_putc(con, 'e');
+	fl_putc(con, 'f');
+	fl_putc(con, 'g');
+	fl_putc(con, 'h');
+	fl_putc(con, 'i');
+	fl_putc(con, 'j');
+	fl_putc(con, 'k');
+	fl_putc(con, 'l');
+	fl_putc(con, 'm');
+	fl_putc(con, 'n');
+	fl_putc(con, 'o');
+	fl_putc(con, 'p');
+	fl_putc(con, 'q');
+	fl_putc(con, 'r');
+	fl_putc(con, 's');
+	fl_putc(con, 't');
+	fl_putc(con, 'u');
+	fl_putc(con, 'v');
+	fl_putc(con, 'w');
+	fl_putc(con, 'x');
+	fl_putc(con, 'y');
+	fl_putc(con, 'z');
+
+	fl_putc(con, 'a');
+	fl_putc(con, 'b');
+	fl_putc(con, 'c');
+	fl_putc(con, 'd');
+	fl_putc(con, 'e');
+	fl_putc(con, 'f');
+	fl_putc(con, 'g');
+	fl_putc(con, 'h');
+	fl_putc(con, 'i');
+	fl_putc(con, 'j');
+	fl_putc(con, 'k');
+	fl_putc(con, 'l');
+	fl_putc(con, 'm');
+	fl_putc(con, 'n');
+	fl_putc(con, 'o');
+	fl_putc(con, 'p');
+	fl_putc(con, 'q');
+	fl_putc(con, 'r');
+	fl_putc(con, 's');
+	fl_putc(con, 't');
+	fl_putc(con, 'u');
+	fl_putc(con, 'v');
+	fl_putc(con, 'w');
+	fl_putc(con, 'x');
+	fl_putc(con, 'y');
+	fl_putc(con, 'z');
 
 	//TODO: fix rendering more than 24 characters
 
@@ -125,13 +179,15 @@ void fl_render_console(fl_context* context, console_t* console)
 
 	/* render buffer contents */
 	int i;
+	int c_x = 0;
+	int c_y = 0;
 	for (i = 0; i < FL_CON_WIDTH * FL_CON_HEIGHT; i++)
 	{
 		if (buffer[i] >= 'a' && buffer[i] <= 'z')
 		{
 			SDL_Rect dest;
-			dest.x = (i - FL_CON_WIDTH * console->cursor_y) * FL_CHAR_WIDTH + console->x;
-			dest.y = ((i - console->cursor_x) / FL_CON_WIDTH) * FL_CHAR_HEIGHT + console->y;
+			dest.x = console->x + c_x * FL_CHAR_WIDTH;
+			dest.y = console->y + c_y * FL_CHAR_HEIGHT;
 			dest.w = FL_CHAR_WIDTH;
 			dest.h = FL_CHAR_HEIGHT;
 
@@ -142,6 +198,17 @@ void fl_render_console(fl_context* context, console_t* console)
 			src.h = FL_CHAR_HEIGHT;
 
 			SDL_RenderCopy(context->renderer, console->font, &src, &dest);
+
+			if (c_x >= FL_CON_WIDTH - 1)
+			{
+				c_x = 0;
+				if (c_y < FL_CON_HEIGHT - 1)
+					c_y++;
+			}
+			else
+			{
+				c_x++;
+			}
 		}
 	}
 }
