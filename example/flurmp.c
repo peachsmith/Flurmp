@@ -390,7 +390,7 @@ static void fl_console_input(fl_context* context)
 		context->inputs[FLURMP_INPUT_A] = 0;*/
 
 	int i;
-	for (i = FLURMP_SC_A; i <= FLURMP_SC_Z; i++)
+	for (i = 0; i < FLURMP_SC_LIMIT; i++)
 	{
 		int flag = FLURMP_INPUT_UNKNOWN;
 		char c = fl_sc_to_char(i, &flag);

@@ -72,6 +72,18 @@ void fl_render_console(fl_context* context, console_t* console)
 	SDL_RenderDrawRect(context->renderer, &r);
 
 	/* render buffer contents */
+	SDL_Rect dest;
+	dest.x = 0;
+	dest.y = 0;
+	dest.w = FL_CHAR_WIDTH;
+	dest.h = FL_CHAR_HEIGHT;
+
+	SDL_Rect src;
+	src.x = 0;
+	src.y = 0;
+	src.w = FL_CHAR_WIDTH;
+	src.h = FL_CHAR_HEIGHT;
+
 	int i;
 	int c_x = 0;
 	int c_y = 0;
@@ -79,17 +91,11 @@ void fl_render_console(fl_context* context, console_t* console)
 	{
 		if (buffer[i] >= 'a' && buffer[i] <= 'z')
 		{
-			SDL_Rect dest;
 			dest.x = console->x + c_x * FL_CHAR_WIDTH;
 			dest.y = console->y + c_y * FL_CHAR_HEIGHT;
-			dest.w = FL_CHAR_WIDTH;
-			dest.h = FL_CHAR_HEIGHT;
 
-			SDL_Rect src;
 			src.x = (buffer[i] - 'a') * FL_CHAR_WIDTH;
 			src.y = 0;
-			src.w = FL_CHAR_WIDTH;
-			src.h = FL_CHAR_HEIGHT;
 
 			SDL_RenderCopy(context->renderer, console->font, &src, &dest);
 
@@ -100,9 +106,67 @@ void fl_render_console(fl_context* context, console_t* console)
 					c_y++;
 			}
 			else
-			{
 				c_x++;
+
+		}
+		else if (buffer[i] == ' ')
+		{
+			// comma: 42
+			// period: 43
+			dest.x = console->x + c_x * FL_CHAR_WIDTH;
+			dest.y = console->y + c_y * FL_CHAR_HEIGHT;
+
+			src.x = 47 * FL_CHAR_WIDTH;
+			src.y = 0;
+
+			SDL_RenderCopy(context->renderer, console->font, &src, &dest);
+
+			if (c_x >= FL_CON_WIDTH - 1)
+			{
+				c_x = 0;
+				if (c_y < FL_CON_HEIGHT - 1)
+					c_y++;
 			}
+			else
+				c_x++;
+		}
+		else if (buffer[i] == ',')
+		{
+			dest.x = console->x + c_x * FL_CHAR_WIDTH;
+			dest.y = console->y + c_y * FL_CHAR_HEIGHT;
+
+			src.x = 42 * FL_CHAR_WIDTH;
+			src.y = 0;
+
+			SDL_RenderCopy(context->renderer, console->font, &src, &dest);
+
+			if (c_x >= FL_CON_WIDTH - 1)
+			{
+				c_x = 0;
+				if (c_y < FL_CON_HEIGHT - 1)
+					c_y++;
+			}
+			else
+				c_x++;
+		}
+		else if (buffer[i] == '.')
+		{
+			dest.x = console->x + c_x * FL_CHAR_WIDTH;
+			dest.y = console->y + c_y * FL_CHAR_HEIGHT;
+
+			src.x = 43 * FL_CHAR_WIDTH;
+			src.y = 0;
+
+			SDL_RenderCopy(context->renderer, console->font, &src, &dest);
+
+			if (c_x >= FL_CON_WIDTH - 1)
+			{
+				c_x = 0;
+				if (c_y < FL_CON_HEIGHT - 1)
+					c_y++;
+			}
+			else
+				c_x++;
 		}
 	}
 }
@@ -164,6 +228,9 @@ char fl_sc_to_char(int sc, int* flag)
 	case FLURMP_SC_X: *flag = FLURMP_INPUT_X; return 'x';
 	case FLURMP_SC_Y: *flag = FLURMP_INPUT_Y; return 'y';
 	case FLURMP_SC_Z: *flag = FLURMP_INPUT_Z; return 'z';
+	case FLURMP_SC_SPACE: *flag = FLURMP_INPUT_SPACE; return ' ';
+	case FLURMP_SC_COMMA: *flag = FLURMP_INPUT_COMMA; return ',';
+	case FLURMP_SC_PERIOD: *flag = FLURMP_INPUT_PERIOD; return '.';
 	default: *flag = FLURMP_INPUT_UNKNOWN; return '\0';
 	}
 }
