@@ -9,30 +9,7 @@
 #define FL_BUFFER_LIMIT FL_CON_WIDTH * FL_CON_HEIGHT
 
 /* for now, the buffers and stuff will be static */
-static int char_count = 0;
 static char buffer[FL_CON_WIDTH * FL_CON_HEIGHT] = { '\0' };
-
-static void fl_putc(console_t* console, char c)
-{
-	/* buffer position = cursor_x + FL_CON_WIDTH * cursor_y */
-	/* TODO: add support for newline, backspace, etc. */
-	if (char_count >= FL_BUFFER_LIMIT)
-		return;
-
-	buffer[char_count++] = c;
-
-	/* TODO: add support for newline, backspace, etc. */
-	if (console->cursor_x >= FL_CON_WIDTH - 1)
-	{
-		console->cursor_x = 0;
-		if (console->cursor_y < FL_CON_HEIGHT - 1)
-			console->cursor_y++;
-	}
-	else
-	{
-		console->cursor_x++;
-	}
-}
 
 console_t* fl_create_console(fl_context* context)
 {
@@ -47,6 +24,7 @@ console_t* fl_create_console(fl_context* context)
 	con->h = 120;
 	con->cursor_x = 0;
 	con->cursor_y = 0;
+	con->char_count = 0;
 
 	SDL_Surface *surface = SDL_LoadBMP("./images/font.bmp");
 	SDL_SetColorKey(surface, 1, SDL_MapRGB(surface->format, 255, 0, 255));
@@ -54,90 +32,6 @@ console_t* fl_create_console(fl_context* context)
 	SDL_FreeSurface(surface);
 
 	con->font = font_texture;
-
-	/* hard code a bunch of stuff */
-	fl_putc(con, 'a');
-	fl_putc(con, 'b');
-	fl_putc(con, 'c');
-	fl_putc(con, 'd');
-	fl_putc(con, 'e');
-	fl_putc(con, 'f');
-	fl_putc(con, 'g');
-	fl_putc(con, 'h');
-	fl_putc(con, 'i');
-	fl_putc(con, 'j');
-	fl_putc(con, 'k');
-	fl_putc(con, 'l');
-	fl_putc(con, 'm');
-	fl_putc(con, 'n');
-	fl_putc(con, 'o');
-	fl_putc(con, 'p');
-	fl_putc(con, 'q');
-	fl_putc(con, 'r');
-	fl_putc(con, 's');
-	fl_putc(con, 't');
-	fl_putc(con, 'u');
-	fl_putc(con, 'v');
-	fl_putc(con, 'w');
-	fl_putc(con, 'x');
-	fl_putc(con, 'y');
-	fl_putc(con, 'z');
-
-	fl_putc(con, 'a');
-	fl_putc(con, 'b');
-	fl_putc(con, 'c');
-	fl_putc(con, 'd');
-	fl_putc(con, 'e');
-	fl_putc(con, 'f');
-	fl_putc(con, 'g');
-	fl_putc(con, 'h');
-	fl_putc(con, 'i');
-	fl_putc(con, 'j');
-	fl_putc(con, 'k');
-	fl_putc(con, 'l');
-	fl_putc(con, 'm');
-	fl_putc(con, 'n');
-	fl_putc(con, 'o');
-	fl_putc(con, 'p');
-	fl_putc(con, 'q');
-	fl_putc(con, 'r');
-	fl_putc(con, 's');
-	fl_putc(con, 't');
-	fl_putc(con, 'u');
-	fl_putc(con, 'v');
-	fl_putc(con, 'w');
-	fl_putc(con, 'x');
-	fl_putc(con, 'y');
-	fl_putc(con, 'z');
-
-	fl_putc(con, 'a');
-	fl_putc(con, 'b');
-	fl_putc(con, 'c');
-	fl_putc(con, 'd');
-	fl_putc(con, 'e');
-	fl_putc(con, 'f');
-	fl_putc(con, 'g');
-	fl_putc(con, 'h');
-	fl_putc(con, 'i');
-	fl_putc(con, 'j');
-	fl_putc(con, 'k');
-	fl_putc(con, 'l');
-	fl_putc(con, 'm');
-	fl_putc(con, 'n');
-	fl_putc(con, 'o');
-	fl_putc(con, 'p');
-	fl_putc(con, 'q');
-	fl_putc(con, 'r');
-	fl_putc(con, 's');
-	fl_putc(con, 't');
-	fl_putc(con, 'u');
-	fl_putc(con, 'v');
-	fl_putc(con, 'w');
-	fl_putc(con, 'x');
-	fl_putc(con, 'y');
-	fl_putc(con, 'z');
-
-	//TODO: fix rendering more than 24 characters
 
 	return con;
 }
@@ -213,7 +107,63 @@ void fl_render_console(fl_context* context, console_t* console)
 	}
 }
 
+void fl_putc(console_t* console, char c)
+{
+	/* buffer position = cursor_x + FL_CON_WIDTH * cursor_y */
+	/* TODO: add support for newline, backspace, etc. */
+	if (console->char_count >= FL_BUFFER_LIMIT)
+		return;
+
+	buffer[console->char_count++] = c;
+
+	/* TODO: add support for newline, backspace, etc. */
+	if (console->cursor_x >= FL_CON_WIDTH - 1)
+	{
+		console->cursor_x = 0;
+		if (console->cursor_y < FL_CON_HEIGHT - 1)
+			console->cursor_y++;
+	}
+	else
+	{
+		console->cursor_x++;
+	}
+}
+
 void fl_print(console_t* console, const char* s)
 {
 
+}
+
+char fl_sc_to_char(int sc, int* flag)
+{
+	switch (sc)
+	{
+	case FLURMP_SC_A: *flag = FLURMP_INPUT_A; return 'a';
+	case FLURMP_SC_B: *flag = FLURMP_INPUT_B; return 'b';
+	case FLURMP_SC_C: *flag = FLURMP_INPUT_C; return 'c';
+	case FLURMP_SC_D: *flag = FLURMP_INPUT_D; return 'd';
+	case FLURMP_SC_E: *flag = FLURMP_INPUT_E; return 'e';
+	case FLURMP_SC_F: *flag = FLURMP_INPUT_F; return 'f';
+	case FLURMP_SC_G: *flag = FLURMP_INPUT_G; return 'g';
+	case FLURMP_SC_H: *flag = FLURMP_INPUT_H; return 'h';
+	case FLURMP_SC_I: *flag = FLURMP_INPUT_I; return 'i';
+	case FLURMP_SC_J: *flag = FLURMP_INPUT_J; return 'j';
+	case FLURMP_SC_K: *flag = FLURMP_INPUT_K; return 'k';
+	case FLURMP_SC_L: *flag = FLURMP_INPUT_L; return 'l';
+	case FLURMP_SC_M: *flag = FLURMP_INPUT_M; return 'm';
+	case FLURMP_SC_N: *flag = FLURMP_INPUT_N; return 'n';
+	case FLURMP_SC_O: *flag = FLURMP_INPUT_O; return 'o';
+	case FLURMP_SC_P: *flag = FLURMP_INPUT_P; return 'p';
+	case FLURMP_SC_Q: *flag = FLURMP_INPUT_Q; return 'q';
+	case FLURMP_SC_R: *flag = FLURMP_INPUT_R; return 'r';
+	case FLURMP_SC_S: *flag = FLURMP_INPUT_S; return 's';
+	case FLURMP_SC_T: *flag = FLURMP_INPUT_T; return 't';
+	case FLURMP_SC_U: *flag = FLURMP_INPUT_U; return 'u';
+	case FLURMP_SC_V: *flag = FLURMP_INPUT_V; return 'v';
+	case FLURMP_SC_W: *flag = FLURMP_INPUT_W; return 'w';
+	case FLURMP_SC_X: *flag = FLURMP_INPUT_X; return 'x';
+	case FLURMP_SC_Y: *flag = FLURMP_INPUT_Y; return 'y';
+	case FLURMP_SC_Z: *flag = FLURMP_INPUT_Z; return 'z';
+	default: *flag = FLURMP_INPUT_UNKNOWN; return '\0';
+	}
 }

@@ -59,47 +59,48 @@ typedef const Uint8 fl_keystate;
 #endif /* FLURMP_SDL */
 
 /* input control */
-#define FLURMP_INPUT_A 0
-#define FLURMP_INPUT_B 1
-#define FLURMP_INPUT_C 2
-#define FLURMP_INPUT_D 3
-#define FLURMP_INPUT_E 4
-#define FLURMP_INPUT_F 5
-#define FLURMP_INPUT_G 6
-#define FLURMP_INPUT_H 7
-#define FLURMP_INPUT_I 8
-#define FLURMP_INPUT_J 9
-#define FLURMP_INPUT_K 10
-#define FLURMP_INPUT_L 11
-#define FLURMP_INPUT_M 12
-#define FLURMP_INPUT_N 13
-#define FLURMP_INPUT_O 14
-#define FLURMP_INPUT_P 15
-#define FLURMP_INPUT_Q 16
-#define FLURMP_INPUT_R 17
-#define FLURMP_INPUT_S 18
-#define FLURMP_INPUT_T 19
-#define FLURMP_INPUT_U 20
-#define FLURMP_INPUT_V 21
-#define FLURMP_INPUT_W 22
-#define FLURMP_INPUT_X 23
-#define FLURMP_INPUT_Y 24
-#define FLURMP_INPUT_Z 25
-#define FLURMP_INPUT_0 26
-#define FLURMP_INPUT_1 27
-#define FLURMP_INPUT_2 28
-#define FLURMP_INPUT_3 29
-#define FLURMP_INPUT_4 30
-#define FLURMP_INPUT_5 31
-#define FLURMP_INPUT_6 32
-#define FLURMP_INPUT_7 33
-#define FLURMP_INPUT_8 34
-#define FLURMP_INPUT_9 35
-#define FLURMP_INPUT_COMMA 36
-#define FLURMP_INPUT_PERIOD 37
-#define FLURMP_INPUT_SPACE 38
-#define FLURMP_INPUT_ESCAPE 39
-#define FLURMP_INPUT_SHIFT 40
+#define FLURMP_INPUT_UNKNOWN 0
+#define FLURMP_INPUT_A 1
+#define FLURMP_INPUT_B 2
+#define FLURMP_INPUT_C 3
+#define FLURMP_INPUT_D 4
+#define FLURMP_INPUT_E 5
+#define FLURMP_INPUT_F 6
+#define FLURMP_INPUT_G 7
+#define FLURMP_INPUT_H 8
+#define FLURMP_INPUT_I 9
+#define FLURMP_INPUT_J 10
+#define FLURMP_INPUT_K 11
+#define FLURMP_INPUT_L 12
+#define FLURMP_INPUT_M 13
+#define FLURMP_INPUT_N 14
+#define FLURMP_INPUT_O 15
+#define FLURMP_INPUT_P 16
+#define FLURMP_INPUT_Q 17
+#define FLURMP_INPUT_R 18
+#define FLURMP_INPUT_S 19
+#define FLURMP_INPUT_T 20
+#define FLURMP_INPUT_U 21
+#define FLURMP_INPUT_V 22
+#define FLURMP_INPUT_W 23
+#define FLURMP_INPUT_X 24
+#define FLURMP_INPUT_Y 25
+#define FLURMP_INPUT_Z 26
+#define FLURMP_INPUT_0 27
+#define FLURMP_INPUT_1 28
+#define FLURMP_INPUT_2 29
+#define FLURMP_INPUT_3 30
+#define FLURMP_INPUT_4 31
+#define FLURMP_INPUT_5 32
+#define FLURMP_INPUT_6 33
+#define FLURMP_INPUT_7 34
+#define FLURMP_INPUT_8 35
+#define FLURMP_INPUT_9 36
+#define FLURMP_INPUT_COMMA 37
+#define FLURMP_INPUT_PERIOD 38
+#define FLURMP_INPUT_SPACE 39
+#define FLURMP_INPUT_ESCAPE 40
+#define FLURMP_INPUT_SHIFT 41
 
 /* entity state flags */
 #define FLURMP_JUMP_FLAG     0x01
@@ -186,6 +187,7 @@ typedef struct console_t
 	int h;
 	int cursor_x;
 	int cursor_y;
+	int char_count;
 	SDL_Texture* font;
 }console_t;
 

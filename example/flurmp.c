@@ -11,6 +11,7 @@
 #include <stdlib.h>
 
 static void fl_test_input(fl_context*);
+static void fl_console_input(fl_context* context);
 
 int fl_initialize()
 {
@@ -341,6 +342,10 @@ static void fl_test_input(fl_context* context)
 		context->inputs[FLURMP_INPUT_ESCAPE] = 0;
 	}
 
+	if (context->paused)
+	{
+		return fl_console_input(context);
+	}
 
 	if (context->keystates[FLURMP_SC_C])
 	{
@@ -348,5 +353,58 @@ static void fl_test_input(fl_context* context)
 		context->pco->y = 260;
 		context->cam_x = 0;
 		context->cam_y = 0;
+	}
+}
+
+/*
+
+The following flow will perform a single action
+on a single key press
+
+if (context->keystates[<scancode>])
+	{
+		if (!context->inputs[<input_flag>])
+		{
+			context->inputs[<input_flag>] = 1;
+
+			do something here
+		}
+	}
+	else if (context->inputs[<input_flag>])
+		context->inputs[<input_flag>] = 0;
+
+*/
+
+static void fl_console_input(fl_context* context)
+{
+	/*if (context->keystates[FLURMP_SC_A])
+	{
+		if (!context->inputs[FLURMP_INPUT_A])
+		{
+			context->inputs[FLURMP_INPUT_A] = 1;
+
+			fl_putc(context->console, 'a');
+		}
+	}
+	else if (context->inputs[FLURMP_INPUT_A])
+		context->inputs[FLURMP_INPUT_A] = 0;*/
+
+	int i;
+	for (i = FLURMP_SC_A; i <= FLURMP_SC_Z; i++)
+	{
+		int flag = FLURMP_INPUT_UNKNOWN;
+		char c = fl_sc_to_char(i, &flag);
+
+		if (context->keystates[i])
+		{
+			if (!context->inputs[flag])
+			{
+				context->inputs[flag] = 1;
+
+				fl_putc(context->console, c);
+			}
+		}
+		else if (context->inputs[flag])
+			context->inputs[flag] = 0;
 	}
 }
