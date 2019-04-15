@@ -284,17 +284,16 @@ static void render_camera_boundaries(fl_context* context)
 
 void fl_render(fl_context *context)
 {
-//	SDL_SetRenderDrawColor(context->renderer, 145, 219, 255, 255);
-	SDL_SetRenderDrawColor(context->renderer, 0, 0, 0, 255);
+	SDL_SetRenderDrawColor(context->renderer, 145, 219, 255, 255);
 	SDL_RenderClear(context->renderer);
 
 	fl_entity *en = context->entities;
 
-	/*while (en != NULL)
+	while (en != NULL)
 	{
 		en->render(context, en);
 		en = en->next;
-	}*/
+	}
 
 	/* render_camera_boundaries(context); */
 
