@@ -1,5 +1,8 @@
 #include "console.h"
 
+#include <stdlib.h>
+#include <stdio.h>
+
 #define FL_CON_WIDTH 48
 #define FL_CON_HEIGHT 4
 #define FL_CHAR_WIDTH 12
@@ -10,6 +13,26 @@
 
 /* for now, the buffers and stuff will be static */
 static char buffer[FL_CON_WIDTH * FL_CON_HEIGHT] = { '\0' };
+
+static int get_font_index(char c)
+{
+	switch (c)
+	{
+	case '-': return 36;
+	case '=': return 37;
+	case '[': return 38;
+	case ']': return 39;
+	case ';': return 40;
+	case '\'': return 41;
+	case ',': return 42;
+	case '.': return 43;
+	case '/': return 44;
+	case '\\': return 45;
+	case '`': return 46;
+	case ' ': return 47;
+	default: return 47;
+	}
+}
 
 console_t* fl_create_console(fl_context* context)
 {
@@ -26,9 +49,9 @@ console_t* fl_create_console(fl_context* context)
 	con->cursor_y = 0;
 	con->char_count = 0;
 
-	SDL_Surface *surface = SDL_LoadBMP("./images/font.bmp");
+	SDL_Surface * surface = SDL_LoadBMP("./images/font.bmp");
 	SDL_SetColorKey(surface, 1, SDL_MapRGB(surface->format, 255, 0, 255));
-	SDL_Texture *font_texture = SDL_CreateTextureFromSurface(context->renderer, surface);
+	SDL_Texture * font_texture = SDL_CreateTextureFromSurface(context->renderer, surface);
 	SDL_FreeSurface(surface);
 
 	con->font = font_texture;
@@ -36,7 +59,7 @@ console_t* fl_create_console(fl_context* context)
 	return con;
 }
 
-void fl_destroy_console(console_t* console)
+void fl_destroy_console(console_t * console)
 {
 	if (console == NULL)
 		return;
@@ -56,7 +79,7 @@ void fl_destroy_console(console_t* console)
 */
 
 
-void fl_render_console(fl_context* context, console_t* console)
+void fl_render_console(fl_context * context, console_t * console)
 {
 	SDL_SetRenderDrawColor(context->renderer, 150, 50, 150, 120);
 
@@ -109,14 +132,12 @@ void fl_render_console(fl_context* context, console_t* console)
 				c_x++;
 
 		}
-		else if (buffer[i] == ' ')
+		else if (buffer[i] >= '0' && buffer[i] <= '9')
 		{
-			// comma: 42
-			// period: 43
 			dest.x = console->x + c_x * FL_CHAR_WIDTH;
 			dest.y = console->y + c_y * FL_CHAR_HEIGHT;
 
-			src.x = 47 * FL_CHAR_WIDTH;
+			src.x = (buffer[i] - '0') * FL_CHAR_WIDTH + 26 * FL_CHAR_WIDTH;
 			src.y = 0;
 
 			SDL_RenderCopy(context->renderer, console->font, &src, &dest);
@@ -129,32 +150,14 @@ void fl_render_console(fl_context* context, console_t* console)
 			}
 			else
 				c_x++;
+
 		}
-		else if (buffer[i] == ',')
+		else if (buffer[i] > 0x1F)
 		{
 			dest.x = console->x + c_x * FL_CHAR_WIDTH;
 			dest.y = console->y + c_y * FL_CHAR_HEIGHT;
 
-			src.x = 42 * FL_CHAR_WIDTH;
-			src.y = 0;
-
-			SDL_RenderCopy(context->renderer, console->font, &src, &dest);
-
-			if (c_x >= FL_CON_WIDTH - 1)
-			{
-				c_x = 0;
-				if (c_y < FL_CON_HEIGHT - 1)
-					c_y++;
-			}
-			else
-				c_x++;
-		}
-		else if (buffer[i] == '.')
-		{
-			dest.x = console->x + c_x * FL_CHAR_WIDTH;
-			dest.y = console->y + c_y * FL_CHAR_HEIGHT;
-
-			src.x = 43 * FL_CHAR_WIDTH;
+			src.x = get_font_index(buffer[i]) * FL_CHAR_WIDTH;
 			src.y = 0;
 
 			SDL_RenderCopy(context->renderer, console->font, &src, &dest);
@@ -171,11 +174,30 @@ void fl_render_console(fl_context* context, console_t* console)
 	}
 }
 
-void fl_putc(console_t* console, char c)
+void fl_putc(console_t * console, char c)
 {
+	printf("character count: %d/%d %d\n", console->char_count, FL_BUFFER_LIMIT, (int)c);
+
 	/* buffer position = cursor_x + FL_CON_WIDTH * cursor_y */
 	/* TODO: add support for newline, backspace, etc. */
-	if (console->char_count >= FL_BUFFER_LIMIT)
+	if (c == '\0')
+		return;
+
+	/* handle backspaces */
+	if (c == 0x08)
+	{
+		if (console->char_count > 0)
+		{
+			buffer[console->char_count-- - 1] = '\0';
+		}
+		return;
+	}
+
+	/* for now, there aren't very many unprintable characters that we can handle */
+	if (c < 0x20)
+		return;
+
+	if (console->char_count >= FL_BUFFER_LIMIT || c == '\0')
 		return;
 
 	buffer[console->char_count++] = c;
@@ -193,7 +215,7 @@ void fl_putc(console_t* console, char c)
 	}
 }
 
-void fl_print(console_t* console, const char* s)
+void fl_print(console_t * console, const char* s)
 {
 
 }
@@ -228,9 +250,30 @@ char fl_sc_to_char(int sc, int* flag)
 	case FLURMP_SC_X: *flag = FLURMP_INPUT_X; return 'x';
 	case FLURMP_SC_Y: *flag = FLURMP_INPUT_Y; return 'y';
 	case FLURMP_SC_Z: *flag = FLURMP_INPUT_Z; return 'z';
+	case FLURMP_SC_0: *flag = FLURMP_INPUT_0; return '0';
+	case FLURMP_SC_1: *flag = FLURMP_INPUT_1; return '1';
+	case FLURMP_SC_2: *flag = FLURMP_INPUT_2; return '2';
+	case FLURMP_SC_3: *flag = FLURMP_INPUT_3; return '3';
+	case FLURMP_SC_4: *flag = FLURMP_INPUT_4; return '4';
+	case FLURMP_SC_5: *flag = FLURMP_INPUT_5; return '5';
+	case FLURMP_SC_6: *flag = FLURMP_INPUT_6; return '6';
+	case FLURMP_SC_7: *flag = FLURMP_INPUT_7; return '7';
+	case FLURMP_SC_8: *flag = FLURMP_INPUT_8; return '8';
+	case FLURMP_SC_9: *flag = FLURMP_INPUT_9; return '9';
 	case FLURMP_SC_SPACE: *flag = FLURMP_INPUT_SPACE; return ' ';
 	case FLURMP_SC_COMMA: *flag = FLURMP_INPUT_COMMA; return ',';
 	case FLURMP_SC_PERIOD: *flag = FLURMP_INPUT_PERIOD; return '.';
+	case FLURMP_SC_LEFTBRACKET: *flag = FLURMP_INPUT_LEFTBRACKET; return '[';
+	case FLURMP_SC_RIGHTBRACKET: *flag = FLURMP_INPUT_RIGHTBRACKET; return ']';
+	case FLURMP_SC_SEMICOLON: *flag = FLURMP_INPUT_SEMICOLON; return ';';
+	case FLURMP_SC_APOSTRAPHE: *flag = FLURMP_INPUT_APOSTRAPHE; return '\'';
+	case FLURMP_SC_SLASH: *flag = FLURMP_INPUT_SLASH; return '/';
+	case FLURMP_SC_BACKSLASH: *flag = FLURMP_INPUT_BACKSLASH; return '\\';
+	case FLURMP_SC_MINUS: *flag = FLURMP_INPUT_MINUS; return '-';
+	case FLURMP_SC_EQUALS: *flag = FLURMP_INPUT_EQUALS; return '=';
+	case FLURMP_SC_BACKSPACE: *flag = FLURMP_INPUT_BACKSPACE; return (char)0x08;
+	case FLURMP_SC_RETURN: *flag = FLURMP_INPUT_RETURN; return (char)0x0A;
+	case FLURMP_SC_RETURN2: *flag = FLURMP_INPUT_RETURN; return (char)0x0A;
 	default: *flag = FLURMP_INPUT_UNKNOWN; return '\0';
 	}
 }

@@ -50,6 +50,17 @@
 #define FLURMP_SC_ESCAPE SDL_SCANCODE_ESCAPE /* 40th scancode */
 #define FLURMP_SC_LSHIFT SDL_SCANCODE_LSHIFT
 #define FLURMP_SC_RSHIFT SDL_SCANCODE_RSHIFT /* 42nd scancode */
+#define FLURMP_SC_BACKSPACE SDL_SCANCODE_BACKSPACE
+#define FLURMP_SC_RETURN SDL_SCANCODE_RETURN
+#define FLURMP_SC_RETURN2 SDL_SCANCODE_RETURN2
+#define FLURMP_SC_LEFTBRACKET SDL_SCANCODE_LEFTBRACKET
+#define FLURMP_SC_RIGHTBRACKET SDL_SCANCODE_RIGHTBRACKET
+#define FLURMP_SC_SEMICOLON SDL_SCANCODE_SEMICOLON
+#define FLURMP_SC_APOSTRAPHE SDL_SCANCODE_APOSTROPHE
+#define FLURMP_SC_SLASH SDL_SCANCODE_SLASH /* 50th scancode */
+#define FLURMP_SC_BACKSLASH SDL_SCANCODE_BACKSLASH
+#define FLURMP_SC_MINUS SDL_SCANCODE_MINUS
+#define FLURMP_SC_EQUALS SDL_SCANCODE_EQUALS /* 53rd scancode */
 
 #define FLURMP_SC_LIMIT SDL_NUM_SCANCODES
 
@@ -103,6 +114,16 @@ typedef const Uint8 fl_keystate;
 #define FLURMP_INPUT_SPACE 39
 #define FLURMP_INPUT_ESCAPE 40
 #define FLURMP_INPUT_SHIFT 41
+#define FLURMP_INPUT_BACKSPACE 42
+#define FLURMP_INPUT_RETURN 43
+#define FLURMP_INPUT_LEFTBRACKET 44
+#define FLURMP_INPUT_RIGHTBRACKET 45
+#define FLURMP_INPUT_SEMICOLON 46
+#define FLURMP_INPUT_APOSTRAPHE 47
+#define FLURMP_INPUT_SLASH 48
+#define FLURMP_INPUT_BACKSLASH 49
+#define FLURMP_INPUT_MINUS 50
+#define FLURMP_INPUT_EQUALS 51
 
 /* entity state flags */
 #define FLURMP_JUMP_FLAG     0x01
@@ -166,7 +187,7 @@ struct fl_entity_s {
 	int frame;
 
 	/* sprite data */
-	SDL_Texture *texture;
+	SDL_Texture* texture;
 
 	/* entity operations */
 	void(*collide) (fl_context*, fl_entity*, fl_entity*, int, int);
@@ -174,8 +195,8 @@ struct fl_entity_s {
 	void(*render) (fl_context*, fl_entity*);
 
 	/* list pointers */
-	fl_entity *next;
-	fl_entity *tail;
+	fl_entity* next;
+	fl_entity* tail;
 };
 
 /**
@@ -199,22 +220,22 @@ typedef struct console_t
 struct fl_context_s {
 
 	/* the area in which graphics willl be rendered */
-	fl_window *window;
+	fl_window* window;
 
 	/* object responsible for rendering graphics */
-	fl_renderer *renderer;
+	fl_renderer* renderer;
 
 	/* the most recent event */
 	fl_event event;
 
 	/* keeps track of button states for user input */
-	fl_keystate *keystates;
+	fl_keystate* keystates;
 
 	/* keeps track of what inputs have been received */
-	int inputs[41];
+	int inputs[52];
 
 	/* a list of all the entities in the current context */
-	fl_entity *entities;
+	fl_entity* entities;
 
 	/* the primary control object */
 	fl_entity* pco;
