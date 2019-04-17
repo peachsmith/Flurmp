@@ -50,6 +50,8 @@
 #define FLURMP_SC_ESCAPE SDL_SCANCODE_ESCAPE /* 40th scancode */
 #define FLURMP_SC_LSHIFT SDL_SCANCODE_LSHIFT
 #define FLURMP_SC_RSHIFT SDL_SCANCODE_RSHIFT /* 42nd scancode */
+#define FLURMP_SC_LCTRL SDL_SCANCODE_LCTRL
+#define FLURMP_SC_RCTRL SDL_SCANCODE_RCTRL
 #define FLURMP_SC_BACKSPACE SDL_SCANCODE_BACKSPACE
 #define FLURMP_SC_RETURN SDL_SCANCODE_RETURN
 #define FLURMP_SC_RETURN2 SDL_SCANCODE_RETURN2
@@ -57,10 +59,10 @@
 #define FLURMP_SC_RIGHTBRACKET SDL_SCANCODE_RIGHTBRACKET
 #define FLURMP_SC_SEMICOLON SDL_SCANCODE_SEMICOLON
 #define FLURMP_SC_APOSTRAPHE SDL_SCANCODE_APOSTROPHE
-#define FLURMP_SC_SLASH SDL_SCANCODE_SLASH /* 50th scancode */
+#define FLURMP_SC_SLASH SDL_SCANCODE_SLASH /* 52nd scancode */
 #define FLURMP_SC_BACKSLASH SDL_SCANCODE_BACKSLASH
 #define FLURMP_SC_MINUS SDL_SCANCODE_MINUS
-#define FLURMP_SC_EQUALS SDL_SCANCODE_EQUALS /* 53rd scancode */
+#define FLURMP_SC_EQUALS SDL_SCANCODE_EQUALS /* 55th scancode */
 
 #define FLURMP_SC_LIMIT SDL_NUM_SCANCODES
 
@@ -114,16 +116,18 @@ typedef const Uint8 fl_keystate;
 #define FLURMP_INPUT_SPACE 39
 #define FLURMP_INPUT_ESCAPE 40
 #define FLURMP_INPUT_SHIFT 41
-#define FLURMP_INPUT_BACKSPACE 42
-#define FLURMP_INPUT_RETURN 43
-#define FLURMP_INPUT_LEFTBRACKET 44
-#define FLURMP_INPUT_RIGHTBRACKET 45
-#define FLURMP_INPUT_SEMICOLON 46
-#define FLURMP_INPUT_APOSTRAPHE 47
-#define FLURMP_INPUT_SLASH 48
-#define FLURMP_INPUT_BACKSLASH 49
-#define FLURMP_INPUT_MINUS 50
-#define FLURMP_INPUT_EQUALS 51
+#define FLURMP_INPUT_CTRL 42
+#define FLURMP_INPUT_BACKSPACE 43
+#define FLURMP_INPUT_RETURN 44
+#define FLURMP_INPUT_RETURN2 45
+#define FLURMP_INPUT_LEFTBRACKET 46
+#define FLURMP_INPUT_RIGHTBRACKET 47
+#define FLURMP_INPUT_SEMICOLON 48
+#define FLURMP_INPUT_APOSTRAPHE 49
+#define FLURMP_INPUT_SLASH 50
+#define FLURMP_INPUT_BACKSLASH 51
+#define FLURMP_INPUT_MINUS 52
+#define FLURMP_INPUT_EQUALS 53
 
 /* entity state flags */
 #define FLURMP_JUMP_FLAG     0x01
@@ -219,7 +223,7 @@ typedef struct console_t
  */
 struct fl_context_s {
 
-	/* the area in which graphics willl be rendered */
+	/* the area in which graphics will be rendered */
 	fl_window* window;
 
 	/* object responsible for rendering graphics */
@@ -232,7 +236,7 @@ struct fl_context_s {
 	fl_keystate* keystates;
 
 	/* keeps track of what inputs have been received */
-	int inputs[52];
+	int inputs[54];
 
 	/* a list of all the entities in the current context */
 	fl_entity* entities;

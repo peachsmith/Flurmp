@@ -9,6 +9,7 @@
 #include "console.h"
 
 #include <stdlib.h>
+#include <stdio.h>
 
 static void fl_test_input(fl_context*);
 static void fl_console_input(fl_context* context);
@@ -66,32 +67,32 @@ fl_context* fl_create_context()
 	context->paused = 0;
 
 	/* create a player */
-	fl_entity* player = fl_create_player(300, 260, 30, 40);
+	fl_entity * player = fl_create_player(300, 260, 30, 40);
 
 	/* load the sprite for the player */
-	SDL_Surface *surface = SDL_LoadBMP("./images/person.bmp");
+	SDL_Surface * surface = SDL_LoadBMP("./images/person.bmp");
 	SDL_SetColorKey(surface, 1, SDL_MapRGB(surface->format, 255, 0, 255));
-	SDL_Texture *player_texture = SDL_CreateTextureFromSurface(context->renderer, surface);
+	SDL_Texture * player_texture = SDL_CreateTextureFromSurface(context->renderer, surface);
 	SDL_FreeSurface(surface);
 
 	player->texture = player_texture;
 
 	/* block to stand on */
-	fl_entity* block_1 = fl_create_rectangle(440, 250, 70, 20);
-	fl_entity* block_2 = fl_create_rectangle(500, 220, 50, 20);
+	fl_entity * block_1 = fl_create_rectangle(440, 250, 70, 20);
+	fl_entity * block_2 = fl_create_rectangle(500, 220, 50, 20);
 
 	/* walls and floor */
-	fl_entity* ground1 = fl_create_rectangle(0, 300, 200, 50);
-	fl_entity* ground2 = fl_create_rectangle(260, 300, 480, 50);
-	fl_entity* left_wall = fl_create_rectangle(-70, 100, 50, 250);
-	fl_entity* right_wall = fl_create_rectangle(715, 100, 50, 250);
+	fl_entity * ground1 = fl_create_rectangle(0, 300, 200, 50);
+	fl_entity * ground2 = fl_create_rectangle(260, 300, 480, 50);
+	fl_entity * left_wall = fl_create_rectangle(-70, 100, 50, 250);
+	fl_entity * right_wall = fl_create_rectangle(715, 100, 50, 250);
 
-	fl_entity* lower_floor1 = fl_create_rectangle(0, 400, 500, 50);
-	fl_entity* lower_floor2 = fl_create_rectangle(500, 450, 100, 50);
-	fl_entity* lower_floor3 = fl_create_rectangle(600, 500, 100, 50);
+	fl_entity * lower_floor1 = fl_create_rectangle(0, 400, 500, 50);
+	fl_entity * lower_floor2 = fl_create_rectangle(500, 450, 100, 50);
+	fl_entity * lower_floor3 = fl_create_rectangle(600, 500, 100, 50);
 
 	/* something to interact with */
-	fl_entity* sign = fl_create_interactable(310, 270, 30, 30);
+	fl_entity * sign = fl_create_interactable(310, 270, 30, 30);
 
 	/* add the entities to the context */
 	fl_add_entity(context, sign);
@@ -112,20 +113,20 @@ fl_context* fl_create_context()
 	context->state = 0;
 
 	/* add the dev console */
-	console_t* console = fl_create_console(context);
+	console_t * console = fl_create_console(context);
 
 	context->console = console;
 
 	return context;
 }
 
-void fl_destroy_context(fl_context* context)
+void fl_destroy_context(fl_context * context)
 {
 	if (context->console != NULL) fl_destroy_console(context->console);
 	if (context->renderer != NULL) SDL_DestroyRenderer(context->renderer);
 	if (context->window != NULL) SDL_DestroyWindow(context->window);
-	fl_entity *en = context->entities;
-	fl_entity *next;
+	fl_entity * en = context->entities;
+	fl_entity * next;
 	while (en != NULL)
 	{
 		next = en->next;
@@ -135,7 +136,7 @@ void fl_destroy_context(fl_context* context)
 	free(context);
 }
 
-void fl_add_entity(fl_context *context, fl_entity *entity)
+void fl_add_entity(fl_context * context, fl_entity * entity)
 {
 	if (context->count == 0)
 	{
@@ -151,7 +152,7 @@ void fl_add_entity(fl_context *context, fl_entity *entity)
 	context->count++;
 }
 
-int fl_detect_collision(fl_entity* a, fl_entity* b)
+int fl_detect_collision(fl_entity * a, fl_entity * b)
 {
 	int collision = 0;
 
@@ -186,17 +187,17 @@ int fl_detect_collision(fl_entity* a, fl_entity* b)
 	return collision;
 }
 
-int fl_poll_event(fl_context *context)
+int fl_poll_event(fl_context * context)
 {
 	return SDL_PollEvent(&(context->event));
 }
 
-void fl_handle_event(fl_context *context)
+void fl_handle_event(fl_context * context)
 {
 	if (context->event.type == FLURMP_QUIT) context->done = 1;
 }
 
-void fl_handle_input(fl_context* context)
+void fl_handle_input(fl_context * context)
 {
 	if (context->state == 0)
 	{
@@ -204,13 +205,13 @@ void fl_handle_input(fl_context* context)
 	}
 }
 
-void fl_update(fl_context *context)
+void fl_update(fl_context * context)
 {
 	if (context->paused)
 		return;
 
-	fl_entity *en = context->entities;
-	fl_entity *next;
+	fl_entity* en = context->entities;
+	fl_entity* next;
 
 	/* update state with respect to X axis */
 	while (en != NULL)
@@ -271,7 +272,7 @@ void fl_update(fl_context *context)
 	}
 }
 
-static void render_camera_boundaries(fl_context* context)
+static void render_camera_boundaries(fl_context * context)
 {
 	SDL_SetRenderDrawColor(context->renderer, 255, 255, 0, 255);
 	SDL_RenderDrawLine(context->renderer, FLURMP_LEFT_BOUNDARY, 0, FLURMP_LEFT_BOUNDARY, FLURMP_WINDOW_HEIGHT);
@@ -282,12 +283,12 @@ static void render_camera_boundaries(fl_context* context)
 	SDL_RenderDrawLine(context->renderer, 0, FLURMP_LOWER_BOUNDARY, FLURMP_WINDOW_WIDTH, FLURMP_LOWER_BOUNDARY);
 }
 
-void fl_render(fl_context *context)
+void fl_render(fl_context * context)
 {
 	SDL_SetRenderDrawColor(context->renderer, 145, 219, 255, 255);
 	SDL_RenderClear(context->renderer);
 
-	fl_entity *en = context->entities;
+	fl_entity* en = context->entities;
 
 	while (en != NULL)
 	{
@@ -310,12 +311,12 @@ void fl_sleep(int ms)
 	SDL_Delay(ms);
 }
 
-void fl_begin_frame(fl_context* context)
+void fl_begin_frame(fl_context * context)
 {
 	context->ticks = SDL_GetTicks();
 }
 
-void fl_end_frame(fl_context* context)
+void fl_end_frame(fl_context * context)
 {
 	if (1000U / context->fps > SDL_GetTicks() - context->ticks)
 	{
@@ -323,7 +324,7 @@ void fl_end_frame(fl_context* context)
 	}
 }
 
-static void fl_test_input(fl_context* context)
+static void fl_test_input(fl_context * context)
 {
 	if (context->keystates[FLURMP_SC_ESCAPE])
 	{
@@ -344,9 +345,10 @@ static void fl_test_input(fl_context* context)
 
 	if (context->paused)
 	{
-		return fl_console_input(context);
+		fl_console_input(context);
+		return;
 	}
-
+	
 	if (context->keystates[FLURMP_SC_C])
 	{
 		context->pco->x = 260;
@@ -375,25 +377,21 @@ if (context->keystates[<scancode>])
 
 */
 
-static void fl_console_input(fl_context* context)
+static void fl_console_input(fl_context * context)
 {
-	/*if (context->keystates[FLURMP_SC_A])
-	{
-		if (!context->inputs[FLURMP_INPUT_A])
-		{
-			context->inputs[FLURMP_INPUT_A] = 1;
-
-			fl_putc(context->console, 'a');
-		}
-	}
-	else if (context->inputs[FLURMP_INPUT_A])
-		context->inputs[FLURMP_INPUT_A] = 0;*/
-
 	int i;
 	for (i = 0; i < FLURMP_SC_LIMIT; i++)
 	{
 		int flag = FLURMP_INPUT_UNKNOWN;
-		char c = fl_sc_to_char(i, &flag);
+		unsigned char mod = 0x00;
+
+		/* handle key combos like shift and ctrl */
+		if (context->keystates[FLURMP_SC_LSHIFT] || context->keystates[FLURMP_SC_RSHIFT])
+			mod |= FLURMP_CONSOLE_MOD_SHIFT;
+		if (context->keystates[FLURMP_SC_LCTRL] || context->keystates[FLURMP_SC_RCTRL])
+			mod |= FLURMP_CONSOLE_MOD_CTRL;
+
+		char c = fl_sc_to_char(i, &flag, mod);
 
 		if (context->keystates[i])
 		{
@@ -401,7 +399,10 @@ static void fl_console_input(fl_context* context)
 			{
 				context->inputs[flag] = 1;
 
-				fl_putc(context->console, c);
+				if (c == 0x0A)
+					submit_buffer(context, context->console);
+				else
+					fl_putc(context->console, c, mod);
 			}
 		}
 		else if (context->inputs[flag])
