@@ -36,7 +36,7 @@ int main(int argc, char** argv)
 	fl_context* context = fl_create_context();
 
 	/* while not done */
-	while (!context->done)
+	while (!fl_is_done(context))
 	{
 		fl_begin_frame(context);
 

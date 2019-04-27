@@ -1,22 +1,22 @@
 #ifndef CONSOLE_H
 #define CONSOLE_H
 
-#include "flurmp.h"
+#include "flurmp_impl.h"
 
 #define FLURMP_CONSOLE_MOD_SHIFT 0x01
 #define FLURMP_CONSOLE_MOD_CTRL  0x02
 
-console_t* fl_create_console(fl_context* context);
+fl_console* fl_create_console(fl_context* context);
 
-void fl_destroy_console(console_t* console);
+void fl_destroy_console(fl_console* console);
 
-void fl_render_console(fl_context* context, console_t* console);
+void fl_render_console(fl_context* context, fl_console* console);
 
-void fl_putc(console_t* console, char c, unsigned char mod);
+void fl_putc(fl_console* console, char c, unsigned char mod);
 
-void fl_print(console_t* console, const char* s);
+void fl_print(fl_console* console, const char* s);
 
-void submit_buffer(fl_context* context, console_t* console);
+void submit_buffer(fl_context* context, fl_console* console);
 
 /**
  * Convert a keyboard scancode to a character for output.

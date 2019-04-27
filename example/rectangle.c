@@ -1,4 +1,5 @@
 #include "rectangle.h"
+#include "flurmp_impl.h"
 
 #include <stdio.h>
 
@@ -15,7 +16,7 @@ fl_entity* fl_create_rectangle(int x, int y, int w, int h)
 
 	rect->next = NULL;
 	rect->tail = NULL;
-	rect->type = FL_SOLID;
+	rect->type = FLURMP_ENTITY_RECTANGLE;
 	rect->flags = 0;
 	rect->x_v = 0;
 	rect->y_v = 0;
@@ -23,20 +24,27 @@ fl_entity* fl_create_rectangle(int x, int y, int w, int h)
 	rect->y = y;
 	rect->w = w;
 	rect->h = h;
-	rect->collide = fl_collide_rectangle;
-	rect->update = fl_update_rectangle;
-	rect->render = fl_render_rectangle;
 	rect->texture = NULL;
 
 	return rect;
+}
+
+void fl_register_rectangle_type(fl_entity_type* et)
+{
+	//et->w = 30;
+	//et->h = 40;
+
+	et->collide = fl_collide_rectangle;
+	et->update = fl_update_rectangle;
+	et->render = fl_render_rectangle;
 }
 
 static void fl_collide_rectangle(fl_context* context, fl_entity* self, fl_entity* other, int collided, int axis)
 {
 	switch (other->type)
 	{
-	case FL_SOLID:
-	case FL_INTERACT:
+	case FLURMP_ENTITY_RECTANGLE:
+	case FLURMP_ENTITY_INTERACTABLE:
 		return;
 
 	default:

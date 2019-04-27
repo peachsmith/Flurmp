@@ -1,4 +1,5 @@
 #include "player.h"
+#include "input.h"
 
 #include <stdio.h>
 
@@ -15,7 +16,7 @@ fl_entity* fl_create_player(int x, int y, int w, int h)
 
 	rect->next = NULL;
 	rect->tail = NULL;
-	rect->type = FL_PLAYER;
+	rect->type = FLURMP_ENTITY_PLAYER;
 	rect->flags = 0;
 	rect->x_v = 0;
 	rect->y_v = 0;
@@ -24,20 +25,27 @@ fl_entity* fl_create_player(int x, int y, int w, int h)
 	rect->w = w;
 	rect->h = h;
 	rect->frame = 0;
-	rect->collide = fl_collide_player;
-	rect->update = fl_update_player;
-	rect->render = fl_render_player;
 	rect->texture = NULL;
 
 	return rect;
 }
 
-static void fl_collide_player(fl_context* context, fl_entity* self, fl_entity* other, int collided, int axis)
+void fl_register_player_type(fl_entity_type * et)
+{
+	//et->w = 30;
+	//et->h = 40;
+
+	et->collide = fl_collide_player;
+	et->update = fl_update_player;
+	et->render = fl_render_player;
+}
+
+static void fl_collide_player(fl_context * context, fl_entity * self, fl_entity * other, int collided, int axis)
 {
 
 }
 
-static void fl_update_player(fl_context* context, fl_entity* self, int axis)
+static void fl_update_player(fl_context * context, fl_entity * self, int axis)
 {
 	/* adjust the camera */
 	if (axis == FLURMP_AXIS_X)
@@ -120,6 +128,8 @@ static void fl_update_player(fl_context* context, fl_entity* self, int axis)
 		*/
 		self->x += self->x_v;
 
+		/* int self_w = context->entity_types[self->type].w; */
+
 		if (self->x_v < 0 && self->x - context->cam_x <= FLURMP_LEFT_BOUNDARY)
 		{
 			context->cam_x += self->x_v;
@@ -143,6 +153,8 @@ static void fl_update_player(fl_context* context, fl_entity* self, int axis)
 		if (self->y_v < 4) self->y_v += 1;
 
 		self->y += self->y_v;
+
+		/* int self_h = context->entity_types[self->type].h; */
 
 		if (self->y_v < 0 && self->y - context->cam_y <= FLURMP_UPPER_BOUNDARY)
 		{
@@ -211,24 +223,16 @@ static void fl_update_player(fl_context* context, fl_entity* self, int axis)
 		self->flags |= FLURMP_JUMP_FLAG;
 }
 
-static void fl_render_player(fl_context* context, fl_entity* self)
+static void fl_render_player(fl_context * context, fl_entity * self)
 {
 	/* determine where to render the player on the x axis */
 
 	int real_x = self->x;
 
-	//if (self->x <= FLURMP_LEFT_BOUNDARY)
-	//{
-	//	real_x = FLURMP_LEFT_BOUNDARY;
-	//}
-	//else if (self->x >= FLURMP_RIGHT_BOUNDARY)
-	//{
-	//	real_x = FLURMP_RIGHT_BOUNDARY;
-	//}
-	//else
-	//	real_x = self->x;
-
 	SDL_Rect dest;
+
+	/* int self_w = context->entity_types[self->type].w;
+	int self_h = context->entity_types[self->type].h; */
 
 	dest.x = self->x - 10 - context->cam_x;
 	dest.y = self->y - 8 - context->cam_y;

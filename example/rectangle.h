@@ -14,4 +14,12 @@
  */
 fl_entity* fl_create_rectangle(int, int, int, int);
 
+/**
+ * Registers the implementation of a rectangle entity.
+ *
+ * Params:
+ *   fl_entity_type - the entity type of a rectangle
+ */
+void fl_register_rectangle_type(fl_entity_type*);
+
 #endif

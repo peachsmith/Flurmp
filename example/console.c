@@ -1,4 +1,5 @@
 #include "console.h"
+#include "input.h"
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -15,7 +16,7 @@
 /* for now, the buffers and stuff will be static */
 static char buffer[FL_BUFFER_LIMIT] = { '\0' };
 
-static void clear_buffer(console_t* console);
+static void clear_buffer(fl_console* console);
 
 static int get_font_index(char c, int* x, int* y)
 {
@@ -84,9 +85,9 @@ static int get_font_index(char c, int* x, int* y)
 	return 1;
 }
 
-console_t* fl_create_console(fl_context * context)
+fl_console* fl_create_console(fl_context * context)
 {
-	console_t* con = (console_t*)malloc(sizeof(console_t));
+	fl_console* con = (fl_console*)malloc(sizeof(fl_console));
 
 	if (con == NULL)
 		return NULL;
@@ -109,7 +110,7 @@ console_t* fl_create_console(fl_context * context)
 	return con;
 }
 
-void fl_destroy_console(console_t * console)
+void fl_destroy_console(fl_console* console)
 {
 	if (console == NULL)
 		return;
@@ -124,7 +125,7 @@ void fl_destroy_console(console_t * console)
 	each character is 12 x 18
 */
 
-void fl_render_console(fl_context * context, console_t * console)
+void fl_render_console(fl_context * context, fl_console* console)
 {
 	SDL_SetRenderDrawColor(context->renderer, 150, 50, 150, 120);
 
@@ -184,7 +185,7 @@ void fl_render_console(fl_context * context, console_t * console)
 	}
 }
 
-void fl_putc(console_t * console, char c, unsigned char mod)
+void fl_putc(fl_console* console, char c, unsigned char mod)
 {
 	/* buffer position = cursor_x + FL_CON_WIDTH * cursor_y */
 	if (c == '\0')
@@ -246,12 +247,12 @@ void fl_putc(console_t * console, char c, unsigned char mod)
 	}
 }
 
-void fl_print(console_t * console, const char* s)
+void fl_print(fl_console* console, const char* s)
 {
 
 }
 
-void submit_buffer(fl_context * context, console_t * console)
+void submit_buffer(fl_context * context, fl_console* console)
 {
 	if (!strcmp("quit", buffer))
 	{
@@ -266,7 +267,7 @@ void submit_buffer(fl_context * context, console_t * console)
 	clear_buffer(console);
 }
 
-static void clear_buffer(console_t * console)
+static void clear_buffer(fl_console* console)
 {
 	int i;
 	for (i = 0; i < FL_BUFFER_LIMIT; i++)

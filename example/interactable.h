@@ -14,4 +14,12 @@
 */
 fl_entity* fl_create_interactable(int, int, int, int);
 
+/**
+ * Registers the implementation of an interactable entity.
+ *
+ * Params:
+ *   fl_entity_type - the entity type of an interactable
+ */
+void fl_register_interactable_type(fl_entity_type*);
+
 #endif
