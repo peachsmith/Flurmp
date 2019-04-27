@@ -54,10 +54,10 @@ fl_context* fl_create_context()
 
 	if (context->renderer == NULL) context->error = 2;
 
-	context->keystates = SDL_GetKeyboardState(NULL);
+	context->input.keystates = SDL_GetKeyboardState(NULL);
 
 	int i;
-	for (i = 0; i < 2; i++) context->inputs[i] = 0;
+	for (i = 0; i < 2; i++) context->input.inputs[i] = 0;
 
 	context->entities = NULL;
 	context->cam_x = 0;
@@ -354,11 +354,11 @@ void fl_end_frame(fl_context * context)
 
 static void fl_test_input(fl_context * context)
 {
-	if (context->keystates[FLURMP_SC_ESCAPE])
+	if (context->input.keystates[FLURMP_SC_ESCAPE])
 	{
-		if (!context->inputs[FLURMP_INPUT_ESCAPE])
+		if (!context->input.inputs[FLURMP_INPUT_ESCAPE])
 		{
-			context->inputs[FLURMP_INPUT_ESCAPE] = 1;
+			context->input.inputs[FLURMP_INPUT_ESCAPE] = 1;
 
 			if (!context->paused)
 				context->paused = 1;
@@ -366,9 +366,9 @@ static void fl_test_input(fl_context * context)
 				context->paused = 0;
 		}
 	}
-	else if (context->inputs[FLURMP_INPUT_ESCAPE])
+	else if (context->input.inputs[FLURMP_INPUT_ESCAPE])
 	{
-		context->inputs[FLURMP_INPUT_ESCAPE] = 0;
+		context->input.inputs[FLURMP_INPUT_ESCAPE] = 0;
 	}
 
 	if (context->paused)
@@ -377,7 +377,7 @@ static void fl_test_input(fl_context * context)
 		return;
 	}
 
-	if (context->keystates[FLURMP_SC_C])
+	if (context->input.keystates[FLURMP_SC_C])
 	{
 		context->pco->x = 260;
 		context->pco->y = 260;
@@ -414,18 +414,18 @@ static void fl_console_input(fl_context * context)
 		unsigned char mod = 0x00;
 
 		/* handle key combos like shift and ctrl */
-		if (context->keystates[FLURMP_SC_LSHIFT] || context->keystates[FLURMP_SC_RSHIFT])
+		if (context->input.keystates[FLURMP_SC_LSHIFT] || context->input.keystates[FLURMP_SC_RSHIFT])
 			mod |= FLURMP_CONSOLE_MOD_SHIFT;
-		if (context->keystates[FLURMP_SC_LCTRL] || context->keystates[FLURMP_SC_RCTRL])
+		if (context->input.keystates[FLURMP_SC_LCTRL] || context->input.keystates[FLURMP_SC_RCTRL])
 			mod |= FLURMP_CONSOLE_MOD_CTRL;
 
 		char c = fl_sc_to_char(i, &flag, mod);
 
-		if (context->keystates[i])
+		if (context->input.keystates[i])
 		{
-			if (!context->inputs[flag])
+			if (!context->input.inputs[flag])
 			{
-				context->inputs[flag] = 1;
+				context->input.inputs[flag] = 1;
 
 				if (c == 0x0A)
 					submit_buffer(context, context->console);
@@ -433,7 +433,7 @@ static void fl_console_input(fl_context * context)
 					fl_putc(context->console, c, mod);
 			}
 		}
-		else if (context->inputs[flag])
-			context->inputs[flag] = 0;
+		else if (context->input.inputs[flag])
+			context->input.inputs[flag] = 0;
 	}
 }

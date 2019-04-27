@@ -80,9 +80,11 @@ struct fl_entity {
 
 struct fl_input_handler {
 
-	/* TODO: implement this */
-	void* dummy;
+	/* input states */
+	const Uint8* keystates;
 
+	/* input flags */
+	int inputs[55];
 };
 
 struct fl_console
@@ -105,12 +107,6 @@ struct fl_context {
 
 	SDL_Event event;
 
-	/* keeps track of button states for user input */
-	const Uint8* keystates;
-
-	/* keeps track of what inputs have been received */
-	int inputs[55];
-
 	/* entity type registry */
 	fl_entity_type* entity_types;
 
@@ -119,6 +115,8 @@ struct fl_context {
 
 	/* the primary control object */
 	fl_entity* pco;
+
+	fl_input_handler input;
 
 	/* camera position */
 	int cam_x;

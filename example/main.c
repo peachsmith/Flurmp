@@ -28,7 +28,7 @@ int main(int argc, char** argv)
 	/* initialize the framework */
 	if (!fl_initialize())
 	{
-		printf("initialization failure %s\n", fl_get_error());
+		fprintf(stderr, "initialization failure %s\n", fl_get_error());
 		return 1;
 	}
 

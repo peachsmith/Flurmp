@@ -102,7 +102,7 @@ static void fl_update_player(fl_context * context, fl_entity * self, int axis)
 	}
 
 	/* horizontal movement (x axis) */
-	if (axis == FLURMP_AXIS_X && context->keystates[FLURMP_SC_A])
+	if (axis == FLURMP_AXIS_X && context->input.keystates[FLURMP_SC_A])
 	{
 		if (!(self->flags & FLURMP_LEFT_FLAG))
 			self->flags |= FLURMP_LEFT_FLAG;
@@ -110,7 +110,7 @@ static void fl_update_player(fl_context * context, fl_entity * self, int axis)
 		if (self->x_v > -2)
 			self->x_v -= 2;
 	}
-	if (axis == FLURMP_AXIS_X && context->keystates[FLURMP_SC_D])
+	if (axis == FLURMP_AXIS_X && context->input.keystates[FLURMP_SC_D])
 	{
 		if (self->flags & FLURMP_LEFT_FLAG)
 			self->flags &= ~(FLURMP_LEFT_FLAG);
@@ -167,13 +167,12 @@ static void fl_update_player(fl_context * context, fl_entity * self, int axis)
 		}
 	}
 
-
 	/* jumping (either axis) */
-	if (context->keystates[FLURMP_SC_SPACE])
+	if (context->input.keystates[FLURMP_SC_SPACE])
 	{
-		if (!context->inputs[FLURMP_INPUT_SPACE])
+		if (!context->input.inputs[FLURMP_INPUT_SPACE])
 		{
-			context->inputs[FLURMP_INPUT_SPACE] = 1;
+			context->input.inputs[FLURMP_INPUT_SPACE] = 1;
 
 			if (!(self->flags & FLURMP_JUMP_FLAG))
 			{
@@ -182,18 +181,18 @@ static void fl_update_player(fl_context * context, fl_entity * self, int axis)
 			}
 		}
 	}
-	else if (context->inputs[FLURMP_INPUT_SPACE])
-		context->inputs[FLURMP_INPUT_SPACE] = 0;
+	else if (context->input.inputs[FLURMP_INPUT_SPACE])
+		context->input.inputs[FLURMP_INPUT_SPACE] = 0;
 
 	/* entity interaction (either axis) */
 	if (self->flags & FLURMP_INTERACT_FLAG)
 		self->flags &= ~(FLURMP_INTERACT_FLAG);
 
-	if (context->keystates[FLURMP_SC_Z])
+	if (context->input.keystates[FLURMP_SC_Z])
 	{
-		if (!context->inputs[FLURMP_INPUT_Z])
+		if (!context->input.inputs[FLURMP_INPUT_Z])
 		{
-			context->inputs[FLURMP_INPUT_Z] = 1;
+			context->input.inputs[FLURMP_INPUT_Z] = 1;
 
 			if (!(self->flags & FLURMP_INTERACT_FLAG))
 			{
@@ -201,8 +200,8 @@ static void fl_update_player(fl_context * context, fl_entity * self, int axis)
 			}
 		}
 	}
-	else if (context->inputs[FLURMP_INPUT_Z])
-		context->inputs[FLURMP_INPUT_Z] = 0;
+	else if (context->input.inputs[FLURMP_INPUT_Z])
+		context->input.inputs[FLURMP_INPUT_Z] = 0;
 
 	/* animation frame (either axis) */
 	if (self->flags & FLURMP_JUMP_FLAG)
