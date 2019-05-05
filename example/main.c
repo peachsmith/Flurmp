@@ -25,45 +25,33 @@
 
 int main(int argc, char** argv)
 {
-	/* initialize the framework */
+	/* initialization */
 	if (!fl_initialize())
 	{
 		fprintf(stderr, "initialization failure %s\n", fl_get_error());
 		return 1;
 	}
 
-	/* create the context */
 	fl_context* context = fl_create_context();
 
-	/* while not done */
+	/* main loop */
 	while (!fl_is_done(context))
 	{
 		fl_begin_frame(context);
 
-		/* poll for events */
 		while (fl_poll_event(context))
 		{
-			/* handle events */
 			fl_handle_event(context);
 		}
 
-		/* handle input */
 		fl_handle_input(context);
-
-		/* update the state */
 		fl_update(context);
-
-		/* render */
 		fl_render(context);
-
-		/* regulate framerate */
 		fl_end_frame(context);
 	}
 
-	/* destroy the context */
+	/* cleanup */
 	fl_destroy_context(context);
-
-	/* terminate the framework */
 	fl_terminate();
 
 	return 0;
