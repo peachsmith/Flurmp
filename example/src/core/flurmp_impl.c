@@ -36,6 +36,9 @@ fl_context* fl_create_context()
 {
 	fl_context* context = malloc(sizeof(fl_context));
 
+	if (context == NULL)
+		return NULL;
+
 	context->window = SDL_CreateWindow("Flurmp", 100, 100,
 		FLURMP_WINDOW_WIDTH,
 		FLURMP_WINDOW_HEIGHT,
