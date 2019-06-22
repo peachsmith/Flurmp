@@ -39,6 +39,8 @@ fl_context* fl_create_context()
 	if (context == NULL)
 		return NULL;
 
+	context->done = 1;
+
 	context->window = SDL_CreateWindow("Flurmp", 100, 100,
 		FLURMP_WINDOW_WIDTH,
 		FLURMP_WINDOW_HEIGHT,
@@ -55,7 +57,11 @@ fl_context* fl_create_context()
 
 	SDL_SetRenderDrawBlendMode(context->renderer, SDL_BLENDMODE_BLEND);
 
-	if (context->renderer == NULL) context->error = 2;
+	if (context->renderer == NULL)
+	{
+		context->error = 2;
+		return context;
+	}
 
 	context->input.keystates = SDL_GetKeyboardState(NULL);
 
@@ -72,6 +78,12 @@ fl_context* fl_create_context()
 
 	/* for now we have 3 entity types: player, rectangle, and interactable */
 	fl_entity_type * entity_types = (fl_entity_type*)malloc(sizeof(fl_entity_type) * 3);
+
+	if (entity_types == NULL)
+	{
+		context->error = 3;
+		return context;
+	}
 
 	fl_entity_type player_type;
 	fl_entity_type rectangle_type;
@@ -137,6 +149,8 @@ fl_context* fl_create_context()
 	fl_console * console = fl_create_console(context);
 
 	context->console = console;
+
+	context->done = 0;
 
 	return context;
 }
