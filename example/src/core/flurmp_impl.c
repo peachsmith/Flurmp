@@ -12,7 +12,6 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-static void fl_test_input(fl_context*);
 static void fl_console_input(fl_context* context);
 static void fl_pause_menu_input(fl_context* context);
 
@@ -317,17 +316,6 @@ void fl_update(fl_context * context)
 	}
 }
 
-static void render_camera_boundaries(fl_context * context)
-{
-	SDL_SetRenderDrawColor(context->renderer, 255, 255, 0, 255);
-	SDL_RenderDrawLine(context->renderer, FLURMP_LEFT_BOUNDARY, 0, FLURMP_LEFT_BOUNDARY, FLURMP_WINDOW_HEIGHT);
-	SDL_RenderDrawLine(context->renderer, FLURMP_RIGHT_BOUNDARY, 0, FLURMP_RIGHT_BOUNDARY, FLURMP_WINDOW_HEIGHT);
-
-	SDL_SetRenderDrawColor(context->renderer, 110, 100, 255, 255);
-	SDL_RenderDrawLine(context->renderer, 0, FLURMP_UPPER_BOUNDARY, FLURMP_WINDOW_WIDTH, FLURMP_UPPER_BOUNDARY);
-	SDL_RenderDrawLine(context->renderer, 0, FLURMP_LOWER_BOUNDARY, FLURMP_WINDOW_WIDTH, FLURMP_LOWER_BOUNDARY);
-}
-
 void fl_render(fl_context * context)
 {
 	SDL_SetRenderDrawColor(context->renderer, 145, 219, 255, 255);
@@ -371,38 +359,15 @@ void fl_end_frame(fl_context * context)
 	}
 }
 
-static void fl_test_input(fl_context * context)
+static void render_camera_boundaries(fl_context* context)
 {
-	if (context->input.keystates[FLURMP_SC_ESCAPE])
-	{
-		if (!context->input.inputs[FLURMP_INPUT_ESCAPE])
-		{
-			context->input.inputs[FLURMP_INPUT_ESCAPE] = 1;
+	SDL_SetRenderDrawColor(context->renderer, 255, 255, 0, 255);
+	SDL_RenderDrawLine(context->renderer, FLURMP_LEFT_BOUNDARY, 0, FLURMP_LEFT_BOUNDARY, FLURMP_WINDOW_HEIGHT);
+	SDL_RenderDrawLine(context->renderer, FLURMP_RIGHT_BOUNDARY, 0, FLURMP_RIGHT_BOUNDARY, FLURMP_WINDOW_HEIGHT);
 
-			if (!context->paused)
-				context->paused = 1;
-			else
-				context->paused = 0;
-		}
-	}
-	else if (context->input.inputs[FLURMP_INPUT_ESCAPE])
-	{
-		context->input.inputs[FLURMP_INPUT_ESCAPE] = 0;
-	}
-
-	if (context->paused)
-	{
-		fl_console_input(context);
-		return;
-	}
-
-	if (context->input.keystates[FLURMP_SC_C])
-	{
-		context->pco->x = 260;
-		context->pco->y = 260;
-		context->cam_x = 0;
-		context->cam_y = 0;
-	}
+	SDL_SetRenderDrawColor(context->renderer, 110, 100, 255, 255);
+	SDL_RenderDrawLine(context->renderer, 0, FLURMP_UPPER_BOUNDARY, FLURMP_WINDOW_WIDTH, FLURMP_UPPER_BOUNDARY);
+	SDL_RenderDrawLine(context->renderer, 0, FLURMP_LOWER_BOUNDARY, FLURMP_WINDOW_WIDTH, FLURMP_LOWER_BOUNDARY);
 }
 
 static void fl_console_input(fl_context* context)

@@ -1,23 +1,23 @@
 /*
- * an example of flurmp usage
+ * An example of Flurmp usage.
  *
- * the general flow should be something like this:
+ * The general flow should be something like this:
  *
- * initialize framework
- * create the context
- * while not done
- * {
- *   while polling for events
+ *   initialize framework
+ *   create the context
+ *   while not done
  *   {
+ *     begin frame
  *     handle events
+ *     handle input
+ *     update state
+ *     render
+ *     end frame
  *   }
- *   handle input
- *   update state
- *   render
- *   regulate framerate
- * }
- * destroy the context
- * terminate the framework
+ *   destroy the context
+ *   terminate the framework
+ *
+ * Author: John Powell
  */
 #include <stdio.h>
 
@@ -40,10 +40,10 @@ int main(int argc, char** argv)
 		fl_begin_frame(context);
 
 		fl_handle_events(context);
-
 		fl_handle_input(context);
 		fl_update(context);
 		fl_render(context);
+
 		fl_end_frame(context);
 	}
 
