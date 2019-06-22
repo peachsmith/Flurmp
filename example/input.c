@@ -71,3 +71,42 @@ int fl_code_to_flag(int type, int code)
 
 	return FLURMP_INPUT_UNKNOWN;
 }
+
+int fl_consume_input(fl_context* context, int type, int code)
+{
+	if (type == FLURMP_INPUT_TYPE_KEYBOARD)
+	{
+		int flag = fl_code_to_flag(type, code);
+
+		if (context->input.keystates[code])
+		{
+			if (!context->input.inputs[flag])
+			{
+				context->input.inputs[flag] = 1;
+
+				return 1;
+			}
+
+			return 0;
+		}
+		else if (context->input.inputs[flag])
+			context->input.inputs[flag] = 0;
+
+		return 0;
+	}
+
+	return 0;
+}
+
+int fl_peek_input(fl_context* context, int type, int code)
+{
+	if (type == FLURMP_INPUT_TYPE_KEYBOARD)
+	{
+		if (context->input.keystates[code])
+			return 1;
+
+		return 0;
+	}
+
+	return 0;
+}

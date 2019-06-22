@@ -132,4 +132,41 @@
  */
 int fl_code_to_flag(int type, int code);
 
+/**
+ * Checks the state of an input event.
+ * If this function determines that the input event
+ * has occurred, it flags the input event as consumed.
+ *
+ * This function should be used when an action is required
+ * to happen once in response to a single input event.
+ *
+ * Params:
+ *   fl_context - a Flurmp context
+ *   int - the input type (e.g. FLURMP_INPUT_TYPE_KEYBOARD)
+ *
+ * Returns:
+ *   int - an integer indicating whether the input was actuated.
+ *         1 is returned if the input was actuated, otherwise
+ *         0 is returned.
+ */
+int fl_consume_input(fl_context* context, int type, int code);
+
+/**
+ * Checks the state of an input event.
+ *
+ * This function should be used when an action is required
+ * to happen continuously on each iteration of the main loop
+ * as long as the input is actuated.
+ *
+ * Params:
+ *   fl_context - a Flurmp context
+ *   int - the input type (e.g. FLURMP_INPUT_TYPE_KEYBOARD)
+ *
+ * Returns:
+ *   int - an integer indicating whether the input was actuated.
+ *         1 is returned if the input was actuated, otherwise
+ *         0 is returned.
+ */
+int fl_peek_input(fl_context* context, int type, int code);
+
 #endif
