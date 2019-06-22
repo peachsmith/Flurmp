@@ -117,24 +117,24 @@ static void render_hitbox(fl_context* context, fl_entity* self);
 
 fl_entity* fl_create_player(int x, int y, int w, int h)
 {
-	fl_entity* rect = malloc(sizeof(fl_entity));
+	fl_entity* player = malloc(sizeof(fl_entity));
 
-	if (rect == NULL) return rect;
+	if (player == NULL) return player;
 
-	rect->next = NULL;
-	rect->tail = NULL;
-	rect->type = FLURMP_ENTITY_PLAYER;
-	rect->flags = 0;
-	rect->x_v = 0;
-	rect->y_v = 0;
-	rect->x = x;
-	rect->y = y;
-	rect->w = w;
-	rect->h = h;
-	rect->frame = 0;
-	rect->texture = NULL;
+	player->next = NULL;
+	player->tail = NULL;
+	player->type = FLURMP_ENTITY_PLAYER;
+	player->flags = 0;
+	player->x_v = 0;
+	player->y_v = 0;
+	player->x = x;
+	player->y = y;
+	player->w = w;
+	player->h = h;
+	player->frame = 0;
+	player->texture = NULL;
 
-	return rect;
+	return player;
 }
 
 void fl_register_player_type(fl_entity_type * et)

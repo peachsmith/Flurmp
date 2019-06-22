@@ -3,6 +3,9 @@
 
 #include "flurmp_impl.h"
 
+#define FLURMP_INPUT_TYPE_KEYBOARD 1
+#define FLURMP_INPUT_TYPE_MOUSE 2
+
 /* 55 scancodes are currently supported */
 #define FLURMP_SC_A SDL_SCANCODE_A /* 1st scancode */
 #define FLURMP_SC_B SDL_SCANCODE_B
@@ -118,5 +121,15 @@
 #define FLURMP_INPUT_BACKSLASH 51
 #define FLURMP_INPUT_MINUS 52
 #define FLURMP_INPUT_EQUALS 53
+
+/**
+ * Determines the input flag corresponding to the
+ * specified input code and type.
+ *
+ * Params:
+ *   int - the type of event (e.g. FLURMP_INPUT_TYPE_KEYBOARD)
+ *   int - the input code (e.g. a scancode like FLURMP_SC_A)
+ */
+int fl_code_to_flag(int type, int code);
 
 #endif
