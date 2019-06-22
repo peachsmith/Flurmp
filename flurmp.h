@@ -43,6 +43,9 @@ typedef struct fl_input_handler fl_input_handler;
  */
 typedef struct fl_console fl_console;
 
+typedef struct fl_menu fl_menu;
+typedef struct fl_menu_item fl_menu_item;
+
 
 
 
@@ -93,8 +96,8 @@ const char* fl_get_error();
 fl_context* fl_create_context();
 
 /**
-* Frees resources allocated for the context
-*/
+ * Frees resources allocated for the context
+ */
 void fl_destroy_context(fl_context*);
 
 /**
@@ -132,8 +135,8 @@ int fl_poll_event(fl_context*);
 void fl_handle_event(fl_context*);
 
 /**
-* handles user input
-*/
+ * handles user input
+ */
 void fl_handle_input(fl_context*);
 
 /**
@@ -142,8 +145,8 @@ void fl_handle_input(fl_context*);
 void fl_update(fl_context*);
 
 /**
-* Renders the current contents of the context to the screen
-*/
+ * Renders the current contents of the context to the screen
+ */
 void fl_render(fl_context*);
 
 /**
@@ -152,8 +155,24 @@ void fl_render(fl_context*);
 void fl_begin_frame(fl_context* context);
 
 /**
-* concludes an iteration of the main loop
-*/
+ * concludes an iteration of the main loop
+ */
 void fl_end_frame(fl_context* context);
+
+
+
+/* TODO: relocate these */
+
+/**
+ * Checks the state of an input event.
+ * If this function determines that the input event
+ * has occurred, it flags the input event as consumed.
+ */
+int fl_consume_input(fl_context*, int, int);
+
+/**
+ * Checks the state of an input event.
+ */
+int fl_peek_input(fl_context*, int, int);
 
 #endif /* !FLURMP_H */

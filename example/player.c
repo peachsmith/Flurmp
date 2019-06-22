@@ -167,7 +167,8 @@ static void update_player(fl_context * context, fl_entity * self, int axis)
 	interact(context, self);
 
 	/* animation */
-	animate(context, self);
+	if (axis == FLURMP_AXIS_X)
+		animate(context, self);
 }
 
 static void render_player(fl_context * context, fl_entity * self)
@@ -193,9 +194,9 @@ static void render_player(fl_context * context, fl_entity * self)
 	 */
 	if (self->flags & FLURMP_JUMP_FLAG)
 		f = 1;
-	else if (self->frame > 10 && self->frame < 20)
+	else if (self->frame > 5 && self->frame < 10)
 		f = 1;
-	else if (self->frame > 20 && self->frame < 30)
+	else if (self->frame > 10 && self->frame < 15)
 		f = 2;
 
 	SDL_Rect src;
@@ -390,7 +391,7 @@ static void animate(fl_context * context, fl_entity * self)
 	else if (self->x_v != 0)
 	{
 		/* walking */
-		if (self->frame < 30) self->frame++;
+		if (self->frame < 15) self->frame++;
 		else self->frame = 0;
 	}
 	else

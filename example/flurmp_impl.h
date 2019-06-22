@@ -99,6 +99,26 @@ struct fl_console
 	SDL_Texture* font;
 };
 
+struct fl_menu_item {
+	int x;
+	int y;
+	char text[15];
+	void(*action) (fl_context*, fl_menu*);
+
+	struct fl_menu_item* next;
+	struct fl_menu_item* prev;
+};
+
+struct fl_menu {
+	int x;
+	int y;
+	int w;
+	int h;
+	int pos;
+	fl_menu_item* items;
+
+};
+
 struct fl_context {
 
 	SDL_Window* window;
@@ -145,6 +165,9 @@ struct fl_context {
 
 	/* dev console */
 	fl_console* console;
+
+	/* a pause menu */
+
 };
 
 #endif
