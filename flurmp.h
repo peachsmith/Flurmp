@@ -208,19 +208,13 @@ void fl_add_entity(fl_context* context, fl_entity* entity);
 int fl_detect_collision(fl_entity* a, fl_entity* b);
 
 /**
- * Checks for events
- *
- * Returns:
- *   an integer indicating whether or not there are any pending events
- *   0 - no events
- *   1 - events pending
- */
-int fl_poll_event(fl_context*);
-
-/**
  * Handles events.
+ * Events are anything from user input to moving the window.
+ *
+ * Params:
+ *   fl_context - a Flurmp context
  */
-void fl_handle_event(fl_context*);
+void fl_handle_events(fl_context* context);
 
 /**
  * Handles user input.

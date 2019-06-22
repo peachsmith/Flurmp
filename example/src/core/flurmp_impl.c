@@ -214,14 +214,12 @@ int fl_detect_collision(fl_entity * a, fl_entity * b)
 	return collision;
 }
 
-int fl_poll_event(fl_context * context)
+void fl_handle_events(fl_context* context)
 {
-	return SDL_PollEvent(&(context->event));
-}
-
-void fl_handle_event(fl_context * context)
-{
-	if (context->event.type == FLURMP_QUIT) context->done = 1;
+	while (SDL_PollEvent(&(context->event)))
+	{
+		if (context->event.type == FLURMP_QUIT) context->done = 1;
+	}
 }
 
 void fl_handle_input(fl_context * context)
