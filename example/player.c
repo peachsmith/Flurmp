@@ -102,6 +102,15 @@ static void animate(fl_context*, fl_entity*);
 
 
 
+
+/* -------------------------------------------------------------- */
+/*                 utility functions functions                    */
+/* -------------------------------------------------------------- */
+static void render_hitbox(fl_context* context, fl_entity* self);
+
+
+
+
 /* -------------------------------------------------------------- */
 /*         entity creation functions (publicly exposed)           */
 /* -------------------------------------------------------------- */
@@ -140,6 +149,10 @@ void fl_register_player_type(fl_entity_type * et)
 
 
 
+
+/* -------------------------------------------------------------- */
+/*                update functions (implementation)               */
+/* -------------------------------------------------------------- */
 
 static void collide_player(fl_context * context, fl_entity * self, fl_entity * other, int collided, int axis)
 {
@@ -205,25 +218,14 @@ static void render_player(fl_context * context, fl_entity * self)
 	src.w = 50;
 	src.h = 50;
 
-	SDL_Rect hb;
-	hb.x = self->x - context->cam_x;
-	hb.y = self->y - context->cam_y;
-	hb.w = self->w;
-	hb.h = self->h;
-
 	if (self->flags & FLURMP_LEFT_FLAG)
 		SDL_RenderCopyEx(context->renderer, self->texture, &src, &dest, 0, NULL, SDL_FLIP_HORIZONTAL);
 
 	else
 		SDL_RenderCopyEx(context->renderer, self->texture, &src, &dest, 0, NULL, SDL_FLIP_NONE);
 
-	/* render player hitbox */
-	/* SDL_SetRenderDrawColor(context->renderer, 255, 0, 255, 255);
-	SDL_RenderDrawRect(context->renderer, &hb); */
+	/* render_hitbox(context, self); */
 }
-
-
-
 
 static void adjust_camera_horizontal(fl_context * context, fl_entity * self)
 {
@@ -399,4 +401,19 @@ static void animate(fl_context * context, fl_entity * self)
 		/* standing */
 		self->frame = 0;
 	}
+}
+
+/* -------------------------------------------------------------- */
+/*                utility functions (implementation)              */
+/* -------------------------------------------------------------- */
+static void render_hitbox(fl_context * context, fl_entity * self)
+{
+	SDL_Rect hb;
+	hb.x = self->x - context->cam_x;
+	hb.y = self->y - context->cam_y;
+	hb.w = self->w;
+	hb.h = self->h;
+
+	SDL_SetRenderDrawColor(context->renderer, 255, 0, 255, 255);
+	SDL_RenderDrawRect(context->renderer, &hb);
 }
