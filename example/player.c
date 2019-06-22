@@ -283,7 +283,7 @@ static void adjust_camera_horizontal(fl_context * context, fl_entity * self)
 static void horizontal_movement(fl_context * context, fl_entity * self)
 {
 	/* walking (input handling) */
-	if (context->input.keystates[FLURMP_SC_A])
+	if (fl_peek_input(context, FLURMP_INPUT_TYPE_KEYBOARD, FLURMP_SC_A))
 	{
 		if (!(self->flags & FLURMP_LEFT_FLAG))
 			self->flags |= FLURMP_LEFT_FLAG;
@@ -292,7 +292,7 @@ static void horizontal_movement(fl_context * context, fl_entity * self)
 			self->x_v -= 2;
 	}
 
-	if (context->input.keystates[FLURMP_SC_D])
+	if (fl_peek_input(context, FLURMP_INPUT_TYPE_KEYBOARD, FLURMP_SC_D))
 	{
 		if (self->flags & FLURMP_LEFT_FLAG)
 			self->flags &= ~(FLURMP_LEFT_FLAG);
@@ -328,21 +328,14 @@ static void horizontal_movement(fl_context * context, fl_entity * self)
 static void vertical_movement(fl_context * context, fl_entity * self)
 {
 	/* jumping (input handling) */
-	if (context->input.keystates[FLURMP_SC_SPACE])
+	if (fl_consume_input(context, FLURMP_INPUT_TYPE_KEYBOARD, FLURMP_SC_SPACE))
 	{
-		if (!context->input.inputs[FLURMP_INPUT_SPACE])
+		if (!(self->flags & FLURMP_JUMP_FLAG))
 		{
-			context->input.inputs[FLURMP_INPUT_SPACE] = 1;
-
-			if (!(self->flags & FLURMP_JUMP_FLAG))
-			{
-				self->y_v -= 12;
-				self->flags |= FLURMP_JUMP_FLAG;
-			}
+			self->y_v -= 12;
+			self->flags |= FLURMP_JUMP_FLAG;
 		}
 	}
-	else if (context->input.inputs[FLURMP_INPUT_SPACE])
-		context->input.inputs[FLURMP_INPUT_SPACE] = 0;
 
 	/* gravity (y axis) */
 	if (self->y_v < 4) self->y_v += 1;
@@ -367,20 +360,18 @@ static void interact(fl_context * context, fl_entity * self)
 	if (self->flags & FLURMP_INTERACT_FLAG)
 		self->flags &= ~(FLURMP_INTERACT_FLAG);
 
-	if (context->input.keystates[FLURMP_SC_Z])
+	if (fl_consume_input(context, FLURMP_INPUT_TYPE_KEYBOARD, FLURMP_SC_Z))
 	{
-		if (!context->input.inputs[FLURMP_INPUT_Z])
+		if (!(self->flags & FLURMP_INTERACT_FLAG))
 		{
-			context->input.inputs[FLURMP_INPUT_Z] = 1;
-
-			if (!(self->flags & FLURMP_INTERACT_FLAG))
-			{
-				self->flags |= FLURMP_INTERACT_FLAG;
-			}
+			self->flags |= FLURMP_INTERACT_FLAG;
 		}
 	}
-	else if (context->input.inputs[FLURMP_INPUT_Z])
-		context->input.inputs[FLURMP_INPUT_Z] = 0;
+
+	if (fl_consume_input(context, FLURMP_INPUT_TYPE_KEYBOARD, FLURMP_SC_Z))
+	{
+		printf("This should not be possible.\n");
+	}
 }
 
 static void animate(fl_context * context, fl_entity * self)
