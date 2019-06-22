@@ -14,6 +14,7 @@
 
 static void fl_test_input(fl_context*);
 static void fl_console_input(fl_context* context);
+static void fl_pause_menu_input(fl_context* context);
 
 int fl_initialize()
 {
@@ -225,9 +226,29 @@ void fl_handle_event(fl_context * context)
 
 void fl_handle_input(fl_context * context)
 {
-	if (context->state == 0)
+	/* TODO: split this into multiple functions based on state */
+	if (fl_consume_input(context, FLURMP_INPUT_TYPE_KEYBOARD, FLURMP_SC_ESCAPE))
 	{
-		fl_test_input(context);
+		if (!context->paused)
+			context->paused = 1;
+		else
+			context->paused = 0;
+	}
+
+	if (context->paused)
+	{
+		fl_console_input(context);
+		//fl_pause_menu_input(context);
+		return;
+	}
+
+	/* reset player position */
+	if (fl_peek_input(context, FLURMP_INPUT_TYPE_KEYBOARD, FLURMP_SC_C))
+	{
+		context->pco->x = 260;
+		context->pco->y = 260;
+		context->cam_x = 0;
+		context->cam_y = 0;
 	}
 }
 
@@ -425,26 +446,7 @@ static void fl_test_input(fl_context * context)
 	}
 }
 
-/*
-
-The following flow will perform a single action
-on a single key press
-
-if (context->keystates[<scancode>])
-	{
-		if (!context->inputs[<input_flag>])
-		{
-			context->inputs[<input_flag>] = 1;
-
-			do something here
-		}
-	}
-	else if (context->inputs[<input_flag>])
-		context->inputs[<input_flag>] = 0;
-
-*/
-
-static void fl_console_input(fl_context * context)
+static void fl_console_input(fl_context* context)
 {
 	int i;
 	for (i = 0; i < FLURMP_SC_LIMIT; i++)
@@ -460,19 +462,50 @@ static void fl_console_input(fl_context * context)
 
 		char c = fl_sc_to_char(i, &flag, mod);
 
-		if (context->input.keystates[i])
+		if (fl_consume_input(context, FLURMP_INPUT_TYPE_KEYBOARD, i))
 		{
-			if (!context->input.inputs[flag])
-			{
-				context->input.inputs[flag] = 1;
-
-				if (c == 0x0A)
-					submit_buffer(context, context->console);
-				else
-					fl_putc(context->console, c, mod);
-			}
+			if (c == 0x0A)
+				submit_buffer(context, context->console);
+			else
+				fl_putc(context->console, c, mod);
 		}
-		else if (context->input.inputs[flag])
-			context->input.inputs[flag] = 0;
 	}
+}
+
+static void fl_pause_menu_input(fl_context * context)
+{
+
+	//if (fl_consume_input(context, FLURMP_INPUT_TYPE_KEYBOARD, FLURMP_SC_W))
+	//{
+	//	/* printf("W was pressed in the pause menu\n"); */
+	//	fl_menu_cursor_up(context, context->menu);
+	//}
+
+	//if (fl_consume_input(context, FLURMP_INPUT_TYPE_KEYBOARD, FLURMP_SC_A))
+	//{
+	//	/* printf("A was pressed in the pause menu\n"); */
+	//}
+
+	//if (fl_consume_input(context, FLURMP_INPUT_TYPE_KEYBOARD, FLURMP_SC_S))
+	//{
+	//	/* printf("S was pressed in the pause menu\n"); */
+	//	fl_menu_cursor_down(context, context->menu);
+	//}
+
+	//if (fl_consume_input(context, FLURMP_INPUT_TYPE_KEYBOARD, FLURMP_SC_D))
+	//{
+	//	/* printf("D was pressed in the pause menu\n"); */
+	//}
+
+	//if (fl_consume_input(context, FLURMP_INPUT_TYPE_KEYBOARD, FLURMP_SC_J))
+	//{
+	//	/* printf("J was pressed in the pause menu\n"); */
+	//	fl_menu_cursor_select(context, context->menu);
+	//}
+
+	//if (fl_consume_input(context, FLURMP_INPUT_TYPE_KEYBOARD, FLURMP_SC_K))
+	//{
+	//	/* printf("K was pressed in the pause menu\n"); */
+	//	fl_menu_cursor_cancel(context, context->menu);
+	//}
 }
