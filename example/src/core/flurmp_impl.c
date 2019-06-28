@@ -8,6 +8,8 @@
 #include "interactable.h"
 #include "player.h"
 #include "console.h"
+#include "text.h"
+#include "menu.h"
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -19,11 +21,18 @@ int fl_initialize()
 {
 	if (SDL_Init(SDL_INIT_VIDEO)) return 0;
 
+	if (TTF_Init())
+	{
+		SDL_Quit();
+		return 0;
+	}
+
 	return 1;
 }
 
 void fl_terminate()
 {
+	TTF_Quit();
 	SDL_Quit();
 }
 
@@ -39,7 +48,7 @@ fl_context* fl_create_context()
 	if (context == NULL)
 		return NULL;
 
-	context->done = 1;
+	context->error = 0;
 
 	context->window = SDL_CreateWindow("Flurmp", 100, 100,
 		FLURMP_WINDOW_WIDTH,
@@ -57,11 +66,7 @@ fl_context* fl_create_context()
 
 	SDL_SetRenderDrawBlendMode(context->renderer, SDL_BLENDMODE_BLEND);
 
-	if (context->renderer == NULL)
-	{
-		context->error = 2;
-		return context;
-	}
+	if (context->renderer == NULL) context->error = 2;
 
 	context->input.keystates = SDL_GetKeyboardState(NULL);
 
@@ -75,15 +80,10 @@ fl_context* fl_create_context()
 	context->done = 0;
 	context->fps = 60;
 	context->paused = 0;
+	context->font = NULL;
 
 	/* for now we have 3 entity types: player, rectangle, and interactable */
-	fl_entity_type * entity_types = (fl_entity_type*)malloc(sizeof(fl_entity_type) * 3);
-
-	if (entity_types == NULL)
-	{
-		context->error = 3;
-		return context;
-	}
+	fl_entity_type* entity_types = (fl_entity_type*)malloc(sizeof(fl_entity_type) * 3);
 
 	fl_entity_type player_type;
 	fl_entity_type rectangle_type;
@@ -100,32 +100,32 @@ fl_context* fl_create_context()
 	context->entity_types = entity_types;
 
 	/* create a player */
-	fl_entity * player = fl_create_player(300, 260, 30, 40);
+	fl_entity* player = fl_create_player(300, 260, 30, 40);
 
 	/* load the sprite for the player */
-	SDL_Surface * surface = SDL_LoadBMP("./images/person.bmp");
+	SDL_Surface* surface = SDL_LoadBMP("./images/person.bmp");
 	SDL_SetColorKey(surface, 1, SDL_MapRGB(surface->format, 255, 0, 255));
-	SDL_Texture * player_texture = SDL_CreateTextureFromSurface(context->renderer, surface);
+	SDL_Texture* player_texture = SDL_CreateTextureFromSurface(context->renderer, surface);
 	SDL_FreeSurface(surface);
 
 	player->texture = player_texture;
 
 	/* block to stand on */
-	fl_entity * block_1 = fl_create_rectangle(440, 250, 70, 20);
-	fl_entity * block_2 = fl_create_rectangle(500, 220, 50, 20);
+	fl_entity* block_1 = fl_create_rectangle(440, 250, 70, 20);
+	fl_entity* block_2 = fl_create_rectangle(500, 220, 50, 20);
 
 	/* walls and floor */
-	fl_entity * ground1 = fl_create_rectangle(0, 300, 200, 50);
-	fl_entity * ground2 = fl_create_rectangle(260, 300, 480, 50);
-	fl_entity * left_wall = fl_create_rectangle(-70, 100, 50, 250);
-	fl_entity * right_wall = fl_create_rectangle(715, 100, 50, 250);
+	fl_entity* ground1 = fl_create_rectangle(0, 300, 200, 50);
+	fl_entity* ground2 = fl_create_rectangle(260, 300, 480, 50);
+	fl_entity* left_wall = fl_create_rectangle(-70, 100, 50, 250);
+	fl_entity* right_wall = fl_create_rectangle(715, 100, 50, 250);
 
-	fl_entity * lower_floor1 = fl_create_rectangle(0, 400, 500, 50);
-	fl_entity * lower_floor2 = fl_create_rectangle(500, 450, 100, 50);
-	fl_entity * lower_floor3 = fl_create_rectangle(600, 500, 100, 50);
+	fl_entity* lower_floor1 = fl_create_rectangle(0, 400, 500, 50);
+	fl_entity* lower_floor2 = fl_create_rectangle(500, 450, 100, 50);
+	fl_entity* lower_floor3 = fl_create_rectangle(600, 500, 100, 50);
 
 	/* something to interact with */
-	fl_entity * sign = fl_create_interactable(310, 270, 30, 30);
+	fl_entity* sign = fl_create_interactable(310, 270, 30, 30);
 
 	/* add the entities to the context */
 	fl_add_entity(context, sign);
@@ -146,23 +146,49 @@ fl_context* fl_create_context()
 	context->state = 0;
 
 	/* add the dev console */
-	fl_console * console = fl_create_console(context);
+	fl_console* console = fl_create_console(context);
 
 	context->console = console;
 
-	context->done = 0;
+	/* temporary font stuff */
+	context->font = fl_load_font("fonts/VeraMono.ttf", 16);
+
+	if (context->font == NULL)
+	{
+		context->error = 4;
+		context->done = 1;
+		return context;
+	}
+
+	const char* message = "The quick brown fox jumped over the lazy dog";
+
+	fl_static_text* txt = fl_create_static_text(context, message, 50, 50, 18);
+
+	context->static_text = txt;
+
+	fl_font_atlas* atlas = fl_create_font_atlas(context, context->font);
+
+	context->font_atlas = atlas;
+
+	fl_menu* pause_menu = fl_create_pause_menu(context);
+
+	context->pause_menu = pause_menu;
 
 	return context;
 }
 
-void fl_destroy_context(fl_context * context)
+void fl_destroy_context(fl_context* context)
 {
 	if (context->console != NULL) fl_destroy_console(context->console);
+	if (context->entity_types != NULL) free(context->entity_types);
+	if (context->font != NULL) fl_destroy_font(context->font);
+	if (context->static_text != NULL) fl_destroy_static_text(context->static_text);
+	if (context->font_atlas != NULL) fl_destroy_font_atlas(context->font_atlas);
 	if (context->renderer != NULL) SDL_DestroyRenderer(context->renderer);
 	if (context->window != NULL) SDL_DestroyWindow(context->window);
-	if (context->entity_types != NULL) free(context->entity_types);
-	fl_entity * en = context->entities;
-	fl_entity * next;
+
+	fl_entity* en = context->entities;
+	fl_entity* next;
 	while (en != NULL)
 	{
 		next = en->next;
@@ -172,12 +198,14 @@ void fl_destroy_context(fl_context * context)
 	free(context);
 }
 
-int fl_is_done(fl_context * context)
+int fl_is_done(fl_context* context)
 {
-	return context->done;
+	if (context == NULL) return 1;
+
+	return context->error ? context->error : context->done;
 }
 
-void fl_add_entity(fl_context * context, fl_entity * entity)
+void fl_add_entity(fl_context* context, fl_entity* entity)
 {
 	if (context->count == 0)
 	{
@@ -193,7 +221,7 @@ void fl_add_entity(fl_context * context, fl_entity * entity)
 	context->count++;
 }
 
-int fl_detect_collision(fl_entity * a, fl_entity * b)
+int fl_detect_collision(fl_entity* a, fl_entity* b)
 {
 	int collision = 0;
 
@@ -238,20 +266,30 @@ void fl_handle_events(fl_context* context)
 	}
 }
 
-void fl_handle_input(fl_context * context)
+void fl_handle_input(fl_context* context)
 {
 	/* TODO: split this into multiple functions based on state */
 	if (fl_consume_input(context, FLURMP_INPUT_TYPE_KEYBOARD, FLURMP_SC_ESCAPE))
 	{
 		if (!context->paused)
+		{
 			context->paused = 1;
+			context->pause_menu->active = 1;
+			context->pause_menu->open = 1;
+		}
 		else
+		{
 			context->paused = 0;
+			context->pause_menu->active = 0;
+			context->pause_menu->open = 0;
+		}
+
 	}
 
 	if (context->paused)
 	{
-		fl_console_input(context);
+		context->pause_menu->input_handler(context, context->pause_menu);
+		//fl_console_input(context);
 		//fl_pause_menu_input(context);
 		return;
 	}
@@ -266,7 +304,7 @@ void fl_handle_input(fl_context * context)
 	}
 }
 
-void fl_update(fl_context * context)
+void fl_update(fl_context* context)
 {
 	if (context->paused)
 		return;
@@ -333,26 +371,38 @@ void fl_update(fl_context * context)
 	}
 }
 
-void fl_render(fl_context * context)
+void fl_render(fl_context* context)
 {
-	SDL_SetRenderDrawColor(context->renderer, 145, 219, 255, 255);
+	//SDL_SetRenderDrawColor(context->renderer, 145, 219, 255, 255);
+	SDL_SetRenderDrawColor(context->renderer, 120, 120, 120, 255);
 	SDL_RenderClear(context->renderer);
 
 	fl_entity* en = context->entities;
 
 	/* get render from entity type registry */
 
-	while (en != NULL)
+	/*while (en != NULL)
 	{
 		context->entity_types[en->type].render(context, en);
 		en = en->next;
-	}
+	}*/
 
 	/* render_camera_boundaries(context); */
+	if (context->static_text != NULL)
+	{
+		SDL_Rect font_rect;
+		font_rect.x = context->static_text->x;
+		font_rect.y = context->static_text->y;
+		font_rect.w = context->static_text->surface->w;
+		font_rect.h = context->static_text->surface->h;
+
+		SDL_RenderCopy(context->renderer, context->static_text->texture, NULL, &font_rect);
+	}
 
 	if (context->paused)
 	{
-		fl_render_console(context, context->console);
+		fl_render_menu(context, context->pause_menu);
+		//fl_render_console(context, context->console);
 	}
 
 	SDL_RenderPresent(context->renderer);
@@ -363,12 +413,12 @@ void fl_sleep(int ms)
 	SDL_Delay(ms);
 }
 
-void fl_begin_frame(fl_context * context)
+void fl_begin_frame(fl_context* context)
 {
 	context->ticks = SDL_GetTicks();
 }
 
-void fl_end_frame(fl_context * context)
+void fl_end_frame(fl_context* context)
 {
 	if (1000U / context->fps > SDL_GetTicks() - context->ticks)
 	{
@@ -413,7 +463,7 @@ static void fl_console_input(fl_context* context)
 	}
 }
 
-static void fl_pause_menu_input(fl_context * context)
+static void fl_pause_menu_input(fl_context* context)
 {
 
 	//if (fl_consume_input(context, FLURMP_INPUT_TYPE_KEYBOARD, FLURMP_SC_W))

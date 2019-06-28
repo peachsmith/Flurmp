@@ -1,6 +1,7 @@
 /**
  * Flurmp
- * A specification for a framework for 2D graphical user interaction.
+ * A recommendation of concepts for a framework for 2D graphical user
+ * interaction.
  *
  * Author: John Powell
  */
@@ -9,19 +10,27 @@
 
 #define FLURMP_VERSION_STRING "1.0.0"
 
-/* -------------------------------------------------------------- */
-/*                             Notes                              */
-/*                                                                */
-/* Terms like "allocate" and "create" are used interchangably to  */
-/* refer to the process of reserving of memory resources.         */
-/* As such, terms like "free" and "destroy" are used to refer to  */
-/* the process of releasing those memory resources.               */
-/* -------------------------------------------------------------- */
+ /* -------------------------------------------------------------- */
+ /*                             Notes                              */
+ /*                                                                */
+ /* Terms like "allocate" and "create" are used interchangably to  */
+ /* refer to the process of reserving of memory resources.         */
+ /* As such, terms like "free" and "destroy" are used to refer to  */
+ /* the process of releasing those memory resources.               */
+ /*                                                                */
+ /* Terms like "should" and "it is recommended" are used           */
+ /* throughout this document when referring to how the underlying  */
+ /* implementation behaves. This is because Flurmp is ultimately   */
+ /* a set of recommendations, not a set of rules. No software is   */
+ /* obligated to implement any of the concepts described in this   */
+ /* document in any particular way.                                */
+ /* -------------------------------------------------------------- */
 
 
-/* -------------------------------------------------------------- */
-/*                             Types                              */
-/* -------------------------------------------------------------- */
+
+ /* -------------------------------------------------------------- */
+ /*                             Types                              */
+ /* -------------------------------------------------------------- */
 
  /**
   * Represents the state of the application at any given time.
@@ -81,6 +90,30 @@ typedef struct fl_entity_type fl_entity_type;
 typedef struct fl_input_handler fl_input_handler;
 
 /**
+ * Represents a font object.
+ * In the present day, a "font" is basically a "typeface".
+ */
+typedef struct fl_font fl_font;
+
+/**
+ * A graphical representation of an individual character.
+ */
+typedef struct fl_glyph fl_glyph;
+
+/**
+ * A collection of all printable characters in a font.
+ * It is up to the implementation to determine which characters
+ * are considered printable.
+ */
+typedef struct fl_font_atlas fl_font_atlas;
+
+/**
+ * Text to be rendered to the screen.
+ * Static text should not change for the duration of its life cycle.
+ */
+typedef struct fl_static_text fl_static_text;
+
+/**
  * A command line interface (CLI).
  * This should be used to receive text input directly from the user
  * or the developer.
@@ -114,8 +147,6 @@ typedef struct fl_menu fl_menu;
  * be disabled.
  */
 typedef struct fl_menu_item fl_menu_item;
-
-
 
 
 

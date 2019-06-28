@@ -4,6 +4,7 @@
 #include "flurmp.h"
 
 #include <SDL/SDL.h>
+#include <SDL/SDL_ttf.h>
 
 #define FLURMP_QUIT SDL_QUIT
 
@@ -87,8 +88,7 @@ struct fl_input_handler {
 	int inputs[55];
 };
 
-struct fl_console
-{
+struct fl_console {
 	int x;
 	int y;
 	int w;
@@ -102,21 +102,48 @@ struct fl_console
 struct fl_menu_item {
 	int x;
 	int y;
-	char text[15];
+	fl_static_text* text;
 	void(*action) (fl_context*, fl_menu*);
-
-	struct fl_menu_item* next;
-	struct fl_menu_item* prev;
 };
 
 struct fl_menu {
+	int open;
+	int active;
 	int x;
 	int y;
 	int w;
 	int h;
 	int pos;
-	fl_menu_item* items;
+	int item_count;
+	int submenu_count;
+	fl_menu_item** items;
+	fl_menu** submenus;
+	void(*input_handler) (fl_context*, fl_menu*);
+	void(*get_cursor_coords) (fl_menu*, int*, int*);
+};
 
+struct fl_font {
+	TTF_Font* impl;
+};
+
+struct fl_glyph {
+	char c;
+	SDL_Surface* surface;
+	SDL_Texture* texture;
+};
+
+struct fl_font_atlas {
+	int count;
+	fl_glyph** glyphs;
+};
+
+struct fl_static_text {
+	char* text;
+	int x;
+	int y;
+	fl_font* font;
+	SDL_Surface* surface;
+	SDL_Texture* texture;
 };
 
 struct fl_context {
@@ -167,7 +194,14 @@ struct fl_context {
 	fl_console* console;
 
 	/* a pause menu */
+	fl_menu* pause_menu;
 
+	/* font */
+	fl_font* font;
+
+	fl_static_text* static_text;
+
+	fl_font_atlas* font_atlas;
 };
 
 #endif
