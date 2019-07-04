@@ -153,11 +153,9 @@ fl_context* fl_create_context()
 
 	context->console = console;
 
-	/* temporary font stuff */
-
 	/* create a font registry */
 	int font_count = 2;
-	fl_font** fonts = (fl_font * *)malloc(sizeof(fl_font) * font_count);
+	fl_font** fonts = (fl_font**)malloc(sizeof(fl_font) * font_count);
 
 	if (fonts == NULL)
 	{
@@ -194,7 +192,7 @@ fl_context* fl_create_context()
 	console_bc.b = 150;
 	console_bc.a = 0;
 
-	/* load fonts */
+	/* load fonts into the font registry */
 	context->fonts[FL_FONT_VERA] = fl_load_font("fonts/VeraMono.ttf", 16, menu_fc, menu_bc, 1);
 	context->fonts[FL_FONT_COUSINE] = fl_load_font("fonts/Cousine.ttf", 16, console_fc, console_bc, 0);
 
@@ -204,11 +202,12 @@ fl_context* fl_create_context()
 
 	context->font_count = 2;
 
+	/* create a pause menu */
 	fl_menu* pause_menu = fl_create_pause_menu(context);
-
 	context->pause_menu = pause_menu;
 
-	context->dialogs = (fl_dialog * *)malloc(sizeof(fl_dialog*) * 1);
+	/* create a dialog registry */
+	context->dialogs = (fl_dialog**)malloc(sizeof(fl_dialog*) * 1);
 
 	if (context->dialogs == NULL)
 	{
@@ -217,11 +216,12 @@ fl_context* fl_create_context()
 		return context;
 	}
 
-	fl_dialog* example_dialog = fl_create_example_dialog(context->fonts[0], 20, 200, 300, 100);
+	/* create the dialogs and add them to the registry */
+	fl_dialog* example_dialog = fl_create_example_dialog(context->fonts[0], 75, 320, 500, 100);
 
 	context->dialogs[0] = example_dialog;
-	context->dialog_count = 1;
 
+	context->dialog_count = 1;
 	context->active_dialog = NULL;
 
 	return context;

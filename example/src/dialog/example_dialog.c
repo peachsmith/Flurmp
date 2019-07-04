@@ -97,8 +97,8 @@ static void render(fl_context* context, fl_dialog* self)
 	{
 		if (self->buffer[i] >= 0x20)
 		{
-			dest.x = self->x + c_x * w + 2;
-			dest.y = self->y + c_y * h + 2;
+			dest.x = self->x + c_x * w + 10;
+			dest.y = self->y + c_y * h + 10;
 
 			fl_glyph* g = fl_char_to_glyph(context->fonts[FL_FONT_VERA]->atlas, self->buffer[i]);
 			SDL_RenderCopy(context->renderer, g->texture, &src, &dest);
