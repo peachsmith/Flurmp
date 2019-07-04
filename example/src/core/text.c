@@ -2,7 +2,7 @@
 
 #include <string.h>
 
-fl_font* fl_load_font(const char* path, int p)
+fl_font* fl_load_font(const char* path, int p, SDL_Color fc, SDL_Color bc, int background)
 {
 	if (path == NULL)
 		return NULL;
@@ -24,6 +24,10 @@ fl_font* fl_load_font(const char* path, int p)
 	}
 
 	font->impl = impl;
+	font->atlas = NULL;
+	font->forecolor = fc;
+	font->backcolor = bc;
+	font->background = background;
 
 	return font;
 }
@@ -36,6 +40,9 @@ void fl_destroy_font(fl_font* font)
 	if (font->impl != NULL)
 		TTF_CloseFont(font->impl);
 
+	if (font->atlas != NULL)
+		fl_destroy_font_atlas(font->atlas);
+
 	free(font);
 }
 
@@ -44,26 +51,17 @@ fl_glyph* fl_create_glyph(fl_context* context, fl_font* font, char c)
 	fl_glyph* glyph;
 	SDL_Surface* surface;
 	SDL_Texture* texture;
-	SDL_Color forecol;
-	SDL_Color backcol;
 
 	glyph = (fl_glyph*)malloc(sizeof(fl_glyph));
 
 	if (glyph == NULL)
 		return NULL;
 
-	forecol.r = 250;
-	forecol.g = 250;
-	forecol.b = 250;
-	forecol.a = 0;
-
-	backcol.r = 150;
-	backcol.g = 50;
-	backcol.b = 150;
-	backcol.a = 0;
-
 	/* convert the text to an SDL Surface */
-	surface = TTF_RenderGlyph_Blended(context->font->impl, (Uint16)c, forecol);// , backcol);
+	if (font->background)
+		surface = TTF_RenderGlyph_Shaded(font->impl, (Uint16)c, font->forecolor, font->backcolor);
+	else
+		surface = TTF_RenderGlyph_Blended(font->impl, (Uint16)c, font->forecolor);
 
 	/* verify surface creation */
 	if (surface == NULL)
@@ -117,7 +115,7 @@ fl_font_atlas* fl_create_font_atlas(fl_context* context, fl_font* font)
 
 	/* for now, the printable characters are 32 - 126 of the ASCII chart */
 
-	fl_glyph** glyphs = (fl_glyph * *)malloc(sizeof(fl_glyph*) * 95);
+	fl_glyph** glyphs = (fl_glyph**)malloc(sizeof(fl_glyph*) * 95);
 
 	if (glyphs == NULL)
 	{
@@ -174,10 +172,8 @@ fl_glyph* fl_char_to_glyph(fl_font_atlas* atlas, char c)
 	return (i >= 32 && i <= 126) ? atlas->glyphs[i - 32] : atlas->glyphs[0];
 }
 
-fl_static_text* fl_create_static_text(fl_context* context, const char* txt, int x, int y, int p)
+fl_static_text* fl_create_static_text(fl_context* context, fl_font* font, const char* txt, int x, int y)
 {
-	/* TODO: allow the font to be specified somehow */
-
 	if (txt == NULL)
 		return NULL;
 
@@ -185,8 +181,6 @@ fl_static_text* fl_create_static_text(fl_context* context, const char* txt, int 
 	char* contents;
 	SDL_Surface* surface;
 	SDL_Texture* texture;
-	SDL_Color forecol;
-	SDL_Color backcol;
 
 	int renderstyle = TTF_STYLE_NORMAL;
 	int outline = 0;
@@ -210,19 +204,11 @@ fl_static_text* fl_create_static_text(fl_context* context, const char* txt, int 
 	/* populate the character buffer with the specified text */
 	strcpy(contents, txt);
 
-	/* set the foreground and background colors */
-	forecol.r = 0;
-	forecol.g = 0;
-	forecol.b = 0;
-	forecol.a = 255;
-
-	backcol.r = 120;
-	backcol.g = 120;
-	backcol.b = 120;
-	backcol.a = 255;
-
 	/* convert the text to an SDL Surface */
-	surface = TTF_RenderText_Shaded(context->font->impl, contents, forecol, backcol);
+	if (font->background)
+		surface = TTF_RenderText_Shaded(font->impl, contents, font->forecolor, font->backcolor);
+	else
+		surface = TTF_RenderText_Blended(font->impl, contents, font->forecolor);
 
 	/* verify surface creation */
 	if (surface == NULL)
@@ -244,7 +230,7 @@ fl_static_text* fl_create_static_text(fl_context* context, const char* txt, int 
 		return NULL;
 	}
 
-	stat->font = context->font;
+	stat->font = font;
 	stat->surface = surface;
 	stat->texture = texture;
 	stat->text = contents;

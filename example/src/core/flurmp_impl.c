@@ -10,6 +10,7 @@
 #include "console.h"
 #include "text.h"
 #include "menu.h"
+#include "dialog.h"
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -43,6 +44,8 @@ const char* fl_get_error()
 
 fl_context* fl_create_context()
 {
+	int i;
+
 	fl_context* context = malloc(sizeof(fl_context));
 
 	if (context == NULL)
@@ -70,7 +73,6 @@ fl_context* fl_create_context()
 
 	context->input.keystates = SDL_GetKeyboardState(NULL);
 
-	int i;
 	for (i = 0; i < 2; i++) context->input.inputs[i] = 0;
 
 	context->entities = NULL;
@@ -80,7 +82,8 @@ fl_context* fl_create_context()
 	context->done = 0;
 	context->fps = 60;
 	context->paused = 0;
-	context->font = NULL;
+	context->console_open = 0;
+	context->fonts = NULL;
 
 	/* for now we have 3 entity types: player, rectangle, and interactable */
 	fl_entity_type* entity_types = (fl_entity_type*)malloc(sizeof(fl_entity_type) * 3);
@@ -151,28 +154,75 @@ fl_context* fl_create_context()
 	context->console = console;
 
 	/* temporary font stuff */
-	context->font = fl_load_font("fonts/VeraMono.ttf", 16);
 
-	if (context->font == NULL)
+	/* create a font registry */
+	int font_count = 2;
+	fl_font** fonts = (fl_font * *)malloc(sizeof(fl_font) * font_count);
+
+	if (fonts == NULL)
 	{
 		context->error = 4;
 		context->done = 1;
 		return context;
 	}
 
-	const char* message = "The quick brown fox jumped over the lazy dog";
+	context->fonts = fonts;
 
-	fl_static_text* txt = fl_create_static_text(context, message, 50, 50, 18);
+	/* font colors */
+	SDL_Color menu_fc;
+	SDL_Color menu_bc;
+	SDL_Color console_fc;
+	SDL_Color console_bc;
 
-	context->static_text = txt;
+	menu_fc.r = 250;
+	menu_fc.g = 250;
+	menu_fc.b = 250;
+	menu_fc.a = 255;
 
-	fl_font_atlas* atlas = fl_create_font_atlas(context, context->font);
+	menu_bc.r = 0;
+	menu_bc.g = 0;
+	menu_bc.b = 0;
+	menu_bc.a = 255;
 
-	context->font_atlas = atlas;
+	console_fc.r = 250;
+	console_fc.g = 250;
+	console_fc.b = 250;
+	console_fc.a = 0;
+
+	console_bc.r = 150;
+	console_bc.g = 50;
+	console_bc.b = 150;
+	console_bc.a = 0;
+
+	/* load fonts */
+	context->fonts[FL_FONT_VERA] = fl_load_font("fonts/VeraMono.ttf", 16, menu_fc, menu_bc, 1);
+	context->fonts[FL_FONT_COUSINE] = fl_load_font("fonts/Cousine.ttf", 16, console_fc, console_bc, 0);
+
+	/* create font atlases */
+	context->fonts[FL_FONT_VERA]->atlas = fl_create_font_atlas(context, context->fonts[FL_FONT_VERA]);
+	context->fonts[FL_FONT_COUSINE]->atlas = fl_create_font_atlas(context, context->fonts[FL_FONT_COUSINE]);
+
+	context->font_count = 2;
 
 	fl_menu* pause_menu = fl_create_pause_menu(context);
 
 	context->pause_menu = pause_menu;
+
+	context->dialogs = (fl_dialog * *)malloc(sizeof(fl_dialog*) * 1);
+
+	if (context->dialogs == NULL)
+	{
+		context->error = 6;
+		context->done = 1;
+		return context;
+	}
+
+	fl_dialog* example_dialog = fl_create_example_dialog(context->fonts[0], 20, 200, 300, 100);
+
+	context->dialogs[0] = example_dialog;
+	context->dialog_count = 1;
+
+	context->active_dialog = NULL;
 
 	return context;
 }
@@ -181,9 +231,35 @@ void fl_destroy_context(fl_context* context)
 {
 	if (context->console != NULL) fl_destroy_console(context->console);
 	if (context->entity_types != NULL) free(context->entity_types);
-	if (context->font != NULL) fl_destroy_font(context->font);
-	if (context->static_text != NULL) fl_destroy_static_text(context->static_text);
-	if (context->font_atlas != NULL) fl_destroy_font_atlas(context->font_atlas);
+
+	if (context->fonts != NULL)
+	{
+		int i;
+		for (i = 0; i < context->font_count; i++)
+		{
+			if (context->fonts[i] != NULL)
+			{
+				fl_destroy_font(context->fonts[i]);
+			}
+		}
+
+		free(context->fonts);
+	}
+
+	if (context->dialogs != NULL)
+	{
+		int i;
+		for (i = 0; i < context->dialog_count; i++)
+		{
+			if (context->dialogs[i] != NULL)
+			{
+				fl_destroy_dialog(context->dialogs[i]);
+			}
+		}
+
+		free(context->dialogs);
+	}
+
 	if (context->renderer != NULL) SDL_DestroyRenderer(context->renderer);
 	if (context->window != NULL) SDL_DestroyWindow(context->window);
 
@@ -268,30 +344,26 @@ void fl_handle_events(fl_context* context)
 
 void fl_handle_input(fl_context* context)
 {
-	/* TODO: split this into multiple functions based on state */
-	if (fl_consume_input(context, FLURMP_INPUT_TYPE_KEYBOARD, FLURMP_SC_ESCAPE))
+	if (context->paused)
 	{
-		if (!context->paused)
+		if (!context->console_open)
 		{
-			context->paused = 1;
-			context->pause_menu->active = 1;
-			context->pause_menu->open = 1;
+			context->pause_menu->input_handler(context, context->pause_menu);
 		}
 		else
 		{
-			context->paused = 0;
-			context->pause_menu->active = 0;
-			context->pause_menu->open = 0;
+			fl_console_input(context);
 		}
 
-	}
-
-	if (context->paused)
-	{
-		context->pause_menu->input_handler(context, context->pause_menu);
-		//fl_console_input(context);
-		//fl_pause_menu_input(context);
 		return;
+	}
+	else
+	{
+		if (fl_consume_input(context, FLURMP_INPUT_TYPE_KEYBOARD, FLURMP_SC_ESCAPE))
+		{
+			context->paused = 1;
+			context->pause_menu->open = 1;
+		}
 	}
 
 	/* reset player position */
@@ -306,9 +378,15 @@ void fl_handle_input(fl_context* context)
 
 void fl_update(fl_context* context)
 {
+	if (context->active_dialog != NULL)
+	{
+		context->active_dialog->update(context, context->active_dialog);
+	}
+
 	if (context->paused)
 		return;
 
+	//int i;
 	fl_entity* en = context->entities;
 	fl_entity* next;
 
@@ -387,22 +465,19 @@ void fl_render(fl_context* context)
 		en = en->next;
 	}*/
 
-	/* render_camera_boundaries(context); */
-	if (context->static_text != NULL)
-	{
-		SDL_Rect font_rect;
-		font_rect.x = context->static_text->x;
-		font_rect.y = context->static_text->y;
-		font_rect.w = context->static_text->surface->w;
-		font_rect.h = context->static_text->surface->h;
-
-		SDL_RenderCopy(context->renderer, context->static_text->texture, NULL, &font_rect);
-	}
-
 	if (context->paused)
 	{
 		fl_render_menu(context, context->pause_menu);
-		//fl_render_console(context, context->console);
+
+		if (context->console_open)
+		{
+			fl_render_console(context, context->console);
+		}
+	}
+
+	if (context->active_dialog != NULL)
+	{
+		context->active_dialog->render(context, context->active_dialog);
 	}
 
 	SDL_RenderPresent(context->renderer);
@@ -455,6 +530,11 @@ static void fl_console_input(fl_context* context)
 
 		if (fl_consume_input(context, FLURMP_INPUT_TYPE_KEYBOARD, i))
 		{
+			if (i == FLURMP_SC_ESCAPE)
+			{
+				context->console_open = 0;
+			}
+
 			if (c == 0x0A)
 				submit_buffer(context, context->console);
 			else

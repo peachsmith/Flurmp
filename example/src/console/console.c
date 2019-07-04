@@ -1,5 +1,6 @@
 #include "console.h"
 #include "input.h"
+#include "text.h"
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -85,7 +86,7 @@ static int get_font_index(char c, int* x, int* y)
 	return 1;
 }
 
-fl_console* fl_create_console(fl_context * context)
+fl_console* fl_create_console(fl_context* context)
 {
 	fl_console* con = (fl_console*)malloc(sizeof(fl_console));
 
@@ -99,13 +100,6 @@ fl_console* fl_create_console(fl_context * context)
 	con->cursor_x = 0;
 	con->cursor_y = 0;
 	con->char_count = 0;
-
-	SDL_Surface * surface = SDL_LoadBMP("./images/font.bmp");
-	SDL_SetColorKey(surface, 1, SDL_MapRGB(surface->format, 255, 0, 255));
-	SDL_Texture * font_texture = SDL_CreateTextureFromSurface(context->renderer, surface);
-	SDL_FreeSurface(surface);
-
-	con->font = font_texture;
 
 	return con;
 }
@@ -125,7 +119,7 @@ void fl_destroy_console(fl_console* console)
 	each character is 12 x 18
 */
 
-void fl_render_console(fl_context * context, fl_console* console)
+void fl_render_console(fl_context* context, fl_console* console)
 {
 	SDL_SetRenderDrawColor(context->renderer, 150, 50, 150, 120);
 
@@ -137,21 +131,24 @@ void fl_render_console(fl_context * context, fl_console* console)
 
 	SDL_RenderFillRect(context->renderer, &r);
 
-	SDL_SetRenderDrawColor(context->renderer, 240, 240, 240, 255);
+	SDL_SetRenderDrawColor(context->renderer, 250, 250, 250, 255);
 	SDL_RenderDrawRect(context->renderer, &r);
+
+	int w = context->fonts[FL_FONT_COUSINE]->atlas->glyphs[0]->surface->w;
+	int h = context->fonts[FL_FONT_COUSINE]->atlas->glyphs[0]->surface->h;
 
 	/* render buffer contents */
 	SDL_Rect dest;
 	dest.x = 0;
 	dest.y = 0;
-	dest.w = FL_CHAR_WIDTH;
-	dest.h = FL_CHAR_HEIGHT;
+	dest.w = w;
+	dest.h = h;
 
 	SDL_Rect src;
 	src.x = 0;
 	src.y = 0;
-	src.w = FL_CHAR_WIDTH;
-	src.h = FL_CHAR_HEIGHT;
+	src.w = w;
+	src.h = h;
 
 	int i;
 	int c_x = 0;
@@ -160,12 +157,11 @@ void fl_render_console(fl_context * context, fl_console* console)
 	{
 		if (buffer[i] >= 0x20)
 		{
-			dest.x = console->x + c_x * FL_CHAR_WIDTH;
-			dest.y = console->y + c_y * FL_CHAR_HEIGHT;
+			dest.x = console->x + c_x * w + 2;
+			dest.y = console->y + c_y * h + 2;
 
-			get_font_index(buffer[i], &(src.x), &(src.y));
-
-			SDL_RenderCopy(context->renderer, console->font, &src, &dest);
+			fl_glyph* g = fl_char_to_glyph(context->fonts[FL_FONT_COUSINE]->atlas, buffer[i]);
+			SDL_RenderCopy(context->renderer, g->texture, &src, &dest);
 
 			if (c_x >= FL_CON_WIDTH - 1)
 			{
@@ -252,7 +248,7 @@ void fl_print(fl_console* console, const char* s)
 
 }
 
-void submit_buffer(fl_context * context, fl_console* console)
+void submit_buffer(fl_context* context, fl_console* console)
 {
 	if (!strcmp("quit", buffer))
 	{
@@ -329,6 +325,7 @@ char fl_sc_to_char(int sc, int* flag, unsigned char mod)
 	case FLURMP_SC_BACKSLASH:    *flag = FLURMP_INPUT_BACKSLASH;    if (mod & FLURMP_CONSOLE_MOD_SHIFT) return '|'; else return '\\';
 	case FLURMP_SC_MINUS:        *flag = FLURMP_INPUT_MINUS;        if (mod & FLURMP_CONSOLE_MOD_SHIFT) return '_'; else return '-';
 	case FLURMP_SC_EQUALS:       *flag = FLURMP_INPUT_EQUALS;       if (mod & FLURMP_CONSOLE_MOD_SHIFT) return '+'; else return '=';
+	case FLURMP_SC_BACKTICK:     *flag = FLURMP_INPUT_BACKTICK;     if (mod & FLURMP_CONSOLE_MOD_SHIFT) return '~'; else return '`';
 
 	case FLURMP_SC_SPACE:     *flag = FLURMP_INPUT_SPACE;     return ' ';
 	case FLURMP_SC_BACKSPACE: *flag = FLURMP_INPUT_BACKSPACE; return (char)0x08;

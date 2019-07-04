@@ -96,7 +96,6 @@ struct fl_console {
 	int cursor_x;
 	int cursor_y;
 	int char_count;
-	SDL_Texture* font;
 };
 
 struct fl_menu_item {
@@ -107,8 +106,9 @@ struct fl_menu_item {
 };
 
 struct fl_menu {
+	fl_menu* child;
+	fl_menu* parent;
 	int open;
-	int active;
 	int x;
 	int y;
 	int w;
@@ -122,10 +122,6 @@ struct fl_menu {
 	void(*get_cursor_coords) (fl_menu*, int*, int*);
 };
 
-struct fl_font {
-	TTF_Font* impl;
-};
-
 struct fl_glyph {
 	char c;
 	SDL_Surface* surface;
@@ -137,6 +133,14 @@ struct fl_font_atlas {
 	fl_glyph** glyphs;
 };
 
+struct fl_font {
+	TTF_Font* impl;
+	fl_font_atlas* atlas;
+	SDL_Color forecolor;
+	SDL_Color backcolor;
+	int background;
+};
+
 struct fl_static_text {
 	char* text;
 	int x;
@@ -144,6 +148,24 @@ struct fl_static_text {
 	fl_font* font;
 	SDL_Surface* surface;
 	SDL_Texture* texture;
+};
+
+struct fl_dialog {
+	fl_font* font;
+	int x;
+	int y;
+	int w;
+	int h;
+	int counter;
+	const char** statements;
+	int statement_count;
+	int current_statement;
+	int open;
+	char* buffer;
+	int buffer_count;
+	void(*update) (fl_context*, fl_dialog*);
+	void(*render) (fl_context*, fl_dialog*);
+	void(*input_handler) (fl_context*, fl_dialog*);
 };
 
 struct fl_context {
@@ -190,18 +212,25 @@ struct fl_context {
 	/* pause flag */
 	int paused;
 
+	int console_open;
+
 	/* dev console */
 	fl_console* console;
 
 	/* a pause menu */
 	fl_menu* pause_menu;
 
-	/* font */
-	fl_font* font;
+	/* font registry */
+	fl_font** fonts;
 
-	fl_static_text* static_text;
+	int font_count;
 
-	fl_font_atlas* font_atlas;
+	/* dialog registry */
+	fl_dialog** dialogs;
+
+	int dialog_count;
+
+	fl_dialog* active_dialog;
 };
 
 #endif

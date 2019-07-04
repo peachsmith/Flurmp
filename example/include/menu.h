@@ -3,10 +3,11 @@
 
 #include "flurmp_impl.h"
 
+/* Common Menu Functions */
+
 fl_menu_item* fl_create_menu_item(fl_context* context,
 	int x,
 	int y,
-	int p,
 	const char* text,
 	void(*action) (fl_context*, fl_menu*));
 
@@ -16,7 +17,15 @@ fl_menu* fl_create_menu(int x, int y, int w, int h);
 
 void fl_destroy_menu(fl_menu* menu);
 
+
+
+/* Pause Menu Functions */
+
 fl_menu* fl_create_pause_menu(fl_context* context);
+
+fl_menu* fl_create_pause_submenu(fl_context* context);
+
+fl_menu* fl_create_fish_submenu(fl_context* context);
 
 void fl_render_menu(fl_context* context, fl_menu* menu);
 

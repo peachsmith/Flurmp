@@ -63,6 +63,7 @@ int fl_code_to_flag(int type, int code)
 		case FLURMP_SC_BACKSLASH: return FLURMP_INPUT_BACKSLASH;
 		case FLURMP_SC_MINUS: return FLURMP_INPUT_MINUS;
 		case FLURMP_SC_EQUALS: return FLURMP_INPUT_EQUALS;
+		case FLURMP_SC_BACKTICK: return FLURMP_INPUT_BACKTICK;
 
 		default:
 			return FLURMP_INPUT_UNKNOWN;

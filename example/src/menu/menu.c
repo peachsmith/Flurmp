@@ -4,7 +4,6 @@
 fl_menu_item* fl_create_menu_item(fl_context* context,
 	int x,
 	int y,
-	int p,
 	const char* text,
 	void(*action) (fl_context*, fl_menu*))
 {
@@ -17,7 +16,7 @@ fl_menu_item* fl_create_menu_item(fl_context* context,
 	item->y = y;
 	item->action = action;
 
-	fl_static_text* static_text = fl_create_static_text(context, text, x, y, p);
+	fl_static_text* static_text = fl_create_static_text(context, context->fonts[FL_FONT_VERA], text, x, y);
 
 	if (static_text == NULL)
 	{
@@ -48,8 +47,9 @@ fl_menu* fl_create_menu(int x, int y, int w, int h)
 	if (menu == NULL)
 		return NULL;
 
+	menu->child = NULL;
+	menu->parent = NULL;
 	menu->open = 0;
-	menu->active = 0;
 	menu->x = x;
 	menu->y = y;
 	menu->w = w;
@@ -128,17 +128,17 @@ void fl_render_menu(fl_context* context, fl_menu* menu)
 		}
 	}
 
-	menu->get_cursor_coords(menu, &r.x, &r.y);
-	r.w = 10;
-	r.h = 10;
-
-	SDL_RenderFillRect(context->renderer, &r);
-
-	if (menu->submenus != NULL)
+	if (menu->child == NULL)
 	{
-		for (i = 0; i < menu->item_count; i++)
-		{
-			fl_render_menu(context, menu->submenus[i]);
-		}
+		menu->get_cursor_coords(menu, &r.x, &r.y);
+		r.w = 10;
+		r.h = 10;
+
+		SDL_RenderFillRect(context->renderer, &r);
+	}
+
+	if (menu->child != NULL)
+	{
+		fl_render_menu(context, menu->child);
 	}
 }

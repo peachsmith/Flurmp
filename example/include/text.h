@@ -3,17 +3,27 @@
 
 #include "flurmp_impl.h"
 
+/* Total number of fonts available to the application */
+#define FL_FONT_COUNT 2
+
+/* Indices for font registry */
+#define FL_FONT_VERA 0
+#define FL_FONT_COUSINE 1
+
 /**
  * Loads a font from a file.
  *
  * Params:
  *   const char* - the path to the font file
  *   int - the font size in points
+ *   SDL_Color - a foreground color
+ *   SDL_Color - a background color
+ *   int - whether or not the font should have a background color
  *
  * Returns:
  *   fl_font - a reference to a newly created font
  */
-fl_font* fl_load_font(const char* path, int p);
+fl_font* fl_load_font(const char* path, int p, SDL_Color fc, SDL_Color bc, int background);
 
 /**
  * Frees the resources allocated for a font.
@@ -74,15 +84,15 @@ void fl_destroy_font_atlas(fl_font_atlas* atlas);
  *
  * Params:
  *   fl_context - a Flurmp context
+ *   fl_font - the font
  *   const char* - a string of characters to display
  *   int - the horizontal position
  *   int - the vertical position
- *   int - the font size (in points)
  *
  * Returns:
  *   fl_static_text - a new static text structure
  */
-fl_static_text* fl_create_static_text(fl_context* context, const char* txt, int x, int y, int p);
+fl_static_text* fl_create_static_text(fl_context* context, fl_font* font, const char* txt, int x, int y);
 
 /**
  * Frees resources allocated for static text.

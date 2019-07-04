@@ -10,39 +10,39 @@
 
 #define FLURMP_VERSION_STRING "1.0.0"
 
- /* -------------------------------------------------------------- */
- /*                             Notes                              */
- /*                                                                */
- /* Terms like "allocate" and "create" are used interchangably to  */
- /* refer to the process of reserving of memory resources.         */
- /* As such, terms like "free" and "destroy" are used to refer to  */
- /* the process of releasing those memory resources.               */
- /*                                                                */
- /* Terms like "should" and "it is recommended" are used           */
- /* throughout this document when referring to how the underlying  */
- /* implementation behaves. This is because Flurmp is ultimately   */
- /* a set of recommendations, not a set of rules. No software is   */
- /* obligated to implement any of the concepts described in this   */
- /* document in any particular way.                                */
- /* -------------------------------------------------------------- */
+/* -------------------------------------------------------------- */
+/*                             Notes                              */
+/*                                                                */
+/* Terms like "allocate" and "create" are used interchangably to  */
+/* refer to the process of reserving of memory resources.         */
+/* As such, terms like "free" and "destroy" are used to refer to  */
+/* the process of releasing those memory resources.               */
+/*                                                                */
+/* Terms like "should" and "it is recommended" are used           */
+/* throughout this document when referring to how the underlying  */
+/* implementation behaves. This is because Flurmp is ultimately   */
+/* a set of recommendations, not a set of rules. No software is   */
+/* obligated to implement any of the concepts described in this   */
+/* document in any particular way.                                */
+/* -------------------------------------------------------------- */
 
 
 
- /* -------------------------------------------------------------- */
- /*                             Types                              */
- /* -------------------------------------------------------------- */
+/* -------------------------------------------------------------- */
+/*                             Types                              */
+/* -------------------------------------------------------------- */
 
- /**
-  * Represents the state of the application at any given time.
-  * One of these should be created after initialization and before
-  * entering into the main loop. When it is no longer needed, it should
-  * be destroyed.
-  *
-  * During the course of an application, additional resources may be
-  * created and destroyed within a single context.
-  * The disposal of a Flurmp context should free any of these additional
-  * resources left over after the main loop concludes.
-  */
+/**
+ * Represents the state of the application at any given time.
+ * One of these should be created after initialization and before
+ * entering into the main loop. When it is no longer needed, it should
+ * be destroyed.
+ *
+ * During the course of an application, additional resources may be
+ * created and destroyed within a single context.
+ * The disposal of a Flurmp context should free any of these additional
+ * resources left over after the main loop concludes.
+ */
 typedef struct fl_context fl_context;
 
 /**
@@ -90,12 +90,6 @@ typedef struct fl_entity_type fl_entity_type;
 typedef struct fl_input_handler fl_input_handler;
 
 /**
- * Represents a font object.
- * In the present day, a "font" is basically a "typeface".
- */
-typedef struct fl_font fl_font;
-
-/**
  * A graphical representation of an individual character.
  */
 typedef struct fl_glyph fl_glyph;
@@ -106,6 +100,12 @@ typedef struct fl_glyph fl_glyph;
  * are considered printable.
  */
 typedef struct fl_font_atlas fl_font_atlas;
+
+/**
+ * Represents a font object.
+ * In the present day, a "font" is basically a "typeface".
+ */
+typedef struct fl_font fl_font;
 
 /**
  * Text to be rendered to the screen.
@@ -148,6 +148,12 @@ typedef struct fl_menu fl_menu;
  */
 typedef struct fl_menu_item fl_menu_item;
 
+/**
+ * Text output for information or conversation.
+ * Dialogs can be used by entities to explain things to the user,
+ * or they may serve to display conversation between entities.
+ */
+typedef struct fl_dialog fl_dialog;
 
 
 /* -------------------------------------------------------------- */
