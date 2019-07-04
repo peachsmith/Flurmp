@@ -209,7 +209,6 @@ static void input_handler(fl_context* context, fl_menu* menu)
 
 static void info_action(fl_context* context, fl_menu* menu)
 {
-	//printf("Flurmp\nVersion: 1.0.0\nAuthor: John Powell\n");
 	if (!context->dialogs[0]->open)
 	{
 		context->dialogs[0]->open = 1;

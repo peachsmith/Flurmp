@@ -33,6 +33,47 @@
 /* -------------------------------------------------------------- */
 
 /**
+ * A structure representing a particular color.
+ * A color typically consists of red, green, and blue components,
+ * and sometimes an alpha value dictating transparency.
+ * These values are often referred to as "RGB" or "RGBA".
+ */
+typedef struct fl_color fl_color;
+
+/**
+ * An image file loaded into memory.
+ * This can be something like a BMP used for a sprite sheet,
+ * or a backdrop for scenery.
+ */
+typedef struct fl_image fl_image;
+
+/**
+ * A graphical representation of an individual character.
+ */
+typedef struct fl_glyph fl_glyph;
+
+/**
+ * A collection of all printable characters in a font.
+ * It is up to the implementation to determine which characters
+ * are considered printable.
+ */
+typedef struct fl_font_atlas fl_font_atlas;
+
+/**
+ * Represents a font object.
+ * In the present day, a "font" is basically a "typeface".
+ */
+typedef struct fl_font fl_font;
+
+/**
+ * A resource is any external data that the application uses for any reason,
+ * such as an image used by a sprite or a font used by a menu.
+ * A resource should be used when the data is shared by multiple
+ * entities.
+ */
+typedef struct fl_resource fl_resource;
+
+/**
  * Represents the state of the application at any given time.
  * One of these should be created after initialization and before
  * entering into the main loop. When it is no longer needed, it should
@@ -90,24 +131,6 @@ typedef struct fl_entity_type fl_entity_type;
 typedef struct fl_input_handler fl_input_handler;
 
 /**
- * A graphical representation of an individual character.
- */
-typedef struct fl_glyph fl_glyph;
-
-/**
- * A collection of all printable characters in a font.
- * It is up to the implementation to determine which characters
- * are considered printable.
- */
-typedef struct fl_font_atlas fl_font_atlas;
-
-/**
- * Represents a font object.
- * In the present day, a "font" is basically a "typeface".
- */
-typedef struct fl_font fl_font;
-
-/**
  * Text to be rendered to the screen.
  * Static text should not change for the duration of its life cycle.
  */
@@ -154,20 +177,6 @@ typedef struct fl_menu_item fl_menu_item;
  * or they may serve to display conversation between entities.
  */
 typedef struct fl_dialog fl_dialog;
-
-/**
- * A resource is any external data that the application uses for any reason,
- * such as an image used by a sprite or a font used by a menu.
- */
-typedef struct fl_resource fl_resource;
-
-/**
- * A structure representing a particular color.
- * A color typically consists of red, green, and blue components,
- * and sometimes an alpha value dictating transparency.
- * These values are often referred to as "RGB" or "RGBA".
- */
-typedef struct fl_color fl_color;
 
 
 /* -------------------------------------------------------------- */
@@ -244,6 +253,7 @@ void fl_add_entity(fl_context* context, fl_entity* entity);
  * Determines if two entities have collided.
  *
  * Params:
+ *   fl_context - a Flurmp context
  *   fl_entity - an entity
  *   fl_entity - another entity
  *
@@ -256,7 +266,7 @@ void fl_add_entity(fl_context* context, fl_entity* entity);
  *   3 - top left
  *   4 - bottom left
  */
-int fl_detect_collision(fl_entity* a, fl_entity* b);
+int fl_detect_collision(fl_context* context, fl_entity* a, fl_entity* b);
 
 /**
  * Handles events.

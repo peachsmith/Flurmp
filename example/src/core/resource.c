@@ -4,6 +4,7 @@
 fl_resource* fl_load_bmp(fl_context* context, const char* path)
 {
 	fl_resource* resource;
+	fl_image* image;
 	SDL_Surface* surface;
 	SDL_Texture* texture;
 
@@ -14,20 +15,36 @@ fl_resource* fl_load_bmp(fl_context* context, const char* path)
 
 	SDL_SetColorKey(surface, 1, SDL_MapRGB(surface->format, 255, 0, 255));
 	texture = SDL_CreateTextureFromSurface(context->renderer, surface);
-	SDL_FreeSurface(surface);
 
 	if (texture == NULL)
+	{
+		SDL_FreeSurface(surface);
 		return NULL;
+	}
+
+	image = (fl_image*)malloc(sizeof(fl_image));
+
+	if (image == NULL)
+	{
+		SDL_FreeSurface(surface);
+		SDL_DestroyTexture(texture);
+		return NULL;
+	}
+
+	image->surface = surface;
+	image->texture = texture;
 
 	resource = (fl_resource*)malloc(sizeof(fl_resource));
 
 	if (resource == NULL)
 	{
+		SDL_FreeSurface(surface);
 		SDL_DestroyTexture(texture);
+		free(image);
 		return NULL;
 	}
 
-	resource->impl.texture = texture;
+	resource->impl.image = image;
 	resource->type = FLURMP_IMAGE_RESOURCE;
 
 	return resource;
@@ -102,9 +119,13 @@ void fl_destroy_resource(fl_resource* resource)
 
 	case FLURMP_IMAGE_RESOURCE:
 	{
-		if (resource->impl.texture != NULL)
+		if (resource->impl.image != NULL)
 		{
-			SDL_DestroyTexture(resource->impl.texture);
+			if (resource->impl.image->surface != NULL)
+				SDL_FreeSurface(resource->impl.image->surface);
+
+			if (resource->impl.image->texture != NULL)
+				SDL_DestroyTexture(resource->impl.image->texture);
 		}
 
 		free(resource);

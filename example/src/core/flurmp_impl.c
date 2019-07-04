@@ -4,20 +4,20 @@
 
 #include "flurmp_impl.h"
 #include "input.h"
-#include "rectangle.h"
-#include "interactable.h"
-#include "player.h"
 #include "console.h"
 #include "text.h"
 #include "menu.h"
 #include "dialog.h"
 #include "resource.h"
 
+#include "block_200_50.h"
+#include "sign.h"
+#include "player.h"
+
 #include <stdlib.h>
 #include <stdio.h>
 
 static void fl_console_input(fl_context* context);
-static void fl_pause_menu_input(fl_context* context);
 
 int fl_initialize()
 {
@@ -89,60 +89,29 @@ fl_context* fl_create_context()
 	/* for now we have 3 entity types: player, rectangle, and interactable */
 	fl_entity_type* entity_types = (fl_entity_type*)malloc(sizeof(fl_entity_type) * 3);
 
+	if (entity_types == NULL)
+	{
+		context->error = 3;
+		context->done = 1;
+		return context;
+	}
+
 	fl_entity_type player_type;
-	fl_entity_type rectangle_type;
-	fl_entity_type interactable_type;
+	fl_entity_type sign_type;
+	fl_entity_type block_200_50_type;
+	
+	fl_register_player_type(context, &player_type);
+	fl_register_sign_type(context, &sign_type);
+	fl_register_block_200_50_type(context, &block_200_50_type);
 
-	fl_register_player_type(&player_type);
-	fl_register_rectangle_type(&rectangle_type);
-	fl_register_interactable_type(&interactable_type);
-
-	entity_types[0] = player_type;
-	entity_types[1] = rectangle_type;
-	entity_types[2] = interactable_type;
+	entity_types[FLURMP_ENTITY_PLAYER] = player_type;
+	entity_types[FLURMP_ENTITY_SIGN] = sign_type;
+	entity_types[FLURMP_ENTITY_BLOCK_200_50] = block_200_50_type;
+	
+	/* TODO: create image registry and have entity types share it. */
 
 	context->entity_types = entity_types;
-
-	/* create a player */
-	fl_entity* player = fl_create_player(300, 260, 30, 40);
-
-	/* load the sprite for the player */
-	fl_resource* player_texture = fl_load_bmp(context, "resources/images/person.bmp");
-
-	player->texture = player_texture;
-
-	/* block to stand on */
-	fl_entity* block_1 = fl_create_rectangle(440, 250, 70, 20);
-	fl_entity* block_2 = fl_create_rectangle(500, 220, 50, 20);
-
-	/* walls and floor */
-	fl_entity* ground1 = fl_create_rectangle(0, 300, 200, 50);
-	fl_entity* ground2 = fl_create_rectangle(260, 300, 480, 50);
-	fl_entity* left_wall = fl_create_rectangle(-70, 100, 50, 250);
-	fl_entity* right_wall = fl_create_rectangle(715, 100, 50, 250);
-
-	fl_entity* lower_floor1 = fl_create_rectangle(0, 400, 500, 50);
-	fl_entity* lower_floor2 = fl_create_rectangle(500, 450, 100, 50);
-	fl_entity* lower_floor3 = fl_create_rectangle(600, 500, 100, 50);
-
-	/* something to interact with */
-	fl_entity* sign = fl_create_interactable(310, 270, 30, 30);
-
-	/* add the entities to the context */
-	fl_add_entity(context, sign);
-	fl_add_entity(context, player);
-	fl_add_entity(context, ground1);
-	fl_add_entity(context, ground2);
-	fl_add_entity(context, block_1);
-	fl_add_entity(context, block_2);
-	fl_add_entity(context, left_wall);
-	fl_add_entity(context, right_wall);
-	fl_add_entity(context, lower_floor1);
-	fl_add_entity(context, lower_floor2);
-	fl_add_entity(context, lower_floor3);
-
-	/* set the primary control object */
-	context->pco = player;
+	context->entity_type_count = FLURMP_ENTITY_TYPE_COUNT;
 
 	context->state = 0;
 
@@ -207,13 +176,48 @@ fl_context* fl_create_context()
 	context->dialog_count = 1;
 	context->active_dialog = NULL;
 
+
+
+	/* add the entities */
+	/* TODO: do this in a separate function */
+
+	/* create a player */
+	fl_entity* player = fl_create_player(300, 100);
+
+	/* something to interact with */
+	fl_entity* sign = fl_create_sign(420, 260);
+
+	/* block to stand on */
+	fl_entity* block_1 = fl_create_block_200_50(280, 300);
+
+	/* add the entities to the context */
+	fl_add_entity(context, sign);
+	fl_add_entity(context, player);
+	fl_add_entity(context, block_1);
+
+	/* set the primary control object */
+	context->pco = player;
+
 	return context;
 }
 
 void fl_destroy_context(fl_context* context)
 {
+	int i;
+
 	if (context->console != NULL) fl_destroy_console(context->console);
-	if (context->entity_types != NULL) free(context->entity_types);
+	if (context->entity_types != NULL)
+	{
+		for (i = 0; i < context->entity_type_count; i++)
+		{
+			/* TODO: destroy image resources elsewhere
+			   once the image registry has been implemented. */
+			if (context->entity_types[i].texture != NULL)
+				fl_destroy_resource(context->entity_types[i].texture);
+		}
+
+		free(context->entity_types);
+	}
 
 	if (context->fonts != NULL)
 	{
@@ -248,7 +252,6 @@ void fl_destroy_context(fl_context* context)
 	while (en != NULL)
 	{
 		next = en->next;
-		fl_destroy_resource(en->texture);
 		free(en);
 		en = next;
 	}
@@ -282,34 +285,37 @@ void fl_add_entity(fl_context* context, fl_entity* entity)
 	context->count++;
 }
 
-int fl_detect_collision(fl_entity* a, fl_entity* b)
+int fl_detect_collision(fl_context* context, fl_entity* a, fl_entity* b)
 {
 	int collision = 0;
 
-	/* TODO: get width and height from the entity type registry */
+	int a_w = context->entity_types[a->type].w;
+	int a_h = context->entity_types[a->type].h;
+	int b_w = context->entity_types[b->type].w;
+	int b_h = context->entity_types[b->type].h;
 
-	if (a->x >= b->x && a->x < b->x + b->w)
+	if (a->x >= b->x && a->x < b->x + b_w)
 	{
-		if (a->y > b->y && a->y < b->y + b->h)
+		if (a->y > b->y && a->y < b->y + b_h)
 		{
 			/* bottom right */
 			collision = 1;
 		}
-		else if (a->y + a->h > b->y && a->y < b->y + b->h)
+		else if (a->y + a_h > b->y && a->y < b->y + b_h)
 		{
 			/* top right */
 			collision = 2;
 		}
 	}
 
-	if (b->x >= a->x && b->x < a->x + a->w)
+	if (b->x >= a->x && b->x < a->x + a_w)
 	{
-		if (b->y > a->y && b->y < a->y + a->h)
+		if (b->y > a->y && b->y < a->y + a_h)
 		{
 			/* top left */
 			collision = 3;
 		}
-		else if (b->y + b->h > a->y && b->y < a->y + a->h)
+		else if (b->y + b_h > a->y && b->y < a->y + a_h)
 		{
 			/* bottom left */
 			collision = 4;
@@ -372,6 +378,7 @@ void fl_update(fl_context* context)
 	if (context->active_dialog != NULL)
 	{
 		context->active_dialog->update(context, context->active_dialog);
+		return;
 	}
 
 	if (context->paused)
@@ -396,7 +403,7 @@ void fl_update(fl_context* context)
 
 		while (next != NULL)
 		{
-			int collided = fl_detect_collision(en, next);
+			int collided = fl_detect_collision(context, en, next);
 			if (collided)
 			{
 				context->entity_types[en->type].collide(context, en, next, collided, FLURMP_AXIS_X);
@@ -426,7 +433,7 @@ void fl_update(fl_context* context)
 
 		while (next != NULL)
 		{
-			int collided = fl_detect_collision(en, next);
+			int collided = fl_detect_collision(context, en, next);
 			if (collided)
 			{
 				context->entity_types[en->type].collide(context, en, next, collided, FLURMP_AXIS_Y);

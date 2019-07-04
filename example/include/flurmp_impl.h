@@ -33,12 +33,45 @@
 #define FLURMP_LOWER_BOUNDARY 320
 
 /* entity types */
+/* TODO: create a common entity header file */
+#define FLURMP_ENTITY_TYPE_COUNT 3
 #define FLURMP_ENTITY_PLAYER 0
-#define FLURMP_ENTITY_RECTANGLE 1
-#define FLURMP_ENTITY_INTERACTABLE 2
+#define FLURMP_ENTITY_SIGN 1
+#define FLURMP_ENTITY_BLOCK_200_50 2
 
 struct fl_color {
 	SDL_Color impl;
+};
+
+struct fl_image {
+	SDL_Surface* surface;
+	SDL_Texture* texture;
+};
+
+struct fl_glyph {
+	char c;
+	fl_image* image;
+};
+
+struct fl_font_atlas {
+	int count;
+	fl_glyph** glyphs;
+};
+
+struct fl_font {
+	TTF_Font* impl;
+	fl_font_atlas* atlas;
+	fl_color forecolor;
+	fl_color backcolor;
+	int background;
+};
+
+struct fl_resource {
+	int type;
+	union {
+		fl_image* image;
+		fl_font* font;
+	} impl;
 };
 
 struct fl_entity_type {
@@ -46,6 +79,9 @@ struct fl_entity_type {
 	/* boundaries */
 	int w;
 	int h;
+
+	/* sprite data */
+	fl_resource* texture;
 
 	/* entity operations */
 	void(*collide) (fl_context*, fl_entity*, fl_entity*, int, int);
@@ -64,19 +100,12 @@ struct fl_entity {
 	int x;
 	int y;
 
-	/* boundaries (TODO: move this into entity type) */
-	int w;
-	int h;
-
 	/* velocity */
 	int x_v;
 	int y_v;
 
 	/* animation */
 	int frame;
-
-	/* sprite data */
-	fl_resource* texture;
 
 	/* list pointers */
 	fl_entity* next;
@@ -126,32 +155,12 @@ struct fl_menu {
 	void(*get_cursor_coords) (fl_menu*, int*, int*);
 };
 
-struct fl_glyph {
-	char c;
-	SDL_Surface* surface;
-	SDL_Texture* texture;
-};
-
-struct fl_font_atlas {
-	int count;
-	fl_glyph** glyphs;
-};
-
-struct fl_font {
-	TTF_Font* impl;
-	fl_font_atlas* atlas;
-	fl_color forecolor;
-	fl_color backcolor;
-	int background;
-};
-
 struct fl_static_text {
 	char* text;
 	int x;
 	int y;
 	fl_resource* font;
-	SDL_Surface* surface;
-	SDL_Texture* texture;
+	fl_image* image;
 };
  
 struct fl_dialog {
@@ -172,17 +181,6 @@ struct fl_dialog {
 	void(*input_handler) (fl_context*, fl_dialog*);
 };
 
-struct fl_resource {
-
-	int type;
-
-	union {
-		SDL_Texture* texture;
-		fl_font* font;
-	} impl;
-
-};
-
 struct fl_context {
 
 	SDL_Window* window;
@@ -194,7 +192,10 @@ struct fl_context {
 	/* entity type registry */
 	fl_entity_type* entity_types;
 
-	/* a list of all the entities in the current context */
+	/* the number of entity types in the entity type registry */
+	int entity_type_count;
+
+	/* a linked list of all the entities in the current context */
 	fl_entity* entities;
 
 	/* the primary control object */
@@ -227,6 +228,7 @@ struct fl_context {
 	/* pause flag */
 	int paused;
 
+	/* dev console flag */
 	int console_open;
 
 	/* dev console */
@@ -238,13 +240,16 @@ struct fl_context {
 	/* font registry */
 	fl_resource** fonts;
 
+	/* the number of fonts in the font registry */
 	int font_count;
 
 	/* dialog registry */
 	fl_dialog** dialogs;
 
+	/* the number of dialogs in the dialog registry */
 	int dialog_count;
 
+	/* the current active dialog */
 	fl_dialog* active_dialog;
 };
 

@@ -122,9 +122,9 @@ void fl_render_menu(fl_context* context, fl_menu* menu)
 		{
 			r.x = menu->items[i]->x;
 			r.y = menu->items[i]->y;
-			r.w = menu->items[i]->text->surface->w;
-			r.h = menu->items[i]->text->surface->h;
-			SDL_RenderCopy(context->renderer, menu->items[i]->text->texture, NULL, &r);
+			r.w = menu->items[i]->text->image->surface->w;
+			r.h = menu->items[i]->text->image->surface->h;
+			SDL_RenderCopy(context->renderer, menu->items[i]->text->image->texture, NULL, &r);
 		}
 	}
 

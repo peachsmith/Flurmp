@@ -9,17 +9,16 @@
 * Params:
 *   x position
 *   y position
-*   width
-*   height
 */
-fl_entity* fl_create_player(int, int, int, int);
+fl_entity* fl_create_player(int, int);
 
 /**
  * Registers the implementation of a player entity.
  *
  * Params:
+ *   fl_context - a Flurmp context
  *   fl_entity_type - the entity type of a player
  */
-void fl_register_player_type(fl_entity_type*);
+void fl_register_player_type(fl_context* context, fl_entity_type*);
 
 #endif

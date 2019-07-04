@@ -10,9 +10,9 @@ static void input_handler(fl_context* context, fl_dialog* self);
 static void clear_buffer(fl_dialog* dialog);
 
 static const char* statements[3] = {
-	"This is the first statement.",  // 28
-	"This is the second statement.", // 29
-	"This is the\nthird statement."  // 28
+	"This is the first statement.",  /* 28 */
+	"This is the second statement.", /* 29 */
+	"This is the\nthird statement."  /* 28 */
 };
 
 static int row_count = 2;
@@ -74,8 +74,8 @@ static void render(fl_context* context, fl_dialog* self)
 	SDL_SetRenderDrawColor(context->renderer, 250, 250, 250, 255);
 	SDL_RenderDrawRect(context->renderer, &r);
 
-	int w = context->fonts[FL_FONT_VERA]->impl.font->atlas->glyphs[0]->surface->w;
-	int h = context->fonts[FL_FONT_VERA]->impl.font->atlas->glyphs[0]->surface->h;
+	int w = context->fonts[FL_FONT_VERA]->impl.font->atlas->glyphs[0]->image->surface->w;
+	int h = context->fonts[FL_FONT_VERA]->impl.font->atlas->glyphs[0]->image->surface->h;
 
 	/* render buffer contents */
 	SDL_Rect dest;
@@ -101,7 +101,7 @@ static void render(fl_context* context, fl_dialog* self)
 			dest.y = self->y + c_y * h + 10;
 
 			fl_glyph* g = fl_char_to_glyph(context->fonts[FL_FONT_VERA]->impl.font->atlas, self->buffer[i]);
-			SDL_RenderCopy(context->renderer, g->texture, &src, &dest);
+			SDL_RenderCopy(context->renderer, g->image->texture, &src, &dest);
 
 			if (c_x >= column_count - 1)
 			{

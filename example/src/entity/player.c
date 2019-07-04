@@ -1,4 +1,6 @@
 #include "player.h"
+#include "flurmp_impl.h"
+#include "resource.h"
 #include "input.h"
 
 #include <stdio.h>
@@ -19,7 +21,7 @@
  *   fl_context - a Flurmp context
  *   fl_entity - the player entity
  */
-static void collide_player(fl_context*, fl_entity*, fl_entity*, int, int);
+static void collide(fl_context*, fl_entity*, fl_entity*, int, int);
 
 /**
  * Performs the following operations:
@@ -33,7 +35,7 @@ static void collide_player(fl_context*, fl_entity*, fl_entity*, int, int);
  *   fl_context - a Flurmp context
  *   fl_entity - the player entity
  */
-static void update_player(fl_context*, fl_entity*, int);
+static void update(fl_context*, fl_entity*, int);
 
 /**
  * Renders the player entity to the screen.
@@ -42,7 +44,7 @@ static void update_player(fl_context*, fl_entity*, int);
  *   fl_context - a Flurmp context
  *   fl_entity - the player entity
  */
-static void render_player(fl_context*, fl_entity*);
+static void render(fl_context*, fl_entity*);
 
 
 
@@ -115,7 +117,7 @@ static void render_hitbox(fl_context* context, fl_entity* self);
 /*         entity creation functions (publicly exposed)           */
 /* -------------------------------------------------------------- */
 
-fl_entity* fl_create_player(int x, int y, int w, int h)
+fl_entity* fl_create_player(int x, int y)
 {
 	fl_entity* player = malloc(sizeof(fl_entity));
 
@@ -129,22 +131,21 @@ fl_entity* fl_create_player(int x, int y, int w, int h)
 	player->y_v = 0;
 	player->x = x;
 	player->y = y;
-	player->w = w;
-	player->h = h;
 	player->frame = 0;
-	player->texture = NULL;
 
 	return player;
 }
 
-void fl_register_player_type(fl_entity_type * et)
+void fl_register_player_type(fl_context* context, fl_entity_type* et)
 {
-	//et->w = 30;
-	//et->h = 40;
+	et->w = 30;
+	et->h = 40;
 
-	et->collide = collide_player;
-	et->update = update_player;
-	et->render = render_player;
+	et->collide = collide;
+	et->update = update;
+	et->render = render;
+
+	et->texture = fl_load_bmp(context, "resources/images/person.bmp");
 }
 
 
@@ -154,12 +155,12 @@ void fl_register_player_type(fl_entity_type * et)
 /*                update functions (implementation)               */
 /* -------------------------------------------------------------- */
 
-static void collide_player(fl_context * context, fl_entity * self, fl_entity * other, int collided, int axis)
+static void collide(fl_context* context, fl_entity* self, fl_entity* other, int collided, int axis)
 {
 	/* Nothing to see here, folks. Move along. */
 }
 
-static void update_player(fl_context * context, fl_entity * self, int axis)
+static void update(fl_context* context, fl_entity* self, int axis)
 {
 	if (axis == FLURMP_AXIS_X)
 	{
@@ -172,6 +173,8 @@ static void update_player(fl_context * context, fl_entity * self, int axis)
 
 	if (axis == FLURMP_AXIS_Y)
 	{
+		/* TODO: implement vertical camera adjustment */
+
 		/* vertical movement */
 		vertical_movement(context, self);
 	}
@@ -184,21 +187,14 @@ static void update_player(fl_context * context, fl_entity * self, int axis)
 		animate(context, self);
 }
 
-static void render_player(fl_context * context, fl_entity * self)
+static void render(fl_context* context, fl_entity* self)
 {
-	/* determine where to render the player on the x axis */
+	int w = context->entity_types[self->type].w;
+	int h = context->entity_types[self->type].h;
+	SDL_Texture* tex = context->entity_types[self->type].texture->impl.image->texture;
 
-	int real_x = self->x;
-
+	SDL_Rect src;
 	SDL_Rect dest;
-
-	/* int self_w = context->entity_types[self->type].w;
-	int self_h = context->entity_types[self->type].h; */
-
-	dest.x = self->x - 10 - context->cam_x;
-	dest.y = self->y - 8 - context->cam_y;
-	dest.w = self->w + 20;
-	dest.h = self->h + 10;
 
 	int f = 0;
 
@@ -211,23 +207,27 @@ static void render_player(fl_context * context, fl_entity * self)
 		f = 1;
 	else if (self->frame > 10 && self->frame < 15)
 		f = 2;
-
-	SDL_Rect src;
+	
 	src.x = 50 * f;
 	src.y = 0;
 	src.w = 50;
 	src.h = 50;
 
+	dest.x = self->x - 10 - context->cam_x;
+	dest.y = self->y - 8 - context->cam_y;
+	dest.w = w + 20;
+	dest.h = h + 10;
+
 	if (self->flags & FLURMP_LEFT_FLAG)
-		SDL_RenderCopyEx(context->renderer, self->texture->impl.texture, &src, &dest, 0, NULL, SDL_FLIP_HORIZONTAL);
+		SDL_RenderCopyEx(context->renderer, tex, &src, &dest, 0, NULL, SDL_FLIP_HORIZONTAL);
 
 	else
-		SDL_RenderCopyEx(context->renderer, self->texture->impl.texture, &src, &dest, 0, NULL, SDL_FLIP_NONE);
+		SDL_RenderCopyEx(context->renderer, tex, &src, &dest, 0, NULL, SDL_FLIP_NONE);
 
 	/* render_hitbox(context, self); */
 }
 
-static void adjust_camera_horizontal(fl_context * context, fl_entity * self)
+static void adjust_camera_horizontal(fl_context* context, fl_entity* self)
 {
 	int cam_d = context->cam_x - self->x;
 
@@ -280,8 +280,11 @@ static void adjust_camera_horizontal(fl_context * context, fl_entity * self)
 	}
 }
 
-static void horizontal_movement(fl_context * context, fl_entity * self)
+static void horizontal_movement(fl_context* context, fl_entity* self)
 {
+	int self_w = context->entity_types[self->type].w;
+	int self_h = context->entity_types[self->type].h;
+
 	/* walking (input handling) */
 	if (fl_peek_input(context, FLURMP_INPUT_TYPE_KEYBOARD, FLURMP_SC_A))
 	{
@@ -313,7 +316,7 @@ static void horizontal_movement(fl_context * context, fl_entity * self)
 		context->cam_x += self->x_v;
 	}
 
-	if (self->x_v > 0 && self->x + self->w - context->cam_x >= FLURMP_RIGHT_BOUNDARY)
+	if (self->x_v > 0 && self->x + self_w - context->cam_x >= FLURMP_RIGHT_BOUNDARY)
 	{
 		context->cam_x += self->x_v;
 	}
@@ -325,8 +328,11 @@ static void horizontal_movement(fl_context * context, fl_entity * self)
 		self->x_v++;
 }
 
-static void vertical_movement(fl_context * context, fl_entity * self)
+static void vertical_movement(fl_context* context, fl_entity* self)
 {
+	int self_w = context->entity_types[self->type].w;
+	int self_h = context->entity_types[self->type].h;
+
 	/* jumping (input handling) */
 	if (fl_consume_input(context, FLURMP_INPUT_TYPE_KEYBOARD, FLURMP_SC_SPACE))
 	{
@@ -342,39 +348,32 @@ static void vertical_movement(fl_context * context, fl_entity * self)
 
 	self->y += self->y_v;
 
-	/* int self_h = context->entity_types[self->type].h; */
-
 	if (self->y_v < 0 && self->y - context->cam_y <= FLURMP_UPPER_BOUNDARY)
 	{
 		context->cam_y += self->y_v;
 	}
 
-	if (self->y_v > 0 && self->y + self->h - context->cam_y >= FLURMP_LOWER_BOUNDARY)
+	if (self->y_v > 0 && self->y + self_h - context->cam_y >= FLURMP_LOWER_BOUNDARY)
 	{
 		context->cam_y += self->y_v;
 	}
 }
 
-static void interact(fl_context * context, fl_entity * self)
+static void interact(fl_context* context, fl_entity* self)
 {
 	if (self->flags & FLURMP_INTERACT_FLAG)
 		self->flags &= ~(FLURMP_INTERACT_FLAG);
 
-	if (fl_consume_input(context, FLURMP_INPUT_TYPE_KEYBOARD, FLURMP_SC_Z))
+	if (fl_consume_input(context, FLURMP_INPUT_TYPE_KEYBOARD, FLURMP_SC_J))
 	{
 		if (!(self->flags & FLURMP_INTERACT_FLAG))
 		{
 			self->flags |= FLURMP_INTERACT_FLAG;
 		}
 	}
-
-	if (fl_consume_input(context, FLURMP_INPUT_TYPE_KEYBOARD, FLURMP_SC_Z))
-	{
-		printf("This should not be possible.\n");
-	}
 }
 
-static void animate(fl_context * context, fl_entity * self)
+static void animate(fl_context* context, fl_entity* self)
 {
 	if (self->flags & FLURMP_JUMP_FLAG)
 	{
@@ -397,13 +396,16 @@ static void animate(fl_context * context, fl_entity * self)
 /* -------------------------------------------------------------- */
 /*                utility functions (implementation)              */
 /* -------------------------------------------------------------- */
-static void render_hitbox(fl_context * context, fl_entity * self)
+static void render_hitbox(fl_context* context, fl_entity* self)
 {
+	int self_w = context->entity_types[self->type].w;
+	int self_h = context->entity_types[self->type].h;
+
 	SDL_Rect hb;
 	hb.x = self->x - context->cam_x;
 	hb.y = self->y - context->cam_y;
-	hb.w = self->w;
-	hb.h = self->h;
+	hb.w = self_w;
+	hb.h = self_h;
 
 	SDL_SetRenderDrawColor(context->renderer, 255, 0, 255, 255);
 	SDL_RenderDrawRect(context->renderer, &hb);

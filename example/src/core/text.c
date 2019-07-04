@@ -5,6 +5,7 @@
 fl_glyph* fl_create_glyph(fl_context* context, fl_resource* font, char c)
 {
 	fl_glyph* glyph;
+	fl_image* image;
 	SDL_Surface* surface;
 	SDL_Texture* texture;
 
@@ -37,9 +38,21 @@ fl_glyph* fl_create_glyph(fl_context* context, fl_resource* font, char c)
 		return NULL;
 	}
 
+	image = (fl_image*)malloc(sizeof(fl_image));
+
+	if (image == NULL)
+	{
+		SDL_FreeSurface(surface);
+		SDL_DestroyTexture(texture);
+		free(glyph);
+		return NULL;
+	}
+
+	image->surface = surface;
+	image->texture = texture;
+
 	glyph->c = c;
-	glyph->surface = surface;
-	glyph->texture = texture;
+	glyph->image = image;
 
 	return glyph;
 }
@@ -49,11 +62,14 @@ void fl_destroy_glyph(fl_glyph* glyph)
 	if (glyph == NULL)
 		return;
 
-	if (glyph->surface != NULL)
-		SDL_FreeSurface(glyph->surface);
+	if (glyph->image != NULL)
+	{
+		if (glyph->image->surface != NULL)
+			SDL_FreeSurface(glyph->image->surface);
 
-	if (glyph->texture != NULL)
-		SDL_DestroyTexture(glyph->texture);
+		if (glyph->image->texture != NULL)
+			SDL_DestroyTexture(glyph->image->texture);
+	}
 
 	free(glyph);
 }
@@ -135,6 +151,7 @@ fl_static_text* fl_create_static_text(fl_context* context, fl_resource* font, co
 
 	fl_static_text* stat;
 	char* contents;
+	fl_image* image;
 	SDL_Surface* surface;
 	SDL_Texture* texture;
 
@@ -186,9 +203,22 @@ fl_static_text* fl_create_static_text(fl_context* context, fl_resource* font, co
 		return NULL;
 	}
 
+	image = (fl_image*)malloc(sizeof(fl_image));
+
+	if (image == NULL)
+	{
+		SDL_FreeSurface(surface);
+		free(contents);
+		free(stat);
+		SDL_DestroyTexture(texture);
+		return NULL;
+	}
+
+	image->surface = surface;
+	image->texture = texture;
+
 	stat->font = font;
-	stat->surface = surface;
-	stat->texture = texture;
+	stat->image = image;
 	stat->text = contents;
 	stat->x = x;
 	stat->y = y;
@@ -201,11 +231,14 @@ void fl_destroy_static_text(fl_static_text* stat)
 	if (stat == NULL)
 		return;
 
-	if (stat->surface != NULL)
-		SDL_FreeSurface(stat->surface);
+	if (stat->image != NULL)
+	{
+		if (stat->image->surface != NULL)
+			SDL_FreeSurface(stat->image->surface);
 
-	if (stat->texture != NULL)
-		SDL_DestroyTexture(stat->texture);
+		if (stat->image->texture != NULL)
+			SDL_DestroyTexture(stat->image->texture);
+	}
 
 	if (stat->text != NULL)
 		free(stat->text);
