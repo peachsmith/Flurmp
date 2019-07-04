@@ -32,7 +32,7 @@ fl_dialog* fl_create_example_dialog(fl_font* font, int x, int y, int w, int h)
 	dialog->statement_count = 3;
 
 	char* buffer = (char*)malloc(sizeof(char) * row_count * column_count);
-	
+
 	if (buffer == NULL)
 	{
 		fl_destroy_dialog(dialog);
@@ -52,11 +52,8 @@ void update(fl_context* context, fl_dialog* self)
 {
 	if (self->counter < 30)
 	{
-		if (self->current_statement == 0)
-		{
-			if (self->counter < 28)
-				self->buffer[self->buffer_count++] = self->statements[self->current_statement][self->counter];
-		}
+		if (self->counter < 28)
+			self->buffer[self->buffer_count++] = self->statements[self->current_statement][self->counter];
 
 		self->counter++;
 	}
@@ -131,13 +128,13 @@ static void input_handler(fl_context* context, fl_dialog* self)
 
 	if (fl_consume_input(context, FLURMP_INPUT_TYPE_KEYBOARD, FLURMP_SC_J))
 	{
-		if (self->current_statement < 2)
+		if (self->current_statement < 3)
 			self->current_statement++;
 
 		self->counter = 0;
 		clear_buffer(self);
 
-		if (self->current_statement == 2)
+		if (self->current_statement == 3)
 		{
 			self->open = 0;
 			self->current_statement = 0;

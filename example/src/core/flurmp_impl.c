@@ -344,6 +344,12 @@ void fl_handle_events(fl_context* context)
 
 void fl_handle_input(fl_context* context)
 {
+	if (context->active_dialog != NULL)
+	{
+		context->active_dialog->input_handler(context, context->active_dialog);
+		return;
+	}
+
 	if (context->paused)
 	{
 		if (!context->console_open)
@@ -386,7 +392,6 @@ void fl_update(fl_context* context)
 	if (context->paused)
 		return;
 
-	//int i;
 	fl_entity* en = context->entities;
 	fl_entity* next;
 
@@ -451,19 +456,19 @@ void fl_update(fl_context* context)
 
 void fl_render(fl_context* context)
 {
-	//SDL_SetRenderDrawColor(context->renderer, 145, 219, 255, 255);
-	SDL_SetRenderDrawColor(context->renderer, 120, 120, 120, 255);
+	SDL_SetRenderDrawColor(context->renderer, 145, 219, 255, 255);
+	/* SDL_SetRenderDrawColor(context->renderer, 120, 120, 120, 255); */
 	SDL_RenderClear(context->renderer);
 
 	fl_entity* en = context->entities;
 
 	/* get render from entity type registry */
 
-	/*while (en != NULL)
+	while (en != NULL)
 	{
 		context->entity_types[en->type].render(context, en);
 		en = en->next;
-	}*/
+	}
 
 	if (context->paused)
 	{
