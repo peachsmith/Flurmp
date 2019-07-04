@@ -155,6 +155,20 @@ typedef struct fl_menu_item fl_menu_item;
  */
 typedef struct fl_dialog fl_dialog;
 
+/**
+ * A resource is any external data that the application uses for any reason,
+ * such as an image used by a sprite or a font used by a menu.
+ */
+typedef struct fl_resource fl_resource;
+
+/**
+ * A structure representing a particular color.
+ * A color typically consists of red, green, and blue components,
+ * and sometimes an alpha value dictating transparency.
+ * These values are often referred to as "RGB" or "RGBA".
+ */
+typedef struct fl_color fl_color;
+
 
 /* -------------------------------------------------------------- */
 /*                           Functions                            */

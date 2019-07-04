@@ -11,37 +11,14 @@
 #define FL_FONT_COUSINE 1
 
 /**
- * Loads a font from a file.
- *
- * Params:
- *   const char* - the path to the font file
- *   int - the font size in points
- *   SDL_Color - a foreground color
- *   SDL_Color - a background color
- *   int - whether or not the font should have a background color
- *
- * Returns:
- *   fl_font - a reference to a newly created font
- */
-fl_font* fl_load_font(const char* path, int p, SDL_Color fc, SDL_Color bc, int background);
-
-/**
- * Frees the resources allocated for a font.
- *
- * Params:
- *   fl_font - a font
- */
-void fl_destroy_font(fl_font* font);
-
-/**
  * Creates a new glyph.
  *
  * Params:
  *   fl_context - a Flurmp context
- *   fl_font - a font
+ *   fl_resource - a font resource
  *   char - a character to be represented by the resulting glyph
  */
-fl_glyph* fl_create_glyph(fl_context* context, fl_font* font, char c);
+fl_glyph* fl_create_glyph(fl_context* context, fl_resource* font, char c);
 
 /**
  * Frees the resources allocated for a glyph.
@@ -56,9 +33,9 @@ void fl_destroy_glyph(fl_glyph* glyph);
  *
  * Params:
  *   fl_context - a Flurmp context
- *   fl_font - a font
+ *   fl_resource - a font resource
  */
-fl_font_atlas* fl_create_font_atlas(fl_context* context, fl_font* font);
+fl_font_atlas* fl_create_font_atlas(fl_context* context, fl_resource* font);
 
 /**
  * Retrieves a glyph from a font atlas that represents
@@ -84,7 +61,7 @@ void fl_destroy_font_atlas(fl_font_atlas* atlas);
  *
  * Params:
  *   fl_context - a Flurmp context
- *   fl_font - the font
+ *   fl_resource - a font resource
  *   const char* - a string of characters to display
  *   int - the horizontal position
  *   int - the vertical position
@@ -92,7 +69,7 @@ void fl_destroy_font_atlas(fl_font_atlas* atlas);
  * Returns:
  *   fl_static_text - a new static text structure
  */
-fl_static_text* fl_create_static_text(fl_context* context, fl_font* font, const char* txt, int x, int y);
+fl_static_text* fl_create_static_text(fl_context* context, fl_resource* font, const char* txt, int x, int y);
 
 /**
  * Frees resources allocated for static text.

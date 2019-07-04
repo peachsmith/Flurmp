@@ -37,6 +37,10 @@
 #define FLURMP_ENTITY_RECTANGLE 1
 #define FLURMP_ENTITY_INTERACTABLE 2
 
+struct fl_color {
+	SDL_Color impl;
+};
+
 struct fl_entity_type {
 
 	/* boundaries */
@@ -72,7 +76,7 @@ struct fl_entity {
 	int frame;
 
 	/* sprite data */
-	SDL_Texture* texture;
+	fl_resource* texture;
 
 	/* list pointers */
 	fl_entity* next;
@@ -136,8 +140,8 @@ struct fl_font_atlas {
 struct fl_font {
 	TTF_Font* impl;
 	fl_font_atlas* atlas;
-	SDL_Color forecolor;
-	SDL_Color backcolor;
+	fl_color forecolor;
+	fl_color backcolor;
 	int background;
 };
 
@@ -145,13 +149,13 @@ struct fl_static_text {
 	char* text;
 	int x;
 	int y;
-	fl_font* font;
+	fl_resource* font;
 	SDL_Surface* surface;
 	SDL_Texture* texture;
 };
-
+ 
 struct fl_dialog {
-	fl_font* font;
+	fl_resource* font;
 	int x;
 	int y;
 	int w;
@@ -166,6 +170,17 @@ struct fl_dialog {
 	void(*update) (fl_context*, fl_dialog*);
 	void(*render) (fl_context*, fl_dialog*);
 	void(*input_handler) (fl_context*, fl_dialog*);
+};
+
+struct fl_resource {
+
+	int type;
+
+	union {
+		SDL_Texture* texture;
+		fl_font* font;
+	} impl;
+
 };
 
 struct fl_context {
@@ -221,7 +236,7 @@ struct fl_context {
 	fl_menu* pause_menu;
 
 	/* font registry */
-	fl_font** fonts;
+	fl_resource** fonts;
 
 	int font_count;
 
@@ -232,5 +247,18 @@ struct fl_context {
 
 	fl_dialog* active_dialog;
 };
+
+/**
+ * A helper function to set color values.
+ *
+ * Params:
+ *   fl_color - a reference to a color structure
+ *   int - the red value ranging from 0 - 255
+ *   int - the green value ranging from 0 - 255
+ *   int - the blue value ranging from 0 - 255
+ *   int - the alpha value ranging from 0 - 255
+ *   
+ */
+void fl_set_color(fl_color* color, int r, int g, int b, int a);
 
 #endif

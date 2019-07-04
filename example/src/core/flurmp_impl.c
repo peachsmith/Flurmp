@@ -11,6 +11,7 @@
 #include "text.h"
 #include "menu.h"
 #include "dialog.h"
+#include "resource.h"
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -106,10 +107,7 @@ fl_context* fl_create_context()
 	fl_entity* player = fl_create_player(300, 260, 30, 40);
 
 	/* load the sprite for the player */
-	SDL_Surface* surface = SDL_LoadBMP("./images/person.bmp");
-	SDL_SetColorKey(surface, 1, SDL_MapRGB(surface->format, 255, 0, 255));
-	SDL_Texture* player_texture = SDL_CreateTextureFromSurface(context->renderer, surface);
-	SDL_FreeSurface(surface);
+	fl_resource* player_texture = fl_load_bmp(context, "resources/images/person.bmp");
 
 	player->texture = player_texture;
 
@@ -155,7 +153,7 @@ fl_context* fl_create_context()
 
 	/* create a font registry */
 	int font_count = 2;
-	fl_font** fonts = (fl_font**)malloc(sizeof(fl_font) * font_count);
+	fl_resource** fonts = (fl_resource**)malloc(sizeof(fl_resource) * font_count);
 
 	if (fonts == NULL)
 	{
@@ -167,38 +165,23 @@ fl_context* fl_create_context()
 	context->fonts = fonts;
 
 	/* font colors */
-	SDL_Color menu_fc;
-	SDL_Color menu_bc;
-	SDL_Color console_fc;
-	SDL_Color console_bc;
+	fl_color menu_fc;
+	fl_color menu_bc;
+	fl_color console_fc;
+	fl_color console_bc;
 
-	menu_fc.r = 250;
-	menu_fc.g = 250;
-	menu_fc.b = 250;
-	menu_fc.a = 255;
-
-	menu_bc.r = 0;
-	menu_bc.g = 0;
-	menu_bc.b = 0;
-	menu_bc.a = 255;
-
-	console_fc.r = 250;
-	console_fc.g = 250;
-	console_fc.b = 250;
-	console_fc.a = 0;
-
-	console_bc.r = 150;
-	console_bc.g = 50;
-	console_bc.b = 150;
-	console_bc.a = 0;
+	fl_set_color(&menu_fc, 250, 250, 250, 255);
+	fl_set_color(&menu_bc, 0, 0, 0, 255);
+	fl_set_color(&console_fc, 250, 250, 250, 255);
+	fl_set_color(&console_bc, 0, 0, 0, 0);
 
 	/* load fonts into the font registry */
-	context->fonts[FL_FONT_VERA] = fl_load_font("fonts/VeraMono.ttf", 16, menu_fc, menu_bc, 1);
-	context->fonts[FL_FONT_COUSINE] = fl_load_font("fonts/Cousine.ttf", 16, console_fc, console_bc, 0);
+	context->fonts[FL_FONT_VERA] = fl_load_font("resources/fonts/VeraMono.ttf", 16, menu_fc, menu_bc, 1);
+	context->fonts[FL_FONT_COUSINE] = fl_load_font("resources/fonts/Cousine.ttf", 16, console_fc, console_bc, 0);
 
 	/* create font atlases */
-	context->fonts[FL_FONT_VERA]->atlas = fl_create_font_atlas(context, context->fonts[FL_FONT_VERA]);
-	context->fonts[FL_FONT_COUSINE]->atlas = fl_create_font_atlas(context, context->fonts[FL_FONT_COUSINE]);
+	context->fonts[FL_FONT_VERA]->impl.font->atlas = fl_create_font_atlas(context, context->fonts[FL_FONT_VERA]);
+	context->fonts[FL_FONT_COUSINE]->impl.font->atlas = fl_create_font_atlas(context, context->fonts[FL_FONT_COUSINE]);
 
 	context->font_count = 2;
 
@@ -239,7 +222,7 @@ void fl_destroy_context(fl_context* context)
 		{
 			if (context->fonts[i] != NULL)
 			{
-				fl_destroy_font(context->fonts[i]);
+				fl_destroy_resource(context->fonts[i]);
 			}
 		}
 
@@ -260,17 +243,19 @@ void fl_destroy_context(fl_context* context)
 		free(context->dialogs);
 	}
 
-	if (context->renderer != NULL) SDL_DestroyRenderer(context->renderer);
-	if (context->window != NULL) SDL_DestroyWindow(context->window);
-
 	fl_entity* en = context->entities;
 	fl_entity* next;
 	while (en != NULL)
 	{
 		next = en->next;
+		fl_destroy_resource(en->texture);
 		free(en);
 		en = next;
 	}
+
+	if (context->renderer != NULL) SDL_DestroyRenderer(context->renderer);
+	if (context->window != NULL) SDL_DestroyWindow(context->window);
+
 	free(context);
 }
 
@@ -548,40 +533,13 @@ static void fl_console_input(fl_context* context)
 	}
 }
 
-static void fl_pause_menu_input(fl_context* context)
+void fl_set_color(fl_color* color, int r, int g, int b, int a)
 {
+	if (color == NULL)
+		return;
 
-	//if (fl_consume_input(context, FLURMP_INPUT_TYPE_KEYBOARD, FLURMP_SC_W))
-	//{
-	//	/* printf("W was pressed in the pause menu\n"); */
-	//	fl_menu_cursor_up(context, context->menu);
-	//}
-
-	//if (fl_consume_input(context, FLURMP_INPUT_TYPE_KEYBOARD, FLURMP_SC_A))
-	//{
-	//	/* printf("A was pressed in the pause menu\n"); */
-	//}
-
-	//if (fl_consume_input(context, FLURMP_INPUT_TYPE_KEYBOARD, FLURMP_SC_S))
-	//{
-	//	/* printf("S was pressed in the pause menu\n"); */
-	//	fl_menu_cursor_down(context, context->menu);
-	//}
-
-	//if (fl_consume_input(context, FLURMP_INPUT_TYPE_KEYBOARD, FLURMP_SC_D))
-	//{
-	//	/* printf("D was pressed in the pause menu\n"); */
-	//}
-
-	//if (fl_consume_input(context, FLURMP_INPUT_TYPE_KEYBOARD, FLURMP_SC_J))
-	//{
-	//	/* printf("J was pressed in the pause menu\n"); */
-	//	fl_menu_cursor_select(context, context->menu);
-	//}
-
-	//if (fl_consume_input(context, FLURMP_INPUT_TYPE_KEYBOARD, FLURMP_SC_K))
-	//{
-	//	/* printf("K was pressed in the pause menu\n"); */
-	//	fl_menu_cursor_cancel(context, context->menu);
-	//}
+	color->impl.r = r > 255 ? 255 : (r < 0 ? 0 : r);
+	color->impl.g = g > 255 ? 255 : (g < 0 ? 0 : g);
+	color->impl.b = b > 255 ? 255 : (b < 0 ? 0 : b);
+	color->impl.a = a > 255 ? 255 : (a < 0 ? 0 : a);
 }

@@ -219,10 +219,10 @@ static void render_player(fl_context * context, fl_entity * self)
 	src.h = 50;
 
 	if (self->flags & FLURMP_LEFT_FLAG)
-		SDL_RenderCopyEx(context->renderer, self->texture, &src, &dest, 0, NULL, SDL_FLIP_HORIZONTAL);
+		SDL_RenderCopyEx(context->renderer, self->texture->impl.texture, &src, &dest, 0, NULL, SDL_FLIP_HORIZONTAL);
 
 	else
-		SDL_RenderCopyEx(context->renderer, self->texture, &src, &dest, 0, NULL, SDL_FLIP_NONE);
+		SDL_RenderCopyEx(context->renderer, self->texture->impl.texture, &src, &dest, 0, NULL, SDL_FLIP_NONE);
 
 	/* render_hitbox(context, self); */
 }

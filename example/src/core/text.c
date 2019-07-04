@@ -2,51 +2,7 @@
 
 #include <string.h>
 
-fl_font* fl_load_font(const char* path, int p, SDL_Color fc, SDL_Color bc, int background)
-{
-	if (path == NULL)
-		return NULL;
-
-	fl_font* font;
-	TTF_Font* impl;
-
-	impl = TTF_OpenFont(path, p);
-
-	if (impl == NULL)
-		return NULL;
-
-	font = (fl_font*)malloc(sizeof(fl_font));
-
-	if (font == NULL)
-	{
-		TTF_CloseFont(impl);
-		return NULL;
-	}
-
-	font->impl = impl;
-	font->atlas = NULL;
-	font->forecolor = fc;
-	font->backcolor = bc;
-	font->background = background;
-
-	return font;
-}
-
-void fl_destroy_font(fl_font* font)
-{
-	if (font == NULL)
-		return;
-
-	if (font->impl != NULL)
-		TTF_CloseFont(font->impl);
-
-	if (font->atlas != NULL)
-		fl_destroy_font_atlas(font->atlas);
-
-	free(font);
-}
-
-fl_glyph* fl_create_glyph(fl_context* context, fl_font* font, char c)
+fl_glyph* fl_create_glyph(fl_context* context, fl_resource* font, char c)
 {
 	fl_glyph* glyph;
 	SDL_Surface* surface;
@@ -58,10 +14,10 @@ fl_glyph* fl_create_glyph(fl_context* context, fl_font* font, char c)
 		return NULL;
 
 	/* convert the text to an SDL Surface */
-	if (font->background)
-		surface = TTF_RenderGlyph_Shaded(font->impl, (Uint16)c, font->forecolor, font->backcolor);
+	if (font->impl.font->background)
+		surface = TTF_RenderGlyph_Shaded(font->impl.font->impl, (Uint16)c, font->impl.font->forecolor.impl, font->impl.font->backcolor.impl);
 	else
-		surface = TTF_RenderGlyph_Blended(font->impl, (Uint16)c, font->forecolor);
+		surface = TTF_RenderGlyph_Blended(font->impl.font->impl, (Uint16)c, font->impl.font->forecolor.impl);
 
 	/* verify surface creation */
 	if (surface == NULL)
@@ -102,7 +58,7 @@ void fl_destroy_glyph(fl_glyph* glyph)
 	free(glyph);
 }
 
-fl_font_atlas* fl_create_font_atlas(fl_context* context, fl_font* font)
+fl_font_atlas* fl_create_font_atlas(fl_context* context, fl_resource* font)
 {
 	fl_font_atlas* atlas;
 
@@ -172,7 +128,7 @@ fl_glyph* fl_char_to_glyph(fl_font_atlas* atlas, char c)
 	return (i >= 32 && i <= 126) ? atlas->glyphs[i - 32] : atlas->glyphs[0];
 }
 
-fl_static_text* fl_create_static_text(fl_context* context, fl_font* font, const char* txt, int x, int y)
+fl_static_text* fl_create_static_text(fl_context* context, fl_resource* font, const char* txt, int x, int y)
 {
 	if (txt == NULL)
 		return NULL;
@@ -205,10 +161,10 @@ fl_static_text* fl_create_static_text(fl_context* context, fl_font* font, const 
 	strcpy(contents, txt);
 
 	/* convert the text to an SDL Surface */
-	if (font->background)
-		surface = TTF_RenderText_Shaded(font->impl, contents, font->forecolor, font->backcolor);
+	if (font->impl.font->background)
+		surface = TTF_RenderText_Shaded(font->impl.font->impl, contents, font->impl.font->forecolor.impl, font->impl.font->backcolor.impl);
 	else
-		surface = TTF_RenderText_Blended(font->impl, contents, font->forecolor);
+		surface = TTF_RenderText_Blended(font->impl.font->impl, contents, font->impl.font->forecolor.impl);
 
 	/* verify surface creation */
 	if (surface == NULL)

@@ -134,8 +134,8 @@ void fl_render_console(fl_context* context, fl_console* console)
 	SDL_SetRenderDrawColor(context->renderer, 250, 250, 250, 255);
 	SDL_RenderDrawRect(context->renderer, &r);
 
-	int w = context->fonts[FL_FONT_COUSINE]->atlas->glyphs[0]->surface->w;
-	int h = context->fonts[FL_FONT_COUSINE]->atlas->glyphs[0]->surface->h;
+	int w = context->fonts[FL_FONT_COUSINE]->impl.font->atlas->glyphs[0]->surface->w;
+	int h = context->fonts[FL_FONT_COUSINE]->impl.font->atlas->glyphs[0]->surface->h;
 
 	/* render buffer contents */
 	SDL_Rect dest;
@@ -160,7 +160,7 @@ void fl_render_console(fl_context* context, fl_console* console)
 			dest.x = console->x + c_x * w + 2;
 			dest.y = console->y + c_y * h + 2;
 
-			fl_glyph* g = fl_char_to_glyph(context->fonts[FL_FONT_COUSINE]->atlas, buffer[i]);
+			fl_glyph* g = fl_char_to_glyph(context->fonts[FL_FONT_COUSINE]->impl.font->atlas, buffer[i]);
 			SDL_RenderCopy(context->renderer, g->texture, &src, &dest);
 
 			if (c_x >= FL_CON_WIDTH - 1)

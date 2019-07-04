@@ -1,6 +1,6 @@
 #include "dialog.h"
 
-fl_dialog* fl_create_dialog(fl_font* font, int x, int y, int w, int h)
+fl_dialog* fl_create_dialog(fl_resource* font, int x, int y, int w, int h)
 {
 	fl_dialog* dialog = (fl_dialog*)malloc(sizeof(fl_dialog));
 

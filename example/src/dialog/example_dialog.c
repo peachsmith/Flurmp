@@ -18,7 +18,7 @@ static const char* statements[3] = {
 static int row_count = 2;
 static int column_count = 40;
 
-fl_dialog* fl_create_example_dialog(fl_font* font, int x, int y, int w, int h)
+fl_dialog* fl_create_example_dialog(fl_resource* font, int x, int y, int w, int h)
 {
 	int i;
 	fl_dialog* dialog = fl_create_dialog(font, x, y, w, h);
@@ -74,8 +74,8 @@ static void render(fl_context* context, fl_dialog* self)
 	SDL_SetRenderDrawColor(context->renderer, 250, 250, 250, 255);
 	SDL_RenderDrawRect(context->renderer, &r);
 
-	int w = context->fonts[FL_FONT_VERA]->atlas->glyphs[0]->surface->w;
-	int h = context->fonts[FL_FONT_VERA]->atlas->glyphs[0]->surface->h;
+	int w = context->fonts[FL_FONT_VERA]->impl.font->atlas->glyphs[0]->surface->w;
+	int h = context->fonts[FL_FONT_VERA]->impl.font->atlas->glyphs[0]->surface->h;
 
 	/* render buffer contents */
 	SDL_Rect dest;
@@ -100,7 +100,7 @@ static void render(fl_context* context, fl_dialog* self)
 			dest.x = self->x + c_x * w + 10;
 			dest.y = self->y + c_y * h + 10;
 
-			fl_glyph* g = fl_char_to_glyph(context->fonts[FL_FONT_VERA]->atlas, self->buffer[i]);
+			fl_glyph* g = fl_char_to_glyph(context->fonts[FL_FONT_VERA]->impl.font->atlas, self->buffer[i]);
 			SDL_RenderCopy(context->renderer, g->texture, &src, &dest);
 
 			if (c_x >= column_count - 1)
