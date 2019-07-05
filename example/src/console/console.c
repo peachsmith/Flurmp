@@ -134,8 +134,8 @@ void fl_render_console(fl_context* context, fl_console* console)
 	SDL_SetRenderDrawColor(context->renderer, 250, 250, 250, 255);
 	SDL_RenderDrawRect(context->renderer, &r);
 
-	int w = context->fonts[FL_FONT_COUSINE]->impl.font->atlas->glyphs[0]->image->surface->w;
-	int h = context->fonts[FL_FONT_COUSINE]->impl.font->atlas->glyphs[0]->image->surface->h;
+	int w = context->fonts[FLURMP_FONT_COUSINE]->impl.font->atlas->glyphs[0]->image->surface->w;
+	int h = context->fonts[FLURMP_FONT_COUSINE]->impl.font->atlas->glyphs[0]->image->surface->h;
 
 	/* render buffer contents */
 	SDL_Rect dest;
@@ -160,7 +160,7 @@ void fl_render_console(fl_context* context, fl_console* console)
 			dest.x = console->x + c_x * w + 2;
 			dest.y = console->y + c_y * h + 2;
 
-			fl_glyph* g = fl_char_to_glyph(context->fonts[FL_FONT_COUSINE]->impl.font->atlas, buffer[i]);
+			fl_glyph* g = fl_char_to_glyph(context->fonts[FLURMP_FONT_COUSINE]->impl.font->atlas, buffer[i]);
 			SDL_RenderCopy(context->renderer, g->image->texture, &src, &dest);
 
 			if (c_x >= FL_CON_WIDTH - 1)
@@ -274,64 +274,64 @@ static void clear_buffer(fl_console* console)
 	console->char_count = 0;
 }
 
-char fl_sc_to_char(int sc, int* flag, unsigned char mod)
+char fl_sc_to_char(int sc, unsigned char mod)
 {
 	switch (sc)
 	{
-	case FLURMP_SC_A: *flag = FLURMP_INPUT_A; if (mod & FLURMP_CONSOLE_MOD_SHIFT) return 'A'; else return 'a';
-	case FLURMP_SC_B: *flag = FLURMP_INPUT_B; if (mod & FLURMP_CONSOLE_MOD_SHIFT) return 'B'; else return 'b';
-	case FLURMP_SC_C: *flag = FLURMP_INPUT_C; if (mod & FLURMP_CONSOLE_MOD_SHIFT) return 'C'; else return 'c';
-	case FLURMP_SC_D: *flag = FLURMP_INPUT_D; if (mod & FLURMP_CONSOLE_MOD_SHIFT) return 'D'; else return 'd';
-	case FLURMP_SC_E: *flag = FLURMP_INPUT_E; if (mod & FLURMP_CONSOLE_MOD_SHIFT) return 'E'; else return 'e';
-	case FLURMP_SC_F: *flag = FLURMP_INPUT_F; if (mod & FLURMP_CONSOLE_MOD_SHIFT) return 'F'; else return 'f';
-	case FLURMP_SC_G: *flag = FLURMP_INPUT_G; if (mod & FLURMP_CONSOLE_MOD_SHIFT) return 'G'; else return 'g';
-	case FLURMP_SC_H: *flag = FLURMP_INPUT_H; if (mod & FLURMP_CONSOLE_MOD_SHIFT) return 'H'; else return 'h';
-	case FLURMP_SC_I: *flag = FLURMP_INPUT_I; if (mod & FLURMP_CONSOLE_MOD_SHIFT) return 'I'; else return 'i';
-	case FLURMP_SC_J: *flag = FLURMP_INPUT_J; if (mod & FLURMP_CONSOLE_MOD_SHIFT) return 'J'; else return 'j';
-	case FLURMP_SC_K: *flag = FLURMP_INPUT_K; if (mod & FLURMP_CONSOLE_MOD_SHIFT) return 'K'; else return 'k';
-	case FLURMP_SC_L: *flag = FLURMP_INPUT_L; if (mod & FLURMP_CONSOLE_MOD_SHIFT) return 'L'; else return 'l';
-	case FLURMP_SC_M: *flag = FLURMP_INPUT_M; if (mod & FLURMP_CONSOLE_MOD_SHIFT) return 'M'; else return 'm';
-	case FLURMP_SC_N: *flag = FLURMP_INPUT_N; if (mod & FLURMP_CONSOLE_MOD_SHIFT) return 'N'; else return 'n';
-	case FLURMP_SC_O: *flag = FLURMP_INPUT_O; if (mod & FLURMP_CONSOLE_MOD_SHIFT) return 'O'; else return 'o';
-	case FLURMP_SC_P: *flag = FLURMP_INPUT_P; if (mod & FLURMP_CONSOLE_MOD_SHIFT) return 'P'; else return 'p';
-	case FLURMP_SC_Q: *flag = FLURMP_INPUT_Q; if (mod & FLURMP_CONSOLE_MOD_SHIFT) return 'Q'; else return 'q';
-	case FLURMP_SC_R: *flag = FLURMP_INPUT_R; if (mod & FLURMP_CONSOLE_MOD_SHIFT) return 'R'; else return 'r';
-	case FLURMP_SC_S: *flag = FLURMP_INPUT_S; if (mod & FLURMP_CONSOLE_MOD_SHIFT) return 'S'; else return 's';
-	case FLURMP_SC_T: *flag = FLURMP_INPUT_T; if (mod & FLURMP_CONSOLE_MOD_SHIFT) return 'T'; else return 't';
-	case FLURMP_SC_U: *flag = FLURMP_INPUT_U; if (mod & FLURMP_CONSOLE_MOD_SHIFT) return 'U'; else return 'u';
-	case FLURMP_SC_V: *flag = FLURMP_INPUT_V; if (mod & FLURMP_CONSOLE_MOD_SHIFT) return 'V'; else return 'v';
-	case FLURMP_SC_W: *flag = FLURMP_INPUT_W; if (mod & FLURMP_CONSOLE_MOD_SHIFT) return 'W'; else return 'w';
-	case FLURMP_SC_X: *flag = FLURMP_INPUT_X; if (mod & FLURMP_CONSOLE_MOD_SHIFT) return 'X'; else return 'x';
-	case FLURMP_SC_Y: *flag = FLURMP_INPUT_Y; if (mod & FLURMP_CONSOLE_MOD_SHIFT) return 'Y'; else return 'y';
-	case FLURMP_SC_Z: *flag = FLURMP_INPUT_Z; if (mod & FLURMP_CONSOLE_MOD_SHIFT) return 'Z'; else return 'z';
-	case FLURMP_SC_0: *flag = FLURMP_INPUT_0; if (mod & FLURMP_CONSOLE_MOD_SHIFT) return ')'; else return '0';
-	case FLURMP_SC_1: *flag = FLURMP_INPUT_1; if (mod & FLURMP_CONSOLE_MOD_SHIFT) return '!'; else return '1';
-	case FLURMP_SC_2: *flag = FLURMP_INPUT_2; if (mod & FLURMP_CONSOLE_MOD_SHIFT) return '@'; else return '2';
-	case FLURMP_SC_3: *flag = FLURMP_INPUT_3; if (mod & FLURMP_CONSOLE_MOD_SHIFT) return '#'; else return '3';
-	case FLURMP_SC_4: *flag = FLURMP_INPUT_4; if (mod & FLURMP_CONSOLE_MOD_SHIFT) return '$'; else return '4';
-	case FLURMP_SC_5: *flag = FLURMP_INPUT_5; if (mod & FLURMP_CONSOLE_MOD_SHIFT) return '%'; else return '5';
-	case FLURMP_SC_6: *flag = FLURMP_INPUT_6; if (mod & FLURMP_CONSOLE_MOD_SHIFT) return '^'; else return '6';
-	case FLURMP_SC_7: *flag = FLURMP_INPUT_7; if (mod & FLURMP_CONSOLE_MOD_SHIFT) return '&'; else return '7';
-	case FLURMP_SC_8: *flag = FLURMP_INPUT_8; if (mod & FLURMP_CONSOLE_MOD_SHIFT) return '*'; else return '8';
-	case FLURMP_SC_9: *flag = FLURMP_INPUT_9; if (mod & FLURMP_CONSOLE_MOD_SHIFT) return '('; else return '9';
+	case FLURMP_SC_A: if (mod & FLURMP_CONSOLE_MOD_SHIFT) return 'A'; else return 'a';
+	case FLURMP_SC_B: if (mod & FLURMP_CONSOLE_MOD_SHIFT) return 'B'; else return 'b';
+	case FLURMP_SC_C: if (mod & FLURMP_CONSOLE_MOD_SHIFT) return 'C'; else return 'c';
+	case FLURMP_SC_D: if (mod & FLURMP_CONSOLE_MOD_SHIFT) return 'D'; else return 'd';
+	case FLURMP_SC_E: if (mod & FLURMP_CONSOLE_MOD_SHIFT) return 'E'; else return 'e';
+	case FLURMP_SC_F: if (mod & FLURMP_CONSOLE_MOD_SHIFT) return 'F'; else return 'f';
+	case FLURMP_SC_G: if (mod & FLURMP_CONSOLE_MOD_SHIFT) return 'G'; else return 'g';
+	case FLURMP_SC_H: if (mod & FLURMP_CONSOLE_MOD_SHIFT) return 'H'; else return 'h';
+	case FLURMP_SC_I: if (mod & FLURMP_CONSOLE_MOD_SHIFT) return 'I'; else return 'i';
+	case FLURMP_SC_J: if (mod & FLURMP_CONSOLE_MOD_SHIFT) return 'J'; else return 'j';
+	case FLURMP_SC_K: if (mod & FLURMP_CONSOLE_MOD_SHIFT) return 'K'; else return 'k';
+	case FLURMP_SC_L: if (mod & FLURMP_CONSOLE_MOD_SHIFT) return 'L'; else return 'l';
+	case FLURMP_SC_M: if (mod & FLURMP_CONSOLE_MOD_SHIFT) return 'M'; else return 'm';
+	case FLURMP_SC_N: if (mod & FLURMP_CONSOLE_MOD_SHIFT) return 'N'; else return 'n';
+	case FLURMP_SC_O: if (mod & FLURMP_CONSOLE_MOD_SHIFT) return 'O'; else return 'o';
+	case FLURMP_SC_P: if (mod & FLURMP_CONSOLE_MOD_SHIFT) return 'P'; else return 'p';
+	case FLURMP_SC_Q: if (mod & FLURMP_CONSOLE_MOD_SHIFT) return 'Q'; else return 'q';
+	case FLURMP_SC_R: if (mod & FLURMP_CONSOLE_MOD_SHIFT) return 'R'; else return 'r';
+	case FLURMP_SC_S: if (mod & FLURMP_CONSOLE_MOD_SHIFT) return 'S'; else return 's';
+	case FLURMP_SC_T: if (mod & FLURMP_CONSOLE_MOD_SHIFT) return 'T'; else return 't';
+	case FLURMP_SC_U: if (mod & FLURMP_CONSOLE_MOD_SHIFT) return 'U'; else return 'u';
+	case FLURMP_SC_V: if (mod & FLURMP_CONSOLE_MOD_SHIFT) return 'V'; else return 'v';
+	case FLURMP_SC_W: if (mod & FLURMP_CONSOLE_MOD_SHIFT) return 'W'; else return 'w';
+	case FLURMP_SC_X: if (mod & FLURMP_CONSOLE_MOD_SHIFT) return 'X'; else return 'x';
+	case FLURMP_SC_Y: if (mod & FLURMP_CONSOLE_MOD_SHIFT) return 'Y'; else return 'y';
+	case FLURMP_SC_Z: if (mod & FLURMP_CONSOLE_MOD_SHIFT) return 'Z'; else return 'z';
+	case FLURMP_SC_0: if (mod & FLURMP_CONSOLE_MOD_SHIFT) return ')'; else return '0';
+	case FLURMP_SC_1: if (mod & FLURMP_CONSOLE_MOD_SHIFT) return '!'; else return '1';
+	case FLURMP_SC_2: if (mod & FLURMP_CONSOLE_MOD_SHIFT) return '@'; else return '2';
+	case FLURMP_SC_3: if (mod & FLURMP_CONSOLE_MOD_SHIFT) return '#'; else return '3';
+	case FLURMP_SC_4: if (mod & FLURMP_CONSOLE_MOD_SHIFT) return '$'; else return '4';
+	case FLURMP_SC_5: if (mod & FLURMP_CONSOLE_MOD_SHIFT) return '%'; else return '5';
+	case FLURMP_SC_6: if (mod & FLURMP_CONSOLE_MOD_SHIFT) return '^'; else return '6';
+	case FLURMP_SC_7: if (mod & FLURMP_CONSOLE_MOD_SHIFT) return '&'; else return '7';
+	case FLURMP_SC_8: if (mod & FLURMP_CONSOLE_MOD_SHIFT) return '*'; else return '8';
+	case FLURMP_SC_9: if (mod & FLURMP_CONSOLE_MOD_SHIFT) return '('; else return '9';
 
-	case FLURMP_SC_COMMA:        *flag = FLURMP_INPUT_COMMA;        if (mod & FLURMP_CONSOLE_MOD_SHIFT) return '<'; else return ',';
-	case FLURMP_SC_PERIOD:       *flag = FLURMP_INPUT_PERIOD;       if (mod & FLURMP_CONSOLE_MOD_SHIFT) return '>'; else return '.';
-	case FLURMP_SC_LEFTBRACKET:  *flag = FLURMP_INPUT_LEFTBRACKET;  if (mod & FLURMP_CONSOLE_MOD_SHIFT) return '{'; else return '[';
-	case FLURMP_SC_RIGHTBRACKET: *flag = FLURMP_INPUT_RIGHTBRACKET; if (mod & FLURMP_CONSOLE_MOD_SHIFT) return '}'; else return ']';
-	case FLURMP_SC_SEMICOLON:    *flag = FLURMP_INPUT_SEMICOLON;    if (mod & FLURMP_CONSOLE_MOD_SHIFT) return ':'; else return ';';
-	case FLURMP_SC_APOSTRAPHE:   *flag = FLURMP_INPUT_APOSTRAPHE;   if (mod & FLURMP_CONSOLE_MOD_SHIFT) return '"'; else return '\'';
-	case FLURMP_SC_SLASH:        *flag = FLURMP_INPUT_SLASH;        if (mod & FLURMP_CONSOLE_MOD_SHIFT) return '?'; else return '/';
-	case FLURMP_SC_BACKSLASH:    *flag = FLURMP_INPUT_BACKSLASH;    if (mod & FLURMP_CONSOLE_MOD_SHIFT) return '|'; else return '\\';
-	case FLURMP_SC_MINUS:        *flag = FLURMP_INPUT_MINUS;        if (mod & FLURMP_CONSOLE_MOD_SHIFT) return '_'; else return '-';
-	case FLURMP_SC_EQUALS:       *flag = FLURMP_INPUT_EQUALS;       if (mod & FLURMP_CONSOLE_MOD_SHIFT) return '+'; else return '=';
-	case FLURMP_SC_BACKTICK:     *flag = FLURMP_INPUT_BACKTICK;     if (mod & FLURMP_CONSOLE_MOD_SHIFT) return '~'; else return '`';
+	case FLURMP_SC_COMMA:        if (mod & FLURMP_CONSOLE_MOD_SHIFT) return '<'; else return ',';
+	case FLURMP_SC_PERIOD:       if (mod & FLURMP_CONSOLE_MOD_SHIFT) return '>'; else return '.';
+	case FLURMP_SC_LEFTBRACKET:  if (mod & FLURMP_CONSOLE_MOD_SHIFT) return '{'; else return '[';
+	case FLURMP_SC_RIGHTBRACKET: if (mod & FLURMP_CONSOLE_MOD_SHIFT) return '}'; else return ']';
+	case FLURMP_SC_SEMICOLON:    if (mod & FLURMP_CONSOLE_MOD_SHIFT) return ':'; else return ';';
+	case FLURMP_SC_APOSTRAPHE:   if (mod & FLURMP_CONSOLE_MOD_SHIFT) return '"'; else return '\'';
+	case FLURMP_SC_SLASH:        if (mod & FLURMP_CONSOLE_MOD_SHIFT) return '?'; else return '/';
+	case FLURMP_SC_BACKSLASH:    if (mod & FLURMP_CONSOLE_MOD_SHIFT) return '|'; else return '\\';
+	case FLURMP_SC_MINUS:        if (mod & FLURMP_CONSOLE_MOD_SHIFT) return '_'; else return '-';
+	case FLURMP_SC_EQUALS:       if (mod & FLURMP_CONSOLE_MOD_SHIFT) return '+'; else return '=';
+	case FLURMP_SC_BACKTICK:     if (mod & FLURMP_CONSOLE_MOD_SHIFT) return '~'; else return '`';
 
-	case FLURMP_SC_SPACE:     *flag = FLURMP_INPUT_SPACE;     return ' ';
-	case FLURMP_SC_BACKSPACE: *flag = FLURMP_INPUT_BACKSPACE; return (char)0x08;
-	case FLURMP_SC_RETURN:    *flag = FLURMP_INPUT_RETURN;    return (char)0x0A;
-	case FLURMP_SC_RETURN2:   *flag = FLURMP_INPUT_RETURN2;   return (char)0x0A;
+	case FLURMP_SC_SPACE:     return ' ';
+	case FLURMP_SC_BACKSPACE: return (char)0x08;
+	case FLURMP_SC_RETURN:    return (char)0x0A;
+	case FLURMP_SC_RETURN2:   return (char)0x0A;
 
-	default: *flag = FLURMP_INPUT_UNKNOWN; return '\0';
+	default: return '\0';
 	}
 }

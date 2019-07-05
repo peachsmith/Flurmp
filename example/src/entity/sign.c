@@ -1,4 +1,5 @@
 #include "sign.h"
+#include "entity.h"
 #include "resource.h"
 
 #include <stdio.h>
@@ -48,7 +49,6 @@ static void collide(fl_context* context, fl_entity* self, fl_entity* other, int 
 			context->dialogs[0]->open = 1;
 			context->active_dialog = context->dialogs[0];
 		}
-		//printf("this is where we would display some information.\n");
 	}
 }
 

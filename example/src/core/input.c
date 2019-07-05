@@ -81,17 +81,17 @@ int fl_consume_input(fl_context* context, int type, int code)
 
 		if (context->input.keystates[code])
 		{
-			if (!context->input.inputs[flag])
+			if (!context->input.flags[flag])
 			{
-				context->input.inputs[flag] = 1;
+				context->input.flags[flag] = 1;
 
 				return 1;
 			}
 
 			return 0;
 		}
-		else if (context->input.inputs[flag])
-			context->input.inputs[flag] = 0;
+		else if (context->input.flags[flag])
+			context->input.flags[flag] = 0;
 
 		return 0;
 	}

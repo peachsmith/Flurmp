@@ -3,10 +3,17 @@
 
 #include "flurmp_impl.h"
 
+/* total number of input flags */
+#define FLURMP_INPUT_FLAG_COUNT 55
+
+/* input types */
 #define FLURMP_INPUT_TYPE_KEYBOARD 1
 #define FLURMP_INPUT_TYPE_MOUSE 2
 
-/* 55 scancodes are currently supported */
+#define FLURMP_SC_LIMIT SDL_NUM_SCANCODES
+
+/* scancodes */
+/* there are 56 scancodes */
 #define FLURMP_SC_A SDL_SCANCODE_A /* 1st scancode */
 #define FLURMP_SC_B SDL_SCANCODE_B
 #define FLURMP_SC_C SDL_SCANCODE_C
@@ -64,10 +71,7 @@
 #define FLURMP_SC_EQUALS SDL_SCANCODE_EQUALS
 #define FLURMP_SC_BACKTICK SDL_SCANCODE_GRAVE /* 56th */
 
-#define FLURMP_SC_LIMIT SDL_NUM_SCANCODES
-
-/* Input flags are used to keep track of which inputs are actuated.
-   There are currently 54 input flags implemented. */
+/* input flags */
 #define FLURMP_INPUT_UNKNOWN 0
 #define FLURMP_INPUT_A 1
 #define FLURMP_INPUT_B 2

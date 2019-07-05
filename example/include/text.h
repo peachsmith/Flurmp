@@ -3,12 +3,12 @@
 
 #include "flurmp_impl.h"
 
-/* Total number of fonts available to the application */
-#define FL_FONT_COUNT 2
+/* total number of fonts available to the application */
+#define FLURMP_FONT_COUNT 2
 
-/* Indices for font registry */
-#define FL_FONT_VERA 0
-#define FL_FONT_COUSINE 1
+/* undices for font registry */
+#define FLURMP_FONT_VERA 0
+#define FLURMP_FONT_COUSINE 1
 
 /**
  * Creates a new glyph.
@@ -18,7 +18,7 @@
  *   fl_resource - a font resource
  *   char - a character to be represented by the resulting glyph
  */
-fl_glyph* fl_create_glyph(fl_context* context, fl_resource* font, char c);
+fl_glyph* fl_create_glyph(fl_context* context, fl_resource* res, char c);
 
 /**
  * Frees the resources allocated for a glyph.
@@ -35,7 +35,7 @@ void fl_destroy_glyph(fl_glyph* glyph);
  *   fl_context - a Flurmp context
  *   fl_resource - a font resource
  */
-fl_font_atlas* fl_create_font_atlas(fl_context* context, fl_resource* font);
+fl_font_atlas* fl_create_font_atlas(fl_context* context, fl_resource* res);
 
 /**
  * Retrieves a glyph from a font atlas that represents
@@ -69,7 +69,7 @@ void fl_destroy_font_atlas(fl_font_atlas* atlas);
  * Returns:
  *   fl_static_text - a new static text structure
  */
-fl_static_text* fl_create_static_text(fl_context* context, fl_resource* font, const char* txt, int x, int y);
+fl_static_text* fl_create_static_text(fl_context* context, fl_resource* res, const char* txt, int x, int y);
 
 /**
  * Frees resources allocated for static text.

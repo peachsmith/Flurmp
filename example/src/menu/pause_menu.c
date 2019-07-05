@@ -14,10 +14,13 @@
 
 #include <stdio.h>
 
-static const int item_count = 4;
+/* amount of menu items */
+#define ITEM_COUNT 4
 
+/* determines the screen coordindates for rendering the cursor */
 static void get_cursor_coords(fl_menu* context, int* x, int* y);
 
+/* input handling */
 static void input_handler(fl_context* context, fl_menu* menu);
 
 /* menu actions */
@@ -43,6 +46,7 @@ fl_menu* fl_create_pause_menu(fl_context* context)
 	fl_menu** submenus;
 	fl_menu* submenu;
 
+	/* menu items */
 	fl_menu_item* info_item;
 	fl_menu_item* submenu_item;
 	fl_menu_item* console_item;
@@ -53,17 +57,20 @@ fl_menu* fl_create_pause_menu(fl_context* context)
 	if (p_menu == NULL)
 		return NULL;
 
-	/* allocate memory for 3 items */
-	items = (fl_menu_item * *)malloc(sizeof(fl_menu_item*) * item_count);
+	/* Allocate memory for the menu items. */
+	items = (fl_menu_item**)malloc(sizeof(fl_menu_item*) * ITEM_COUNT);
 
+	/* Verify menu item memory allocation. */
 	if (items == NULL)
 	{
 		fl_destroy_menu(p_menu);
 		return NULL;
 	}
 
+	/* Create the Info item. */
 	info_item = fl_create_menu_item(context, 80, 60, "Info", info_action);
 
+	/* Verify Info item creation. */
 	if (info_item == NULL)
 	{
 		free(items);
@@ -71,8 +78,10 @@ fl_menu* fl_create_pause_menu(fl_context* context)
 		return NULL;
 	}
 
+	/* Create the Submenu item. */
 	submenu_item = fl_create_menu_item(context, 80, 90, "Submenu", submenu_action);
 
+	/* Verify the Submenu item creation. */
 	if (submenu_item == NULL)
 	{
 		fl_destroy_menu_item(info_item);
@@ -81,8 +90,10 @@ fl_menu* fl_create_pause_menu(fl_context* context)
 		return NULL;
 	}
 
+	/* Create the Console item. */
 	console_item = fl_create_menu_item(context, 80, 120, "Console", console_action);
 
+	/* Verify the Console item creation. */
 	if (console_item == NULL)
 	{
 
@@ -93,8 +104,10 @@ fl_menu* fl_create_pause_menu(fl_context* context)
 		return NULL;
 	}
 
+	/* Create the Quit item. */
 	quit_item = fl_create_menu_item(context, 80, 150, "Quit", quit_action);
-
+	
+	/* Verify the Quit item creation. */
 	if (quit_item == NULL)
 	{
 		fl_destroy_menu_item(info_item);
@@ -105,25 +118,29 @@ fl_menu* fl_create_pause_menu(fl_context* context)
 		return NULL;
 	}
 
+	/* Populate the menu item array. */
 	items[0] = info_item;
 	items[1] = submenu_item;
 	items[2] = console_item;
 	items[3] = quit_item;
 
 	p_menu->items = items;
-	p_menu->item_count = item_count;
+	p_menu->item_count = ITEM_COUNT;
 
-	/* allocate memory for 1 submenu for now */
+	/* Allocate memory for a submenu array. */
 	submenus = (fl_menu**)malloc(sizeof(fl_menu*));
 
+	/* Verify submenu array allocation. */
 	if (submenus == NULL)
 	{
 		fl_destroy_menu(p_menu);
 		return NULL;
 	}
 
+	/* Create the submenu. */
 	submenu = fl_create_pause_submenu(context);
 
+	/* Verify submenu creation. */
 	if (submenu == NULL)
 	{
 		free(submenus);
@@ -131,10 +148,13 @@ fl_menu* fl_create_pause_menu(fl_context* context)
 		return NULL;
 	}
 
+	/* Set the submenu's parent menu. */
 	submenu->parent = p_menu;
 
+	/* Populate the submenu array. */
 	submenus[0] = submenu;
 
+	/* Populate the remaining menu fields. */
 	p_menu->submenus = submenus;
 	p_menu->submenu_count = 1;
 	p_menu->input_handler = input_handler;
@@ -244,18 +264,18 @@ static void cursor_up(fl_context* context, fl_menu* menu)
 
 static void cursor_down(fl_context* context, fl_menu* menu)
 {
-	if (menu->pos < item_count - 1)
+	if (menu->pos < ITEM_COUNT - 1)
 		menu->pos++;
 }
 
 static void cursor_left(fl_context* context, fl_menu* menu)
 {
-	printf("Here is where we would move the cursor to the left if it was implemented.\n");
+	
 }
 
 static void cursor_right(fl_context* context, fl_menu* menu)
 {
-	printf("Here is where we would move the cursor to the right if it was implemented.\n");
+	
 }
 
 

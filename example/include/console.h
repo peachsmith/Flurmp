@@ -35,6 +35,6 @@ void submit_buffer(fl_context* context, fl_console* console);
  *   flag - a reference to an integer containing response flags
  *   mod  - a byte containing flags indicating key combinations
  */
-char fl_sc_to_char(int sc, int* flag, unsigned char mod);
+char fl_sc_to_char(int sc, unsigned char mod);
 
 #endif

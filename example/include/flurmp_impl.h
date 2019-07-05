@@ -8,17 +8,7 @@
 
 #define FLURMP_QUIT SDL_QUIT
 
-/* entity state flags */
-#define FLURMP_JUMP_FLAG     0x01
-#define FLURMP_LEFT_FLAG     0x02
-#define FLURMP_INTERACT_FLAG 0x04
-#define FLURMP_FLAG_4        0x08
-#define FLURMP_FLAG_5        0x10
-#define FLURMP_FLAG_6        0x20
-#define FLURMP_FLAG_7        0x40
-#define FLURMP_FLAG_8        0x80
-
-/* default window dimensions */
+/* window dimensions */
 #define FLURMP_WINDOW_WIDTH 640
 #define FLURMP_WINDOW_HEIGHT 480
 
@@ -31,13 +21,6 @@
 #define FLURMP_RIGHT_BOUNDARY 430
 #define FLURMP_UPPER_BOUNDARY 230
 #define FLURMP_LOWER_BOUNDARY 320
-
-/* entity types */
-/* TODO: create a common entity header file */
-#define FLURMP_ENTITY_TYPE_COUNT 3
-#define FLURMP_ENTITY_PLAYER 0
-#define FLURMP_ENTITY_SIGN 1
-#define FLURMP_ENTITY_BLOCK_200_50 2
 
 struct fl_color {
 	SDL_Color impl;
@@ -75,50 +58,24 @@ struct fl_resource {
 };
 
 struct fl_entity_type {
-
-	/* boundaries */
 	int w;
 	int h;
-
-	/* sprite data */
 	fl_resource* texture;
-
-	/* entity operations */
 	void(*collide) (fl_context*, fl_entity*, fl_entity*, int, int);
 	void(*update) (fl_context*, fl_entity*, int);
 	void(*render) (fl_context*, fl_entity*);
 };
 
 struct fl_entity {
-
 	int type;
-
-	/* flags */
 	unsigned char flags;
-
-	/* position */
 	int x;
 	int y;
-
-	/* velocity */
 	int x_v;
 	int y_v;
-
-	/* animation */
 	int frame;
-
-	/* list pointers */
 	fl_entity* next;
 	fl_entity* tail;
-};
-
-struct fl_input_handler {
-
-	/* input states */
-	const Uint8* keystates;
-
-	/* input flags */
-	int inputs[55];
 };
 
 struct fl_console {
@@ -182,75 +139,35 @@ struct fl_dialog {
 };
 
 struct fl_context {
-
 	SDL_Window* window;
-
 	SDL_Renderer* renderer;
-
-	SDL_Event event;
-
-	/* entity type registry */
+	struct {
+		const Uint8* keystates;
+		int* flags;
+	} input;
 	fl_entity_type* entity_types;
-
-	/* the number of entity types in the entity type registry */
-	int entity_type_count;
-
-	/* a linked list of all the entities in the current context */
-	fl_entity* entities;
-
-	/* the primary control object */
+	fl_resource** fonts;
+	fl_menu* pause_menu;
+	fl_dialog** dialogs;
+	fl_console* console;
 	fl_entity* pco;
-
-	fl_input_handler input;
-
-	/* camera position */
+	fl_resource** resources;
+	fl_entity* entities;
+	fl_dialog* active_dialog;
+	SDL_Event event;
 	int cam_x;
 	int cam_y;
-
-	/* state flag */
 	unsigned int state;
-
-	/* the number of entities */
 	int count;
-
-	/* frames per second */
 	int fps;
-
-	/* tick count */
 	unsigned long ticks;
-
-	/* completion flag */
 	int done;
-
-	/* error flag */
 	int error;
-
-	/* pause flag */
 	int paused;
-
-	/* dev console flag */
 	int console_open;
-
-	/* dev console */
-	fl_console* console;
-
-	/* a pause menu */
-	fl_menu* pause_menu;
-
-	/* font registry */
-	fl_resource** fonts;
-
-	/* the number of fonts in the font registry */
 	int font_count;
-
-	/* dialog registry */
-	fl_dialog** dialogs;
-
-	/* the number of dialogs in the dialog registry */
+	int entity_type_count;
 	int dialog_count;
-
-	/* the current active dialog */
-	fl_dialog* active_dialog;
 };
 
 /**

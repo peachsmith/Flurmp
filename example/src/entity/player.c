@@ -1,5 +1,5 @@
 #include "player.h"
-#include "flurmp_impl.h"
+#include "entity.h"
 #include "resource.h"
 #include "input.h"
 
@@ -189,8 +189,8 @@ static void update(fl_context* context, fl_entity* self, int axis)
 
 static void render(fl_context* context, fl_entity* self)
 {
-	int w = context->entity_types[self->type].w;
-	int h = context->entity_types[self->type].h;
+	int self_w = context->entity_types[self->type].w;
+	int self_h = context->entity_types[self->type].h;
 	SDL_Texture* tex = context->entity_types[self->type].texture->impl.image->texture;
 
 	SDL_Rect src;
@@ -215,8 +215,8 @@ static void render(fl_context* context, fl_entity* self)
 
 	dest.x = self->x - 10 - context->cam_x;
 	dest.y = self->y - 8 - context->cam_y;
-	dest.w = w + 20;
-	dest.h = h + 10;
+	dest.w = self_w + 20;
+	dest.h = self_h + 10;
 
 	if (self->flags & FLURMP_LEFT_FLAG)
 		SDL_RenderCopyEx(context->renderer, tex, &src, &dest, 0, NULL, SDL_FLIP_HORIZONTAL);

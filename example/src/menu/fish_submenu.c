@@ -63,7 +63,7 @@ fl_menu* fl_create_fish_submenu(fl_context* context)
 		return NULL;
 	}
 
-	items = (fl_menu_item * *)malloc(sizeof(fl_menu_item*) * 2);
+	items = (fl_menu_item**)malloc(sizeof(fl_menu_item*) * 2);
 
 	if (items == NULL)
 	{

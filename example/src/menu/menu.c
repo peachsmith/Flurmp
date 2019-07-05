@@ -16,7 +16,7 @@ fl_menu_item* fl_create_menu_item(fl_context* context,
 	item->y = y;
 	item->action = action;
 
-	fl_static_text* static_text = fl_create_static_text(context, context->fonts[FL_FONT_VERA], text, x, y);
+	fl_static_text* static_text = fl_create_static_text(context, context->fonts[FLURMP_FONT_VERA], text, x, y);
 
 	if (static_text == NULL)
 	{
