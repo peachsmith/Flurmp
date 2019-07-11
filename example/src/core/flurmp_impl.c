@@ -504,17 +504,17 @@ void fl_render(fl_context* context)
 		en = en->next;
 	}
 
+	/* Render the active menu. */
 	if (context->active_menu != NULL)
 		context->active_menu->render(context, context->active_menu);
 
+	/* Render the dev console. */
 	if (context->console != NULL)
 		context->console->render(context, context->console);
 
-	/* Render the dialog if it's being used. */
+	/* Render the dialog. */
 	if (context->active_dialog != NULL)
-	{
 		context->active_dialog->render(context, context->active_dialog);
-	}
 
 	/* Put everything on the screen. */
 	SDL_RenderPresent(context->renderer);
