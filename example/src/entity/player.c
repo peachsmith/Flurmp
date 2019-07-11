@@ -82,17 +82,6 @@ static void horizontal_movement(fl_context*, fl_entity*);
 static void vertical_movement(fl_context*, fl_entity*);
 
 /**
- * Handles entity interaction upon user input.
- * Currently, the only interaction that is supported is the interaction
- * with the "interactable" entity by pressing the Z key.
- *
- * Params:
- *   fl_context - a Flurmp context
- *   fl_entity - the player entity
- */
-static void interact(fl_context*, fl_entity*);
-
-/**
  * This function determines which section of a sprite sheet should be used
  * when rendering the player entity at any given time.
  *
@@ -119,19 +108,20 @@ static void render_hitbox(fl_context* context, fl_entity* self);
 
 fl_entity* fl_create_player(int x, int y)
 {
-	fl_entity* player = malloc(sizeof(fl_entity));
+	fl_entity* player = fl_alloc(fl_entity, 1);
 
 	if (player == NULL) return player;
 
 	player->next = NULL;
 	player->tail = NULL;
 	player->type = FLURMP_ENTITY_PLAYER;
-	player->flags = 0;
+	player->flags = FLURMP_ALIVE_FLAG;
 	player->x_v = 0;
 	player->y_v = 0;
 	player->x = x;
 	player->y = y;
 	player->frame = 0;
+	player->life = 10;
 
 	return player;
 }
@@ -145,7 +135,7 @@ void fl_register_player_type(fl_context* context, fl_entity_type* et)
 	et->update = update;
 	et->render = render;
 
-	et->texture = fl_load_bmp(context, "resources/images/person.bmp");
+	et->texture = NULL;
 }
 
 
@@ -178,9 +168,6 @@ static void update(fl_context* context, fl_entity* self, int axis)
 		/* vertical movement */
 		vertical_movement(context, self);
 	}
-
-	/* entity interaction */
-	interact(context, self);
 
 	/* animation */
 	if (axis == FLURMP_AXIS_X)
@@ -285,25 +272,6 @@ static void horizontal_movement(fl_context* context, fl_entity* self)
 	int self_w = context->entity_types[self->type].w;
 	int self_h = context->entity_types[self->type].h;
 
-	/* walking (input handling) */
-	if (fl_peek_input(context, FLURMP_INPUT_TYPE_KEYBOARD, FLURMP_SC_A))
-	{
-		if (!(self->flags & FLURMP_LEFT_FLAG))
-			self->flags |= FLURMP_LEFT_FLAG;
-
-		if (self->x_v > -2)
-			self->x_v -= 2;
-	}
-
-	if (fl_peek_input(context, FLURMP_INPUT_TYPE_KEYBOARD, FLURMP_SC_D))
-	{
-		if (self->flags & FLURMP_LEFT_FLAG)
-			self->flags &= ~(FLURMP_LEFT_FLAG);
-
-		if (self->x_v < 2)
-			self->x_v += 2;
-	}
-
 	/* inertia */
 	/* if the player's x velocity is not 0, then the
 	   camera x axis adjustment doesn't occur. */
@@ -333,16 +301,6 @@ static void vertical_movement(fl_context* context, fl_entity* self)
 	int self_w = context->entity_types[self->type].w;
 	int self_h = context->entity_types[self->type].h;
 
-	/* jumping (input handling) */
-	if (fl_consume_input(context, FLURMP_INPUT_TYPE_KEYBOARD, FLURMP_SC_SPACE))
-	{
-		if (!(self->flags & FLURMP_JUMP_FLAG))
-		{
-			self->y_v -= 12;
-			self->flags |= FLURMP_JUMP_FLAG;
-		}
-	}
-
 	/* gravity (y axis) */
 	if (self->y_v < 4) self->y_v += 1;
 
@@ -356,20 +314,6 @@ static void vertical_movement(fl_context* context, fl_entity* self)
 	if (self->y_v > 0 && self->y + self_h - context->cam_y >= FLURMP_LOWER_BOUNDARY)
 	{
 		context->cam_y += self->y_v;
-	}
-}
-
-static void interact(fl_context* context, fl_entity* self)
-{
-	if (self->flags & FLURMP_INTERACT_FLAG)
-		self->flags &= ~(FLURMP_INTERACT_FLAG);
-
-	if (fl_consume_input(context, FLURMP_INPUT_TYPE_KEYBOARD, FLURMP_SC_J))
-	{
-		if (!(self->flags & FLURMP_INTERACT_FLAG))
-		{
-			self->flags |= FLURMP_INTERACT_FLAG;
-		}
 	}
 }
 

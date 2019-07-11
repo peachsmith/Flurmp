@@ -1,5 +1,6 @@
 #include "menu.h"
 #include "text.h"
+#include "input.h"
 
 fl_menu_item* fl_create_menu_item(fl_context* context,
 	int x,
@@ -7,7 +8,10 @@ fl_menu_item* fl_create_menu_item(fl_context* context,
 	const char* text,
 	void(*action) (fl_context*, fl_menu*))
 {
-	fl_menu_item* item = (fl_menu_item*)malloc(sizeof(fl_menu_item));
+	fl_menu_item* item;
+	fl_image* image;
+
+	item = fl_alloc(fl_menu_item, 1);
 
 	if (item == NULL)
 		return NULL;
@@ -16,15 +20,17 @@ fl_menu_item* fl_create_menu_item(fl_context* context,
 	item->y = y;
 	item->action = action;
 
-	fl_static_text* static_text = fl_create_static_text(context, context->fonts[FLURMP_FONT_VERA], text, x, y);
+	image = fl_create_static_text(context, context->fonts[FLURMP_FONT_VERA], text);
 
-	if (static_text == NULL)
+	if (text == NULL)
 	{
-		free(item);
+		fl_free(item);
 		return NULL;
 	}
 
-	item->text = static_text;
+	item->image = image;
+	item->x = x;
+	item->y = y;
 
 	return item;
 }
@@ -34,22 +40,21 @@ void fl_destroy_menu_item(fl_menu_item* item)
 	if (item == NULL)
 		return;
 
-	if (item->text != NULL)
-		fl_destroy_static_text(item->text);
+	if (item->image != NULL)
+		fl_destroy_static_text(item->image);
 
-	free(item);
+	fl_free(item);
 }
 
 fl_menu* fl_create_menu(int x, int y, int w, int h)
 {
-	fl_menu* menu = (fl_menu*)malloc(sizeof(fl_menu));
+	fl_menu* menu = fl_alloc(fl_menu, 1);
 
 	if (menu == NULL)
 		return NULL;
 
 	menu->child = NULL;
 	menu->parent = NULL;
-	menu->open = 0;
 	menu->x = x;
 	menu->y = y;
 	menu->w = w;
@@ -58,7 +63,6 @@ fl_menu* fl_create_menu(int x, int y, int w, int h)
 	menu->item_count = 0;
 	menu->submenu_count = 0;
 	menu->items = NULL;
-	menu->submenus = NULL;
 	menu->input_handler = NULL;
 	menu->get_cursor_coords = NULL;
 
@@ -72,7 +76,7 @@ void fl_destroy_menu(fl_menu* menu)
 
 	int i;
 
-	/* destroy menu items */
+	/* Destroy menu items. */
 	if (menu->items != NULL)
 	{
 		for (i = 0; i < menu->item_count; i++)
@@ -80,65 +84,81 @@ void fl_destroy_menu(fl_menu* menu)
 			fl_destroy_menu_item(menu->items[i]);
 		}
 
-		free(menu->items);
+		fl_free(menu->items);
 	}
 
-	/* destroy submenus */
-	if (menu->submenus != NULL)
-	{
-		for (i = 0; i < menu->submenu_count; i++)
-		{
-			fl_destroy_menu(menu->submenus[i]);
-		}
+	/* Destroy the input handler. */
+	if (menu->input_handler != NULL)
+		fl_destroy_input_handler(menu->input_handler);
 
-		free(menu->submenus);
-	}
+	/* Destroy the child menus. */
+	if (menu->child != NULL)
+		fl_destroy_menu(menu->child);
 
-	free(menu);
+	/* Destroy the menu. */
+	fl_free(menu);
 }
 
-void fl_render_menu(fl_context* context, fl_menu* menu)
+fl_menu* fl_get_active_menu(fl_context* context)
 {
-	if (!menu->open)
+	if (context == NULL || context->active_menu == NULL)
+		return NULL;
+
+	fl_menu* menu = context->active_menu;
+
+	/* Traverse the menu list until we find one with no child. */
+	while (menu->child != NULL)
+		menu = menu->child;
+
+	return menu;
+}
+
+void fl_push_menu(fl_context* context, fl_menu* menu)
+{
+	if (context == NULL || menu == NULL)
 		return;
 
-	int i;
-	SDL_Rect r;
-
-	r.x = menu->x;
-	r.y = menu->y;
-	r.w = menu->w;
-	r.h = menu->h;
-
-	SDL_SetRenderDrawColor(context->renderer, 0, 0, 0, 255);
-	SDL_RenderFillRect(context->renderer, &r);
-
-	SDL_SetRenderDrawColor(context->renderer, 250, 250, 250, 255);
-	SDL_RenderDrawRect(context->renderer, &r);
-
-	if (menu->items != NULL)
+	if (context->active_menu == NULL)
 	{
-		for (i = 0; i < menu->item_count; i++)
-		{
-			r.x = menu->items[i]->x;
-			r.y = menu->items[i]->y;
-			r.w = menu->items[i]->text->image->surface->w;
-			r.h = menu->items[i]->text->image->surface->h;
-			SDL_RenderCopy(context->renderer, menu->items[i]->text->image->texture, NULL, &r);
-		}
+		context->active_menu = menu;
+	}
+	else
+	{
+		fl_menu* active = context->active_menu;
+
+		/* Traverse the menu list until we find one with no child. */
+		while (active->child != NULL)
+			active = active->child;
+
+		/* Link the new menu to the current active menu. */
+		active->child = menu;
+		menu->parent = active;
+	}
+}
+
+fl_menu* fl_pop_menu(fl_context* context)
+{
+	if (context == NULL || context->active_menu == NULL)
+		return NULL;
+
+	fl_menu* menu = context->active_menu;
+
+	/* Traverse the menu list until we find one with no child. */
+	while (menu->child != NULL)
+		menu = menu->child;
+
+	/* If the active menu has no parent, clear the active menu pointer. */
+	if (menu->parent == NULL)
+	{
+		context->active_menu = NULL;
+		return menu;
 	}
 
-	if (menu->child == NULL)
-	{
-		menu->get_cursor_coords(menu, &r.x, &r.y);
-		r.w = 10;
-		r.h = 10;
+	/* Clear the parent and child pointers to prevent the
+	   destruction of other menus when this menu is
+	   destroyed elsewhere. */
+	menu->parent->child = NULL;
+	menu->parent = NULL;
 
-		SDL_RenderFillRect(context->renderer, &r);
-	}
-
-	if (menu->child != NULL)
-	{
-		fl_render_menu(context, menu->child);
-	}
+	return menu;
 }

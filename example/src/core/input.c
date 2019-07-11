@@ -111,3 +111,83 @@ int fl_peek_input(fl_context* context, int type, int code)
 
 	return 0;
 }
+
+fl_input_handler* fl_create_input_handler(void(*handler) (fl_context*, fl_input_handler*))
+{
+	fl_input_handler* input;
+
+	input = fl_alloc(fl_input_handler, 1);
+
+	if (input == NULL)
+		return NULL;
+
+	input->handler = handler;
+	input->parent = NULL;
+	input->child = NULL;
+
+	return input;
+}
+
+void fl_destroy_input_handler(fl_input_handler* input)
+{
+	if (input == NULL)
+		return;
+
+	/* Destroy the child input handlers. */
+	if (input->child != NULL)
+		fl_destroy_input_handler(input->child);
+
+	fl_free(input);
+}
+
+void fl_push_input_handler(fl_context* context, fl_input_handler* input)
+{
+	if (context == NULL || input == NULL)
+		return;
+
+	if (context->input_handler == NULL)
+	{
+		context->input_handler = input;
+	}
+	else
+	{
+		fl_input_handler* ih = context->input_handler;
+
+		/* Traverse the input handler list until we find
+		   an input handler with no child. */
+		while (ih->child != NULL)
+			ih = ih->child;
+
+		/* Link the new input handler to the current,
+		   active input handler. */
+		ih->child = input;
+		input->parent = ih;
+	}
+}
+
+void fl_pop_input_handler(fl_context* context)
+{
+	if (context == NULL || context->input_handler == NULL)
+		return;
+
+	fl_input_handler* ih = context->input_handler;
+
+	/* Traverse the input handler list until we find
+	   an input handler with no child. */
+	while (ih->child != NULL)
+		ih = ih->child;
+
+	/* If the current input handler has no parent,
+	   clear the input handler pointer. */
+	if (ih->parent == NULL)
+	{
+		context->input_handler = NULL;
+		return;
+	}
+		
+	/* Clear the parent and child pointers to prevent the
+	   destruction of other input handlers when this
+	   input handler is destroyed elsewhere. */
+	ih->parent->child = NULL;
+	ih->parent = NULL;
+}

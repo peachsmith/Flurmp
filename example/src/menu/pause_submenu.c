@@ -13,11 +13,11 @@
 
 #include <stdio.h>
 
-static const int item_count = 3;
+#define ITEM_COUNT 3
 
 static void get_cursor_coords(fl_menu* context, int* x, int* y);
 
-static void input_handler(fl_context* context, fl_menu* menu);
+static void input_handler(fl_context* context, fl_input_handler* self);
 
 /* menu actions */
 static void bagel_action(fl_context* context, fl_menu* menu);
@@ -42,9 +42,6 @@ fl_menu* fl_create_pause_submenu(fl_context* context)
 	fl_menu_item* bagel_item;
 	fl_menu_item* toast_item;
 	fl_menu_item* fish_item;
-
-	fl_menu** submenus;
-	fl_menu* submenu;
 
 	menu = fl_create_menu(200, 100, 100, 120);
 
@@ -82,7 +79,7 @@ fl_menu* fl_create_pause_submenu(fl_context* context)
 		return NULL;
 	}
 
-	items = (fl_menu_item**)malloc(sizeof(fl_menu_item*) * item_count);
+	items = fl_alloc(fl_menu_item*, ITEM_COUNT);
 
 	if (items == NULL)
 	{
@@ -98,33 +95,10 @@ fl_menu* fl_create_pause_submenu(fl_context* context)
 	items[1] = toast_item;
 	items[2] = fish_item;
 
-	/* allocate memory for 1 submenu for now */
-	submenus = (fl_menu**)malloc(sizeof(fl_menu*));
-
-	if (submenus == NULL)
-	{
-		fl_destroy_menu(menu);
-		return NULL;
-	}
-
-	submenu = fl_create_fish_submenu(context);
-
-	if (submenu == NULL)
-	{
-		free(submenus);
-		fl_destroy_menu(menu);
-		return NULL;
-	}
-
-	submenu->parent = menu;
-
-	submenus[0] = submenu;
-
-	menu->submenus = submenus;
-	menu->submenu_count = 1;
 	menu->items = items;
-	menu->item_count = item_count;
-	menu->input_handler = input_handler;
+	menu->item_count = ITEM_COUNT;
+
+	menu->input_handler = fl_create_input_handler(input_handler);
 	menu->get_cursor_coords = get_cursor_coords;
 
 	return menu;
@@ -142,13 +116,15 @@ static void get_cursor_coords(fl_menu* menu, int* x, int* y)
 	*y = menu->pos * 30 + menu->y + 10;
 }
 
-static void input_handler(fl_context* context, fl_menu* menu)
+static void input_handler(fl_context* context, fl_input_handler* self)
 {
-	if (menu->child != NULL)
+	if (self->child != NULL)
 	{
-		menu->child->input_handler(context, menu->child);
+		self->child->handler(context, self->child);
 		return;
 	}
+
+	fl_menu* menu = fl_get_active_menu(context);
 
 	if (fl_consume_input(context, FLURMP_INPUT_TYPE_KEYBOARD, FLURMP_SC_W))
 	{
@@ -182,9 +158,13 @@ static void input_handler(fl_context* context, fl_menu* menu)
 
 	if (fl_consume_input(context, FLURMP_INPUT_TYPE_KEYBOARD, FLURMP_SC_ESCAPE))
 	{
-		menu->pos = 0;
-		menu->open = 0;
-		menu->parent->child = NULL;
+		/* Relenquish input control */
+		fl_pop_input_handler(context);
+
+		/* Remove the current active menu */
+		fl_menu* menu = fl_pop_menu(context);
+
+		fl_destroy_menu(menu);
 	}
 }
 
@@ -203,8 +183,10 @@ static void toast_action(fl_context* context, fl_menu* menu)
 
 static void fish_action(fl_context* context, fl_menu* menu)
 {
-	menu->submenus[0]->open = 1;
-	menu->child = menu->submenus[0];
+	fl_menu* submenu = fl_create_fish_submenu(context);
+
+	fl_push_menu(context, submenu);
+	fl_push_input_handler(context, submenu->input_handler);
 }
 
 
@@ -218,7 +200,7 @@ static void cursor_up(fl_context* context, fl_menu* menu)
 
 static void cursor_down(fl_context* context, fl_menu* menu)
 {
-	if (menu->pos < item_count - 1)
+	if (menu->pos < ITEM_COUNT - 1)
 		menu->pos++;
 }
 
@@ -242,7 +224,11 @@ static void cursor_select(fl_context* context, fl_menu* menu)
 
 static void cursor_cancel(fl_context* context, fl_menu* menu)
 {
-	menu->pos = 0;
-	menu->open = 0;
-	menu->parent->child = NULL;
+	/* Relenquish input control */
+	fl_pop_input_handler(context);
+
+	/* Remove the current active menu */
+	fl_menu* active = fl_pop_menu(context);
+
+	fl_destroy_menu(active);
 }

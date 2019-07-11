@@ -22,7 +22,7 @@ fl_resource* fl_load_bmp(fl_context* context, const char* path)
 		return NULL;
 	}
 
-	image = (fl_image*)malloc(sizeof(fl_image));
+	image = fl_alloc(fl_image, 1);
 
 	if (image == NULL)
 	{
@@ -34,13 +34,13 @@ fl_resource* fl_load_bmp(fl_context* context, const char* path)
 	image->surface = surface;
 	image->texture = texture;
 
-	resource = (fl_resource*)malloc(sizeof(fl_resource));
+	resource = fl_alloc(fl_resource, 1);
 
 	if (resource == NULL)
 	{
 		SDL_FreeSurface(surface);
 		SDL_DestroyTexture(texture);
-		free(image);
+		fl_free(image);
 		return NULL;
 	}
 
@@ -59,7 +59,7 @@ fl_resource* fl_load_font(const char* path, int p, fl_color fc, fl_color bc, int
 	fl_font* font;
 	TTF_Font* impl;
 
-	resource = (fl_resource*)malloc(sizeof(fl_resource));
+	resource = fl_alloc(fl_resource, 1);
 
 	if (resource == NULL)
 		return NULL;
@@ -68,15 +68,15 @@ fl_resource* fl_load_font(const char* path, int p, fl_color fc, fl_color bc, int
 
 	if (impl == NULL)
 	{
-		free(resource);
+		fl_free(resource);
 		return NULL;
 	}
 
-	font = (fl_font*)malloc(sizeof(fl_font));
+	font = fl_alloc(fl_font, 1);
 
 	if (font == NULL)
 	{
-		free(resource);
+		fl_free(resource);
 		TTF_CloseFont(impl);
 		return NULL;
 	}
@@ -110,10 +110,10 @@ void fl_destroy_resource(fl_resource* resource)
 			if (resource->impl.font->atlas != NULL)
 				fl_destroy_font_atlas(resource->impl.font->atlas);
 
-			free(resource->impl.font);
+			fl_free(resource->impl.font);
 		}
 
-		free(resource);
+		fl_free(resource);
 	}
 	break;
 
@@ -126,9 +126,11 @@ void fl_destroy_resource(fl_resource* resource)
 
 			if (resource->impl.image->texture != NULL)
 				SDL_DestroyTexture(resource->impl.image->texture);
+
+			fl_free(resource->impl.image);
 		}
 
-		free(resource);
+		fl_free(resource);
 	}
 	break;
 

@@ -22,6 +22,22 @@
 #define FLURMP_UPPER_BOUNDARY 230
 #define FLURMP_LOWER_BOUNDARY 320
 
+/* error codes */
+#define FLURMP_ERR_CONTEXT       0x01
+#define FLURMP_ERR_WINDOW        0x02
+#define FLURMP_ERR_RENDERER      0x03
+#define FLURMP_ERR_INPUT_FLAGS   0x04
+#define FLURMP_ERR_ENTITY_TYPES  0x05
+#define FLURMP_ERR_FONTS         0x06
+#define FLURMP_ERR_IMAGES        0x07
+#define FLURMP_ERR_INPUT_HANDLER 0x08
+
+/* memory allocation macro */
+#define fl_alloc(t,n) (t*)fl_alloc_internal_(sizeof(t) * n)
+
+/* memory release macro */
+#define fl_free(m) fl_free_internal_(m)
+
 struct fl_color {
 	SDL_Color impl;
 };
@@ -74,11 +90,27 @@ struct fl_entity {
 	int x_v;
 	int y_v;
 	int frame;
+	int life;
 	fl_entity* next;
 	fl_entity* tail;
 };
 
+/**
+ * A structure for holding the current input handler function.
+ * It contains pointers to parent and child input handlers
+ * which allows one input handler to pass control to another.
+ */
+typedef struct fl_input_handler {
+
+	void(*handler) (fl_context*, fl_input_handler*);
+
+	fl_input_handler* child;
+	fl_input_handler* parent;
+
+}fl_input_handler;
+
 struct fl_console {
+	fl_resource* font;
 	int x;
 	int y;
 	int w;
@@ -86,19 +118,20 @@ struct fl_console {
 	int cursor_x;
 	int cursor_y;
 	int char_count;
+	fl_input_handler* input_handler;
+	void(*render) (fl_context*, fl_console*);
 };
 
 struct fl_menu_item {
 	int x;
 	int y;
-	fl_static_text* text;
+	fl_image* image;
 	void(*action) (fl_context*, fl_menu*);
 };
 
 struct fl_menu {
 	fl_menu* child;
 	fl_menu* parent;
-	int open;
 	int x;
 	int y;
 	int w;
@@ -107,67 +140,88 @@ struct fl_menu {
 	int item_count;
 	int submenu_count;
 	fl_menu_item** items;
-	fl_menu** submenus;
-	void(*input_handler) (fl_context*, fl_menu*);
+	fl_input_handler* input_handler;
+	void(*render) (fl_context*, fl_menu*);
 	void(*get_cursor_coords) (fl_menu*, int*, int*);
 };
 
-struct fl_static_text {
-	char* text;
-	int x;
-	int y;
-	fl_resource* font;
-	fl_image* image;
-};
- 
 struct fl_dialog {
-	fl_resource* font;
+	fl_font_atlas* atlas;
 	int x;
 	int y;
 	int w;
 	int h;
-	int counter;
-	const char** statements;
-	int statement_count;
-	int current_statement;
+	size_t counter;
 	int open;
 	char* buffer;
 	int buffer_count;
 	void(*update) (fl_context*, fl_dialog*);
 	void(*render) (fl_context*, fl_dialog*);
-	void(*input_handler) (fl_context*, fl_dialog*);
+	fl_input_handler* input_handler;
+	const char* msg;
+	size_t len;
+	int speed;
+	int hold;
+	void(*callback) (fl_context*, fl_dialog*);
 };
 
 struct fl_context {
+
+	/* Windowing, rendering, events, and input */
 	SDL_Window* window;
 	SDL_Renderer* renderer;
+	SDL_Event event;
 	struct {
 		const Uint8* keystates;
 		int* flags;
 	} input;
+
+	/* Registries */
 	fl_entity_type* entity_types;
 	fl_resource** fonts;
-	fl_menu* pause_menu;
-	fl_dialog** dialogs;
+	fl_resource** images;
+
+	/* Linked list of entities */
+	fl_entity* entities;
+
+	/* Input handling callback */
+	fl_input_handler* input_handler;
+
+	/* Structures directly affected by input */
 	fl_console* console;
 	fl_entity* pco;
-	fl_resource** resources;
-	fl_entity* entities;
 	fl_dialog* active_dialog;
-	SDL_Event event;
+	fl_menu* active_menu;
+
+	/* Camera position */
 	int cam_x;
 	int cam_y;
+
+	/* The current state of the context */
 	unsigned int state;
-	int count;
+
+	/* Number of entities in the entity list */
+	int entity_count;
+
+	/* Estimated frames per second */
 	int fps;
+
+	/* Tick count used for regulating framerate */
 	unsigned long ticks;
+
+	/* Completion flag */
 	int done;
+
+	/* Error flag */
 	int error;
+
 	int paused;
-	int console_open;
-	int font_count;
-	int entity_type_count;
-	int dialog_count;
+
+	/* Indicated the current scene */
+	int scene;
+
+	/* A return value */
+	int ret_val;
 };
 
 /**
@@ -179,8 +233,12 @@ struct fl_context {
  *   int - the green value ranging from 0 - 255
  *   int - the blue value ranging from 0 - 255
  *   int - the alpha value ranging from 0 - 255
- *   
+ *
  */
 void fl_set_color(fl_color* color, int r, int g, int b, int a);
+
+void* fl_alloc_internal_(size_t s);
+
+void fl_free_internal_(void* m);
 
 #endif

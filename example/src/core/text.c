@@ -16,7 +16,7 @@ fl_glyph* fl_create_glyph(fl_context* context, fl_resource* res, char c)
 	SDL_Color bc; /* background color */
 
 	/* Allocate memory for an fl_glyph structure. */
-	glyph = (fl_glyph*)malloc(sizeof(fl_glyph));
+	glyph = fl_alloc(fl_glyph, 1);
 
 	/* Verify fl_glyph memory allocation. */
 	if (glyph == NULL)
@@ -36,7 +36,7 @@ fl_glyph* fl_create_glyph(fl_context* context, fl_resource* res, char c)
 	/* Verify SDL_Surface creation. */
 	if (surface == NULL)
 	{
-		free(glyph);
+		fl_free(glyph);
 		return NULL;
 	}
 
@@ -47,19 +47,19 @@ fl_glyph* fl_create_glyph(fl_context* context, fl_resource* res, char c)
 	if (texture == NULL)
 	{
 		SDL_FreeSurface(surface);
-		free(glyph);
+		fl_free(glyph);
 		return NULL;
 	}
 
 	/* Allocate memory for an fl_image structure. */
-	image = (fl_image*)malloc(sizeof(fl_image));
+	image = fl_alloc(fl_image, 1);
 
 	/* Verify fl_image memory allocation. */
 	if (image == NULL)
 	{
 		SDL_FreeSurface(surface);
 		SDL_DestroyTexture(texture);
-		free(glyph);
+		fl_free(glyph);
 		return NULL;
 	}
 
@@ -87,10 +87,10 @@ void fl_destroy_glyph(fl_glyph* glyph)
 		if (glyph->image->texture != NULL)
 			SDL_DestroyTexture(glyph->image->texture);
 
-		free(glyph->image);
+		fl_free(glyph->image);
 	}
 
-	free(glyph);
+	fl_free(glyph);
 }
 
 fl_font_atlas* fl_create_font_atlas(fl_context* context, fl_resource* res)
@@ -102,7 +102,7 @@ fl_font_atlas* fl_create_font_atlas(fl_context* context, fl_resource* res)
 	int i; /* index variable */
 
 	/* Allocate memory for the font atlas. */
-	atlas = (fl_font_atlas*)malloc(sizeof(fl_font_atlas));
+	atlas = fl_alloc(fl_font_atlas, 1);
 
 	/* Verify font atlas memory allocation. */
 	if (atlas == NULL)
@@ -114,12 +114,12 @@ fl_font_atlas* fl_create_font_atlas(fl_context* context, fl_resource* res)
 	   as printable characters. This is why we allocate space for
 	   95 glyphs. This range starts with the space character ' '
 	   and ends with the tilde character '~'. */
-	glyphs = (fl_glyph**)malloc(sizeof(fl_glyph*) * 95);
+	glyphs = fl_alloc(fl_glyph*, 95);
 
 	/* Verify glyph memory allocation. */
 	if (glyphs == NULL)
 	{
-		free(atlas);
+		fl_free(atlas);
 		return NULL;
 	}
 
@@ -154,10 +154,10 @@ void fl_destroy_font_atlas(fl_font_atlas* atlas)
 		for (i = 0; i < atlas->count; i++)
 			fl_destroy_glyph(atlas->glyphs[i]);
 
-		free(atlas->glyphs);
+		fl_free(atlas->glyphs);
 	}
 
-	free(atlas);
+	fl_free(atlas);
 }
 
 fl_glyph* fl_char_to_glyph(fl_font_atlas* atlas, char c)
@@ -173,10 +173,9 @@ fl_glyph* fl_char_to_glyph(fl_font_atlas* atlas, char c)
 	return (i >= 32 && i <= 126) ? atlas->glyphs[i - 32] : atlas->glyphs[0];
 }
 
-fl_static_text* fl_create_static_text(fl_context* context, fl_resource* res, const char* txt, int x, int y)
+fl_image* fl_create_static_text(fl_context* context, fl_resource* res, const char* txt)
 {
 	/* static text data */
-	fl_static_text* stat;
 	char* contents;
 	fl_image* image;
 	SDL_Surface* surface;
@@ -195,20 +194,12 @@ fl_static_text* fl_create_static_text(fl_context* context, fl_resource* res, con
 	int hinting = TTF_HINTING_MONO;
 	int kerning = 1;
 
-	/* Allocate memory for the fl_static_text structure. */
-	stat = (fl_static_text*)malloc(sizeof(fl_static_text));
-
-	/* Verify static text memory allocation. */
-	if (stat == NULL)
-		return NULL;
-
 	/* Allocate memory for the character string contents. */
-	contents = (char*)malloc(strlen(txt) + 1);
+	contents = fl_alloc(char, (strlen(txt) + 1));
 
 	/* Verify character string allocation. */
 	if (contents == NULL)
 	{
-		free(stat);
 		return NULL;
 	}
 
@@ -229,8 +220,7 @@ fl_static_text* fl_create_static_text(fl_context* context, fl_resource* res, con
 	/* Verify SDL_Surface creation. */
 	if (surface == NULL)
 	{
-		free(contents);
-		free(stat);
+		fl_free(contents);
 		return NULL;
 	}
 
@@ -241,54 +231,41 @@ fl_static_text* fl_create_static_text(fl_context* context, fl_resource* res, con
 	if (texture == NULL)
 	{
 		SDL_FreeSurface(surface);
-		free(contents);
-		free(stat);
+		fl_free(contents);
 		return NULL;
 	}
 
 	/* Allocate memory for an fl_image structure. */
-	image = (fl_image*)malloc(sizeof(fl_image));
+	image = fl_alloc(fl_image, 1);
 
 	/* Verify fl_image memory allocation. */
 	if (image == NULL)
 	{
 		SDL_FreeSurface(surface);
-		free(contents);
-		free(stat);
+		fl_free(contents);
 		SDL_DestroyTexture(texture);
 		return NULL;
 	}
+
+	fl_free(contents);
 
 	/* Populate the fl_image structure. */
 	image->surface = surface;
 	image->texture = texture;
 
-	/* Populate the fl_static_text structure. */
-	stat->font = res;
-	stat->image = image;
-	stat->text = contents;
-	stat->x = x;
-	stat->y = y;
-
-	return stat;
+	return image;
 }
 
-void fl_destroy_static_text(fl_static_text* stat)
+void fl_destroy_static_text(fl_image* stat)
 {
 	if (stat == NULL)
 		return;
 
-	if (stat->image != NULL)
-	{
-		if (stat->image->surface != NULL)
-			SDL_FreeSurface(stat->image->surface);
+	if (stat->surface != NULL)
+		SDL_FreeSurface(stat->surface);
 
-		if (stat->image->texture != NULL)
-			SDL_DestroyTexture(stat->image->texture);
-	}
+	if (stat->texture != NULL)
+		SDL_DestroyTexture(stat->texture);
 
-	if (stat->text != NULL)
-		free(stat->text);
-
-	free(stat);
+	fl_free(stat);
 }

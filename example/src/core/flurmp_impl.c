@@ -4,13 +4,14 @@
 
 #include "flurmp_impl.h"
 #include "input.h"
+#include "resource.h"
+#include "text.h"
+#include "image.h"
 #include "entity.h"
 #include "console.h"
-#include "text.h"
+#include "scene.h"
 #include "menu.h"
 #include "dialog.h"
-#include "resource.h"
-#include "scene.h"
 
 #include "block_200_50.h"
 #include "sign.h"
@@ -19,7 +20,38 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-static void fl_console_input(fl_context* context);
+/* Counters to keep track of how many times malloc and free
+   have been called. These do NOT take into account the calls
+   to malloc and free made by libraries. */
+static int allocations_ = 0;
+static int frees_ = 0;
+
+/**
+ * Determines if an entity is within the screen boundaries.
+ * If an entity is considered to be off screen, there's no
+ * need to render it.
+ *
+ * Params:
+ *   fl_context - a Flurmp context
+ *   fl_entity - an entity
+ *
+ * Returns:
+ *   int - 1 if the entity is on screen, or 0 if
+ *         the entity is off screen.
+ */
+static int is_on_screen(fl_context* context, fl_entity* entity);
+
+/**
+ * The root input handler is the first input handler that is added to
+ * a context.
+ *
+ * Params:
+ *   fl_context - a Flurmp context
+ *   fl_input_handler - a pointer to the input handler
+ */
+static void root_input_handler(fl_context* context, fl_input_handler* self);
+
+
 
 int fl_initialize()
 {
@@ -50,17 +82,16 @@ fl_context* fl_create_context()
 	int i; /* index variable */
 
 	fl_context* context;
-	fl_resource** fonts;
 
 	/* entity types */
 	fl_entity_type player_type;
 	fl_entity_type sign_type;
 	fl_entity_type block_200_50_type;
 
-	/* Allocate memory for an fl_context. */
-	context = malloc(sizeof(fl_context));
+	/* Allocate memory for a Flurmp context. */
+	context = fl_alloc(fl_context, 1);
 
-	/* Verify fl_context memory allocation. */
+	/* Verify context memory allocation. */
 	if (context == NULL)
 		return NULL;
 
@@ -69,26 +100,25 @@ fl_context* fl_create_context()
 	context->renderer = NULL;
 	context->entity_types = NULL;
 	context->fonts = NULL;
-	context->pause_menu = NULL;
-	context->dialogs = NULL;
+	context->images = NULL;
+	context->entities = NULL;
+	context->input_handler = NULL;
 	context->console = NULL;
 	context->pco = NULL;
 	context->active_dialog = NULL;
-	context->entities = NULL;
+	context->active_menu = NULL;
 	context->cam_x = 0;
 	context->cam_y = 0;
 	context->state = 0;
-	context->count = 0;
+	context->entity_count = 0;
 	context->fps = 60;
 	context->ticks = 0;
 	context->done = 0;
 	context->error = 0;
 	context->paused = 0;
-	context->console_open = 0;
-	context->font_count = 0;
-	context->entity_type_count = 0;
-	context->dialog_count = 0;
-	
+	context->scene = 0;
+	context->ret_val = 0;
+
 	/* Create the application window. */
 	context->window = SDL_CreateWindow("Flurmp", 100, 100,
 		FLURMP_WINDOW_WIDTH,
@@ -98,7 +128,7 @@ fl_context* fl_create_context()
 	/* Verify window creation. */
 	if (context->window == NULL)
 	{
-		context->error = 1;
+		context->error = FLURMP_ERR_WINDOW;
 		return context;
 	}
 
@@ -109,23 +139,25 @@ fl_context* fl_create_context()
 	/* Verify renderer creation. */
 	if (context->renderer == NULL)
 	{
-		context->error = 2;
+		context->error = FLURMP_ERR_RENDERER;
 		return context;
 	}
 
 	/* Configure the renderer. */
 	SDL_SetRenderDrawBlendMode(context->renderer, SDL_BLENDMODE_BLEND);
 
+
+
 	/* Get a reference to an array of key states. */
 	context->input.keystates = SDL_GetKeyboardState(NULL);
 
 	/* Allocate memory for the input flag array. */
-	context->input.flags = (int*)malloc(sizeof(int) * FLURMP_INPUT_FLAG_COUNT);
+	context->input.flags = fl_alloc(int, FLURMP_INPUT_FLAG_COUNT);
 
 	/* Verify input flag memory allocation. */
 	if (context->input.flags == NULL)
 	{
-		context->error = 3;
+		context->error = FLURMP_ERR_INPUT_FLAGS;
 		return context;
 	}
 
@@ -134,15 +166,15 @@ fl_context* fl_create_context()
 		context->input.flags[i] = 0;
 
 	/* Allocate memory for the entity type registry. */
-	context->entity_types = (fl_entity_type*)malloc(sizeof(fl_entity_type) * FLURMP_ENTITY_TYPE_COUNT);
+	context->entity_types = fl_alloc(fl_entity_type, FLURMP_ENTITY_TYPE_COUNT);
 
 	/* Verify entity type registry memory allocation. */
 	if (context->entity_types == NULL)
 	{
-		context->error = 4;
+		context->error = FLURMP_ERR_ENTITY_TYPES;
 		return context;
 	}
-	
+
 	/* Populate the entity types. */
 	fl_register_player_type(context, &player_type);
 	fl_register_sign_type(context, &sign_type);
@@ -152,21 +184,15 @@ fl_context* fl_create_context()
 	context->entity_types[FLURMP_ENTITY_PLAYER] = player_type;
 	context->entity_types[FLURMP_ENTITY_SIGN] = sign_type;
 	context->entity_types[FLURMP_ENTITY_BLOCK_200_50] = block_200_50_type;
-	
-	/* TODO: create image registry and have entity types share it. */
-
-	context->entity_type_count = FLURMP_ENTITY_TYPE_COUNT;
 
 	/* Create a font registry */
-	fonts = (fl_resource**)malloc(sizeof(fl_resource) * FLURMP_FONT_COUNT);
+	context->fonts = fl_alloc(fl_resource*, FLURMP_FONT_COUNT);
 
-	if (fonts == NULL)
+	if (context->fonts == NULL)
 	{
-		context->error = 5;
+		context->error = FLURMP_ERR_FONTS;
 		return context;
 	}
-
-	context->fonts = fonts;
 
 	/* font colors */
 	fl_color menu_fc;
@@ -180,10 +206,6 @@ fl_context* fl_create_context()
 	fl_set_color(&console_fc, 250, 250, 250, 255);
 	fl_set_color(&console_bc, 0, 0, 0, 0);
 
-	/* TODO: add a resource member to the menu, console, and dialog
-	   structures so that they can share resources. */
-	/* TODO: implement resource sharing among entities. */
-
 	/* Load fonts into the font registry. */
 	context->fonts[FLURMP_FONT_VERA] = fl_load_font("resources/fonts/VeraMono.ttf", 16, menu_fc, menu_bc, 1);
 	context->fonts[FLURMP_FONT_COUSINE] = fl_load_font("resources/fonts/Cousine.ttf", 16, console_fc, console_bc, 0);
@@ -192,94 +214,124 @@ fl_context* fl_create_context()
 	context->fonts[FLURMP_FONT_VERA]->impl.font->atlas = fl_create_font_atlas(context, context->fonts[FLURMP_FONT_VERA]);
 	context->fonts[FLURMP_FONT_COUSINE]->impl.font->atlas = fl_create_font_atlas(context, context->fonts[FLURMP_FONT_COUSINE]);
 
-	context->font_count = FLURMP_FONT_COUNT;
+	/* Allocate memory for an image registry. */
+	context->images = fl_alloc(fl_resource*, FLURMP_IMAGE_COUNT);
 
-	/* create a pause menu */
-	context->pause_menu = fl_create_pause_menu(context);
-
-	/* create a dialog registry */
-	context->dialogs = (fl_dialog**)malloc(sizeof(fl_dialog*) * 1);
-
-	if (context->dialogs == NULL)
+	/* Verify image registry allocation. */
+	if (context->images == NULL)
 	{
-		context->error = 6;
+		context->error = FLURMP_ERR_IMAGES;
 		return context;
 	}
 
-	/* Create the dialogs and add them to the registry. */
-	fl_dialog* example_dialog = fl_create_example_dialog(context->fonts[0], 75, 320, 500, 100);
+	/* Set all images to NULL. */
+	for (i = 0; i < FLURMP_IMAGE_COUNT; i++)
+		context->images[i] = NULL;
 
-	context->dialogs[0] = example_dialog;
-	context->dialog_count = 1;
-	
-	/* Create a dev console. */
-	context->console = fl_create_console(context);
+	/* Load common images. */
+	context->images[FLURMP_IMAGE_PLAYER] = fl_load_bmp(context, "resources/images/person.bmp");
 
-	/* Load the basic scene. */
-	fl_load_scene(context, FLURMP_SCENE_BASIC);
+	context->entity_types[FLURMP_ENTITY_PLAYER].texture = context->images[FLURMP_IMAGE_PLAYER];
+
+	/* Register the root input handler. */
+	context->input_handler = fl_create_input_handler(root_input_handler);
+
+	if (context->input_handler == NULL)
+	{
+		context->error = FLURMP_ERR_INPUT_HANDLER;
+		return context;
+	}
+
+	/* Load a test scene. */
+	fl_load_scene(context, FLURMP_SCENE_TEST_1);
 
 	return context;
 }
 
 void fl_destroy_context(fl_context* context)
 {
-	int i;
+	int i; /* Our good friend, the index variable. */
 
-	if (context->console != NULL) fl_destroy_console(context->console);
-	if (context->entity_types != NULL)
-	{
-		for (i = 0; i < context->entity_type_count; i++)
-		{
-			/* TODO: destroy image resources elsewhere
-			   once the image registry has been implemented. */
-			if (context->entity_types[i].texture != NULL)
-				fl_destroy_resource(context->entity_types[i].texture);
-		}
-
-		free(context->entity_types);
-	}
-
-	if (context->fonts != NULL)
-	{
-		int i;
-		for (i = 0; i < context->font_count; i++)
-		{
-			if (context->fonts[i] != NULL)
-			{
-				fl_destroy_resource(context->fonts[i]);
-			}
-		}
-
-		free(context->fonts);
-	}
-
-	if (context->dialogs != NULL)
-	{
-		int i;
-		for (i = 0; i < context->dialog_count; i++)
-		{
-			if (context->dialogs[i] != NULL)
-			{
-				fl_destroy_dialog(context->dialogs[i]);
-			}
-		}
-
-		free(context->dialogs);
-	}
-
-	fl_entity* en = context->entities;
+	fl_entity* en;
 	fl_entity* next;
+
+	/* Destroy the entities. */
+	en = context->entities;
 	while (en != NULL)
 	{
 		next = en->next;
-		free(en);
+		fl_free(en);
 		en = next;
 	}
 
-	if (context->renderer != NULL) SDL_DestroyRenderer(context->renderer);
-	if (context->window != NULL) SDL_DestroyWindow(context->window);
+	/* Removed all input handler except the root input handler.
+	   They should be destroyed when the structures
+	   that contain them are destroyed. */
+	if (context->input_handler != NULL)
+	{
+		while (context->input_handler->child != NULL)
+			fl_pop_input_handler(context);
 
-	free(context);
+		/* Destroy the root input handler. */
+		fl_destroy_input_handler(context->input_handler);
+	}
+
+	/* Destroy the dev console. */
+	if (context->console != NULL)
+		fl_destroy_console(context->console);
+
+	/* Destroy the entity type registry. */
+	if (context->entity_types != NULL)
+		fl_free(context->entity_types);
+
+	/* Destroy the active menu. */
+	if (context->active_menu != NULL)
+		fl_destroy_menu(context->active_menu);
+
+	/* Destroy the active dialog. */
+	if (context->active_dialog != NULL)
+		fl_destroy_dialog(context->active_dialog);
+
+	/* Destroy the font registry. */
+	if (context->fonts != NULL)
+	{
+		for (i = 0; i < FLURMP_FONT_COUNT; i++)
+		{
+			if (context->fonts[i] != NULL)
+				fl_destroy_resource(context->fonts[i]);
+		}
+
+		fl_free(context->fonts);
+	}
+
+	/* Destroy the image registry. */
+	if (context->images != NULL)
+	{
+		for (i = 0; i < FLURMP_IMAGE_COUNT; i++)
+		{
+			if (context->images[i] != NULL)
+				fl_destroy_resource(context->images[i]);
+		}
+
+		fl_free(context->images);
+	}
+
+	/* Destroy the input flags. */
+	if (context->input.flags != NULL)
+		fl_free(context->input.flags);
+
+	/* Destroy the renderer. */
+	if (context->renderer != NULL)
+		SDL_DestroyRenderer(context->renderer);
+
+	/* Destroy the window. */
+	if (context->window != NULL)
+		SDL_DestroyWindow(context->window);
+
+	fl_free(context);
+
+	printf("allocations: %d\n", allocations_);
+	printf("frees: %d\n", frees_);
 }
 
 int fl_is_done(fl_context* context)
@@ -291,7 +343,7 @@ int fl_is_done(fl_context* context)
 
 void fl_add_entity(fl_context* context, fl_entity* entity)
 {
-	if (context->count == 0)
+	if (context->entity_count == 0)
 	{
 		context->entities = entity;
 		context->entities->tail = entity;
@@ -302,7 +354,7 @@ void fl_add_entity(fl_context* context, fl_entity* entity)
 		context->entities->tail = entity;
 	}
 
-	context->count++;
+	context->entity_count++;
 }
 
 int fl_detect_collision(fl_context* context, fl_entity* a, fl_entity* b)
@@ -357,49 +409,9 @@ void fl_handle_events(fl_context* context)
 
 void fl_handle_input(fl_context* context)
 {
-	/* If there is a dialog active,
-	   its input handling takes priority. */
-	if (context->active_dialog != NULL)
+	if (context->input_handler != NULL)
 	{
-		context->active_dialog->input_handler(context, context->active_dialog);
-		return;
-	}
-
-	if (context->paused)
-	{
-		/* If the application is paused and the dev console
-		   is not open, the pause menu will handle input. */
-		if (!context->console_open)
-		{
-			context->pause_menu->input_handler(context, context->pause_menu);
-		}
-		else
-		{
-			/* TODO: Create an input handler callback
-			   for the dev console. */
-			fl_console_input(context);
-		}
-
-		return;
-	}
-	else
-	{
-		if (fl_consume_input(context, FLURMP_INPUT_TYPE_KEYBOARD, FLURMP_SC_ESCAPE))
-		{
-			context->paused = 1;
-			context->pause_menu->open = 1;
-		}
-	}
-
-	/* Temporary code to reset player position.
-	   This should probable be performed via a command
-	   issued to the dev console. */
-	if (fl_peek_input(context, FLURMP_INPUT_TYPE_KEYBOARD, FLURMP_SC_C))
-	{
-		context->pco->x = 260;
-		context->pco->y = 260;
-		context->cam_x = 0;
-		context->cam_y = 0;
+		context->input_handler->handler(context, context->input_handler);
 	}
 }
 
@@ -419,7 +431,9 @@ static void update_and_collide(fl_context* context, int axis)
 	/* Update all entities.  */
 	while (en != NULL)
 	{
-		context->entity_types[en->type].update(context, en, axis);
+		if (en->flags & FLURMP_ALIVE_FLAG)
+			context->entity_types[en->type].update(context, en, axis);
+
 		en = en->next;
 	}
 
@@ -431,7 +445,8 @@ static void update_and_collide(fl_context* context, int axis)
 	{
 		next = en->next;
 
-		while (next != NULL)
+		/* Only check for collisions if the entity is alive. */
+		while (next != NULL && en->flags & FLURMP_ALIVE_FLAG)
 		{
 			/* Determine if two entities have collided. */
 			int collided = fl_detect_collision(context, en, next);
@@ -475,7 +490,6 @@ void fl_render(fl_context* context)
 {
 	/* Set the background color. */
 	SDL_SetRenderDrawColor(context->renderer, 145, 219, 255, 255);
-	/* SDL_SetRenderDrawColor(context->renderer, 120, 120, 120, 255); */
 
 	/* Remove the previous screen contents. */
 	SDL_RenderClear(context->renderer);
@@ -493,10 +507,11 @@ void fl_render(fl_context* context)
 	/* Render the pause menu if the application is paused. */
 	if (context->paused)
 	{
-		fl_render_menu(context, context->pause_menu);
+		if (context->active_menu != NULL)
+			context->active_menu->render(context, context->active_menu);
 
-		if (context->console_open)
-			fl_render_console(context, context->console);
+		if (context->console != NULL)
+			context->console->render(context, context->console);
 	}
 
 	/* Render the dialog if it's being used. */
@@ -538,40 +553,6 @@ static void render_camera_boundaries(fl_context* context)
 	SDL_RenderDrawLine(context->renderer, 0, FLURMP_LOWER_BOUNDARY, FLURMP_WINDOW_WIDTH, FLURMP_LOWER_BOUNDARY);
 }
 
-static void fl_console_input(fl_context* context)
-{
-	int i;
-	for (i = 0; i < FLURMP_SC_LIMIT; i++)
-	{
-		unsigned char mod = 0x00;
-
-		/* Handle key combinations like shift and ctrl. */
-		if (context->input.keystates[FLURMP_SC_LSHIFT] || context->input.keystates[FLURMP_SC_RSHIFT])
-			mod |= FLURMP_CONSOLE_MOD_SHIFT;
-		if (context->input.keystates[FLURMP_SC_LCTRL] || context->input.keystates[FLURMP_SC_RCTRL])
-			mod |= FLURMP_CONSOLE_MOD_CTRL;
-
-		/* Get the character that corresponds to the current scancode. */
-		char c = fl_sc_to_char(i, mod);
-
-		if (fl_consume_input(context, FLURMP_INPUT_TYPE_KEYBOARD, i))
-		{
-			/* If escape is rpessed, close the console. */
-			if (i == FLURMP_SC_ESCAPE)
-			{
-				context->console_open = 0;
-			}
-
-			/* If return is pressed, submit the current buffer,
-			   otherwise append to the current buffer. */
-			if (c == 0x0A)
-				submit_buffer(context, context->console);
-			else
-				fl_putc(context->console, c, mod);
-		}
-	}
-}
-
 void fl_set_color(fl_color* color, int r, int g, int b, int a)
 {
 	if (color == NULL)
@@ -582,4 +563,121 @@ void fl_set_color(fl_color* color, int r, int g, int b, int a)
 	color->impl.g = g > 255 ? 255 : (g < 0 ? 0 : g);
 	color->impl.b = b > 255 ? 255 : (b < 0 ? 0 : b);
 	color->impl.a = a > 255 ? 255 : (a < 0 ? 0 : a);
+}
+
+static int is_on_screen(fl_context* context, fl_entity* entity)
+{
+	if (entity == NULL)
+		return 0;
+
+	int left = entity->x;
+	int right = entity->x + context->entity_types[entity->type].w;
+
+	int top = entity->y;
+	int bottom = entity->y + context->entity_types[entity->type].h;
+
+	if ((left > 0 && left < FLURMP_WINDOW_WIDTH)
+		|| (right > 0 && right < FLURMP_WINDOW_WIDTH))
+	{
+		if (top > 0 && top < FLURMP_WINDOW_HEIGHT)
+			return 1;
+		else if (bottom > 0 && bottom < FLURMP_WINDOW_HEIGHT)
+			return 1;
+	}
+
+	return 0;
+}
+
+static void root_input_handler(fl_context* context, fl_input_handler* self)
+{
+	if (self->child != NULL)
+	{
+		self->child->handler(context, self->child);
+		return;
+	}
+
+	if (fl_consume_input(context, FLURMP_INPUT_TYPE_KEYBOARD, FLURMP_SC_ESCAPE))
+	{
+		context->paused = 1;
+
+		fl_menu* pause_menu = fl_create_pause_menu(context);
+
+		fl_push_menu(context, pause_menu);
+
+		/* Hand input control to the pause menu. */
+		fl_push_input_handler(context, pause_menu->input_handler);
+	}
+
+
+
+	/* Walk to the left */
+	if (fl_peek_input(context, FLURMP_INPUT_TYPE_KEYBOARD, FLURMP_SC_A))
+	{
+		if (!(context->pco->flags & FLURMP_LEFT_FLAG))
+			context->pco->flags |= FLURMP_LEFT_FLAG;
+
+		if (context->pco->x_v > -2)
+			context->pco->x_v -= 2;
+	}
+
+	/* Walk to the right */
+	if (fl_peek_input(context, FLURMP_INPUT_TYPE_KEYBOARD, FLURMP_SC_D))
+	{
+		if (context->pco->flags & FLURMP_LEFT_FLAG)
+			context->pco->flags &= ~(FLURMP_LEFT_FLAG);
+
+		if (context->pco->x_v < 2)
+			context->pco->x_v += 2;
+	}
+
+	/* Jumping */
+	if (fl_consume_input(context, FLURMP_INPUT_TYPE_KEYBOARD, FLURMP_SC_SPACE))
+	{
+		if (!(context->pco->flags & FLURMP_JUMP_FLAG))
+		{
+			context->pco->y_v -= 12;
+			context->pco->flags |= FLURMP_JUMP_FLAG;
+		}
+	}
+
+	/* Reset the interaction flag. */
+	if (context->pco->flags & FLURMP_INTERACT_FLAG)
+		context->pco->flags &= ~(FLURMP_INTERACT_FLAG);
+
+	if (fl_consume_input(context, FLURMP_INPUT_TYPE_KEYBOARD, FLURMP_SC_J))
+	{
+		if (!(context->pco->flags & FLURMP_INTERACT_FLAG))
+		{
+			context->pco->flags |= FLURMP_INTERACT_FLAG;
+		}
+	}
+
+	/* Temporary code to reset player position.
+	   This should probable be performed via a command
+	   issued to the dev console. */
+	if (fl_peek_input(context, FLURMP_INPUT_TYPE_KEYBOARD, FLURMP_SC_C))
+	{
+		context->pco->x = 260;
+		context->pco->y = 260;
+		context->cam_x = 0;
+		context->cam_y = 0;
+	}
+}
+
+void* fl_alloc_internal_(size_t s)
+{
+	void* p = malloc(s);
+
+	if (p != NULL)
+	{
+		allocations_++;
+	}
+
+	return p;
+}
+
+void fl_free_internal_(void* m)
+{
+	free(m);
+	frees_++;
 }

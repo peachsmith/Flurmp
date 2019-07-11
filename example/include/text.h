@@ -56,20 +56,17 @@ fl_glyph* fl_char_to_glyph(fl_font_atlas* atlas, char c);
 void fl_destroy_font_atlas(fl_font_atlas* atlas);
 
 /**
- * Prepares a string of text to be rendered graphically.
- * The font, foreground color, and background color are hard coded.
+ * Creates an image containing text that doesn't change.
  *
  * Params:
  *   fl_context - a Flurmp context
  *   fl_resource - a font resource
  *   const char* - a string of characters to display
- *   int - the horizontal position
- *   int - the vertical position
  *
  * Returns:
  *   fl_static_text - a new static text structure
  */
-fl_static_text* fl_create_static_text(fl_context* context, fl_resource* res, const char* txt, int x, int y);
+fl_image* fl_create_static_text(fl_context* context, fl_resource* res, const char* txt);
 
 /**
  * Frees resources allocated for static text.
@@ -77,6 +74,6 @@ fl_static_text* fl_create_static_text(fl_context* context, fl_resource* res, con
  * Params:
  *   fl_static_text - a static text structure
  */
-void fl_destroy_static_text(fl_static_text* stat);
+void fl_destroy_static_text(fl_image* stat);
 
 #endif

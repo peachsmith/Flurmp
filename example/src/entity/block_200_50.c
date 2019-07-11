@@ -11,18 +11,19 @@ static void render(fl_context*, fl_entity*);
 
 fl_entity* fl_create_block_200_50(int x, int y)
 {
-	fl_entity* block = malloc(sizeof(fl_entity));
+	fl_entity* block = fl_alloc(fl_entity, 1);
 
 	if (block == NULL) return block;
 
 	block->next = NULL;
 	block->tail = NULL;
 	block->type = FLURMP_ENTITY_BLOCK_200_50;
-	block->flags = 0;
+	block->flags = FLURMP_ALIVE_FLAG;
 	block->x_v = 0;
 	block->y_v = 0;
 	block->x = x;
 	block->y = y;
+	block->life = 1;
 
 	return block;
 }
@@ -36,7 +37,7 @@ void fl_register_block_200_50_type(fl_context* context, fl_entity_type* et)
 	et->update = update;
 	et->render = render;
 
-	et->texture = fl_load_bmp(context, "resources/images/block_200_50.bmp");
+	et->texture = NULL;
 }
 
 static void collide(fl_context* context, fl_entity* self, fl_entity* other, int collided, int axis)

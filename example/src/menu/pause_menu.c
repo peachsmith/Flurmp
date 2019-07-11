@@ -11,23 +11,31 @@
  */
 #include "menu.h"
 #include "input.h"
+#include "dialog.h"
+#include "text.h"
+#include "console.h"
 
 #include <stdio.h>
+#include <string.h>
 
-/* amount of menu items */
-#define ITEM_COUNT 4
+ /* amount of menu items */
+#define ITEM_COUNT 5
 
 /* determines the screen coordindates for rendering the cursor */
-static void get_cursor_coords(fl_menu* context, int* x, int* y);
+static void get_cursor_coords(fl_menu * context, int* x, int* y);
 
 /* input handling */
-static void input_handler(fl_context* context, fl_menu* menu);
+static void input_handler(fl_context* context, fl_input_handler* self);
+
+/* render callback */
+static void render(fl_context* context, fl_menu* menu);
 
 /* menu actions */
 static void info_action(fl_context* context, fl_menu* menu);
 static void submenu_action(fl_context* context, fl_menu* menu);
 static void console_action(fl_context* context, fl_menu* menu);
 static void quit_action(fl_context* context, fl_menu* menu);
+static void confirmation_action(fl_context* context, fl_menu* menu);
 
 /* cursor movement */
 static void cursor_up(fl_context* context, fl_menu* menu);
@@ -39,18 +47,21 @@ static void cursor_right(fl_context* context, fl_menu* menu);
 static void cursor_select(fl_context* context, fl_menu* menu);
 static void cursor_cancel(fl_context* context, fl_menu* menu);
 
+/* dialog callbacks */
+static void first_cb(fl_context* context, fl_dialog* self);
+static void second_cb(fl_context* context, fl_dialog* self);
+
 fl_menu* fl_create_pause_menu(fl_context* context)
 {
 	fl_menu* p_menu;
 	fl_menu_item** items;
-	fl_menu** submenus;
-	fl_menu* submenu;
 
 	/* menu items */
 	fl_menu_item* info_item;
 	fl_menu_item* submenu_item;
 	fl_menu_item* console_item;
 	fl_menu_item* quit_item;
+	fl_menu_item* confirmation_item;
 
 	p_menu = fl_create_menu(50, 50, 300, 200);
 
@@ -58,7 +69,7 @@ fl_menu* fl_create_pause_menu(fl_context* context)
 		return NULL;
 
 	/* Allocate memory for the menu items. */
-	items = (fl_menu_item**)malloc(sizeof(fl_menu_item*) * ITEM_COUNT);
+	items = fl_alloc(fl_menu_item*, ITEM_COUNT);
 
 	/* Verify menu item memory allocation. */
 	if (items == NULL)
@@ -73,7 +84,7 @@ fl_menu* fl_create_pause_menu(fl_context* context)
 	/* Verify Info item creation. */
 	if (info_item == NULL)
 	{
-		free(items);
+		fl_free(items);
 		fl_destroy_menu(p_menu);
 		return NULL;
 	}
@@ -85,7 +96,7 @@ fl_menu* fl_create_pause_menu(fl_context* context)
 	if (submenu_item == NULL)
 	{
 		fl_destroy_menu_item(info_item);
-		free(items);
+		fl_free(items);
 		fl_destroy_menu(p_menu);
 		return NULL;
 	}
@@ -99,21 +110,36 @@ fl_menu* fl_create_pause_menu(fl_context* context)
 
 		fl_destroy_menu_item(info_item);
 		fl_destroy_menu_item(submenu_item);
-		free(items);
+		fl_free(items);
 		fl_destroy_menu(p_menu);
 		return NULL;
 	}
 
 	/* Create the Quit item. */
 	quit_item = fl_create_menu_item(context, 80, 150, "Quit", quit_action);
-	
+
 	/* Verify the Quit item creation. */
 	if (quit_item == NULL)
 	{
 		fl_destroy_menu_item(info_item);
 		fl_destroy_menu_item(submenu_item);
 		fl_destroy_menu_item(console_item);
-		free(items);
+		fl_free(items);
+		fl_destroy_menu(p_menu);
+		return NULL;
+	}
+
+	/* Create the Confirmation item. */
+	confirmation_item = fl_create_menu_item(context, 200, 60, "Confirmation", confirmation_action);
+
+	/* Verify the Quit item creation. */
+	if (confirmation_item == NULL)
+	{
+		fl_destroy_menu_item(info_item);
+		fl_destroy_menu_item(submenu_item);
+		fl_destroy_menu_item(console_item);
+		fl_destroy_menu_item(quit_item);
+		fl_free(items);
 		fl_destroy_menu(p_menu);
 		return NULL;
 	}
@@ -123,41 +149,18 @@ fl_menu* fl_create_pause_menu(fl_context* context)
 	items[1] = submenu_item;
 	items[2] = console_item;
 	items[3] = quit_item;
+	items[4] = confirmation_item;
 
 	p_menu->items = items;
 	p_menu->item_count = ITEM_COUNT;
 
-	/* Allocate memory for a submenu array. */
-	submenus = (fl_menu**)malloc(sizeof(fl_menu*));
+	/*fl_input_handler* input = fl_create_input_handler();
 
-	/* Verify submenu array allocation. */
-	if (submenus == NULL)
-	{
-		fl_destroy_menu(p_menu);
-		return NULL;
-	}
+	input->handler = input_handler;
 
-	/* Create the submenu. */
-	submenu = fl_create_pause_submenu(context);
-
-	/* Verify submenu creation. */
-	if (submenu == NULL)
-	{
-		free(submenus);
-		fl_destroy_menu(p_menu);
-		return NULL;
-	}
-
-	/* Set the submenu's parent menu. */
-	submenu->parent = p_menu;
-
-	/* Populate the submenu array. */
-	submenus[0] = submenu;
-
-	/* Populate the remaining menu fields. */
-	p_menu->submenus = submenus;
-	p_menu->submenu_count = 1;
-	p_menu->input_handler = input_handler;
+	p_menu->input_handler = input;*/
+	p_menu->input_handler = fl_create_input_handler(input_handler);
+	p_menu->render = render;
 	p_menu->get_cursor_coords = get_cursor_coords;
 
 	return p_menu;
@@ -174,17 +177,26 @@ static void get_cursor_coords(fl_menu* menu, int* x, int* y)
 		return;
 	}
 
-	*x = 60;
-	*y = menu->pos * 30 + menu->y + 10;
+	if (menu->pos < 4)
+		*x = 60;
+	else
+		*x = 180;
+
+	if (menu->pos < 4)
+		*y = menu->pos * 30 + menu->y + 10;
+	else
+		*y = (menu->pos - 4) * 30 + menu->y + 10;
 }
 
-static void input_handler(fl_context* context, fl_menu* menu)
+static void input_handler(fl_context* context, fl_input_handler* self)
 {
-	if (menu->child != NULL)
+	if (self->child != NULL)
 	{
-		menu->child->input_handler(context, menu->child);
+		self->child->handler(context, self->child);
 		return;
 	}
+
+	fl_menu* menu = fl_get_active_menu(context);
 
 	if (fl_consume_input(context, FLURMP_INPUT_TYPE_KEYBOARD, FLURMP_SC_W))
 	{
@@ -220,37 +232,90 @@ static void input_handler(fl_context* context, fl_menu* menu)
 	{
 		menu->pos = 0;
 		context->paused = 0;
-		menu->open = 0;
+
+		/* Relenquish input control */
+		fl_pop_input_handler(context);
+
+		/* Remove the current active menu */
+		fl_menu* active = fl_pop_menu(context);
+
+		fl_destroy_menu(active);
 	}
 }
 
+static const char* statements[3] = {
+	"Application: Example",
+	"Purpose: Demonstration of Flurmp.",
+	"Version: 1.0.0\nAuthor: John Powell"
+};
+
+static void first_cb(fl_context* context, fl_dialog* self)
+{
+	fl_dialog* dialog = fl_create_dialog(context);
+
+	dialog->counter = 0;
+	dialog->msg = statements[1];
+	dialog->len = strlen(statements[1]);
+	dialog->callback = second_cb;
+	
+	context->active_dialog = dialog;
+	fl_push_input_handler(context, dialog->input_handler);
+}
+
+static void second_cb(fl_context* context, fl_dialog* self)
+{
+	fl_dialog* dialog = fl_create_dialog(context);
+
+	dialog->counter = 0;
+	dialog->msg = statements[2];
+	dialog->len = strlen(statements[2]);
+
+	context->active_dialog = dialog;
+	fl_push_input_handler(context, dialog->input_handler);
+}
 
 /* menu actions */
 
 static void info_action(fl_context* context, fl_menu* menu)
 {
-	if (!context->dialogs[0]->open)
-	{
-		context->dialogs[0]->open = 1;
-		context->active_dialog = context->dialogs[0];
-	}
+	fl_dialog* dialog = fl_create_dialog(context);
+
+	dialog->counter = 0;
+	dialog->msg = statements[0];
+	dialog->len = strlen(statements[0]);
+	dialog->callback = first_cb;
+
+	context->active_dialog = dialog;
+	fl_push_input_handler(context, dialog->input_handler);
 }
 
 static void submenu_action(fl_context* context, fl_menu* menu)
 {
-	menu->submenus[0]->open = 1;
-	menu->child = menu->submenus[0];
+	fl_menu* submenu = fl_create_pause_submenu(context);
+
+	fl_push_menu(context, submenu);
+	fl_push_input_handler(context, submenu->input_handler);
 }
 
 static void console_action(fl_context* context, fl_menu* menu)
 {
-	context->console_open = 1;
+	fl_console* console = fl_create_console(context);
+
+	context->console = console;
+	fl_push_input_handler(context, console->input_handler);
 }
 
 static void quit_action(fl_context* context, fl_menu* menu)
 {
-	/* Later, we may want to add some sort of confirmation. */
 	context->done = 1;
+}
+
+static void confirmation_action(fl_context* context, fl_menu* menu)
+{
+	fl_menu* confirm = fl_create_confirmation_menu(context);
+
+	fl_push_menu(context, confirm);
+	fl_push_input_handler(context, confirm->input_handler);
 }
 
 
@@ -258,24 +323,26 @@ static void quit_action(fl_context* context, fl_menu* menu)
 
 static void cursor_up(fl_context* context, fl_menu* menu)
 {
-	if (menu->pos > 0)
+	if (menu->pos > 0 && menu->pos < 4)
 		menu->pos--;
 }
 
 static void cursor_down(fl_context* context, fl_menu* menu)
 {
-	if (menu->pos < ITEM_COUNT - 1)
+	if (menu->pos < 3)
 		menu->pos++;
 }
 
 static void cursor_left(fl_context* context, fl_menu* menu)
 {
-	
+	if (menu->pos > 3)
+		menu->pos = 0;
 }
 
 static void cursor_right(fl_context* context, fl_menu* menu)
 {
-	
+	if (menu->pos < 4)
+		menu->pos = 4;
 }
 
 
@@ -289,6 +356,55 @@ static void cursor_select(fl_context* context, fl_menu* menu)
 static void cursor_cancel(fl_context* context, fl_menu* menu)
 {
 	menu->pos = 0;
-	menu->open = 0;
 	context->paused = 0;
+
+	/* Relenquish input control */
+	fl_pop_input_handler(context);
+
+	fl_menu* active = fl_pop_menu(context);
+
+	fl_destroy_menu(active);
+}
+
+static void render(fl_context* context, fl_menu* menu)
+{
+	int i;
+	SDL_Rect r;
+
+	r.x = menu->x;
+	r.y = menu->y;
+	r.w = menu->w;
+	r.h = menu->h;
+
+	SDL_SetRenderDrawColor(context->renderer, 0, 0, 0, 255);
+	SDL_RenderFillRect(context->renderer, &r);
+
+	SDL_SetRenderDrawColor(context->renderer, 250, 250, 250, 255);
+	SDL_RenderDrawRect(context->renderer, &r);
+
+	if (menu->items != NULL)
+	{
+		for (i = 0; i < menu->item_count; i++)
+		{
+			r.x = menu->items[i]->x;
+			r.y = menu->items[i]->y;
+			r.w = menu->items[i]->image->surface->w;
+			r.h = menu->items[i]->image->surface->h;
+			SDL_RenderCopy(context->renderer, menu->items[i]->image->texture, NULL, &r);
+		}
+	}
+
+	if (menu->child == NULL)
+	{
+		menu->get_cursor_coords(menu, &r.x, &r.y);
+		r.w = 10;
+		r.h = 10;
+
+		SDL_RenderFillRect(context->renderer, &r);
+	}
+
+	if (menu->child != NULL)
+	{
+		render(context, menu->child);
+	}
 }

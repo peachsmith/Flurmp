@@ -19,6 +19,9 @@ static char buffer[FL_BUFFER_LIMIT] = { '\0' };
 
 static void clear_buffer(fl_console* console);
 
+static void input_handler(fl_context* context, fl_input_handler* self);
+static void render(fl_context* context, fl_console* console);
+
 static int get_font_index(char c, int* x, int* y)
 {
 	if (c >= 'a' && c <= 'z')
@@ -88,7 +91,7 @@ static int get_font_index(char c, int* x, int* y)
 
 fl_console* fl_create_console(fl_context* context)
 {
-	fl_console* con = (fl_console*)malloc(sizeof(fl_console));
+	fl_console* con = fl_alloc(fl_console, 1);
 
 	if (con == NULL)
 		return NULL;
@@ -100,6 +103,11 @@ fl_console* fl_create_console(fl_context* context)
 	con->cursor_x = 0;
 	con->cursor_y = 0;
 	con->char_count = 0;
+	con->font = context->fonts[FLURMP_FONT_COUSINE];
+
+	con->input_handler = fl_create_input_handler(input_handler);
+
+	con->render = render;
 
 	return con;
 }
@@ -109,17 +117,52 @@ void fl_destroy_console(fl_console* console)
 	if (console == NULL)
 		return;
 
-	free(console);
+	fl_destroy_input_handler(console->input_handler);
+
+	fl_free(console);
 
 	return;
 }
 
-/*
-	font sheet currently 576 x 36
-	each character is 12 x 18
-*/
+static void input_handler(fl_context* context, fl_input_handler* self)
+{
+	int i;
+	for (i = 0; i < FLURMP_SC_LIMIT; i++)
+	{
+		unsigned char mod = 0x00;
 
-void fl_render_console(fl_context* context, fl_console* console)
+		/* Handle key combinations like shift and ctrl. */
+		if (context->input.keystates[FLURMP_SC_LSHIFT] || context->input.keystates[FLURMP_SC_RSHIFT])
+			mod |= FLURMP_CONSOLE_MOD_SHIFT;
+		if (context->input.keystates[FLURMP_SC_LCTRL] || context->input.keystates[FLURMP_SC_RCTRL])
+			mod |= FLURMP_CONSOLE_MOD_CTRL;
+
+		/* Get the character that corresponds to the current scancode. */
+		char c = fl_sc_to_char(i, mod);
+
+		if (fl_consume_input(context, FLURMP_INPUT_TYPE_KEYBOARD, i))
+		{
+			/* If escape is rpessed, close the console. */
+			if (i == FLURMP_SC_ESCAPE)
+			{
+				/* Relenquish input control */
+				fl_pop_input_handler(context);
+
+				fl_destroy_console(context->console);
+				context->console = NULL;
+			}
+
+			/* If return is pressed, submit the current buffer,
+			   otherwise append to the current buffer. */
+			if (c == 0x0A)
+				submit_buffer(context, context->console);
+			else
+				fl_putc(context->console, c, mod);
+		}
+	}
+}
+
+static void render(fl_context* context, fl_console* console)
 {
 	SDL_SetRenderDrawColor(context->renderer, 150, 50, 150, 120);
 
@@ -134,8 +177,8 @@ void fl_render_console(fl_context* context, fl_console* console)
 	SDL_SetRenderDrawColor(context->renderer, 250, 250, 250, 255);
 	SDL_RenderDrawRect(context->renderer, &r);
 
-	int w = context->fonts[FLURMP_FONT_COUSINE]->impl.font->atlas->glyphs[0]->image->surface->w;
-	int h = context->fonts[FLURMP_FONT_COUSINE]->impl.font->atlas->glyphs[0]->image->surface->h;
+	int w = console->font->impl.font->atlas->glyphs[0]->image->surface->w;
+	int h = console->font->impl.font->atlas->glyphs[0]->image->surface->h;
 
 	/* render buffer contents */
 	SDL_Rect dest;
@@ -160,7 +203,7 @@ void fl_render_console(fl_context* context, fl_console* console)
 			dest.x = console->x + c_x * w + 2;
 			dest.y = console->y + c_y * h + 2;
 
-			fl_glyph* g = fl_char_to_glyph(context->fonts[FLURMP_FONT_COUSINE]->impl.font->atlas, buffer[i]);
+			fl_glyph* g = fl_char_to_glyph(console->font->impl.font->atlas, buffer[i]);
 			SDL_RenderCopy(context->renderer, g->image->texture, &src, &dest);
 
 			if (c_x >= FL_CON_WIDTH - 1)

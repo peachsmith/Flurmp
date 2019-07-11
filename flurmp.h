@@ -131,12 +131,6 @@ typedef struct fl_entity_type fl_entity_type;
 typedef struct fl_input_handler fl_input_handler;
 
 /**
- * Text to be rendered to the screen.
- * Static text should not change for the duration of its life cycle.
- */
-typedef struct fl_static_text fl_static_text;
-
-/**
  * A command line interface (CLI).
  * This should be used to receive text input directly from the user
  * or the developer.

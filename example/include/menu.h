@@ -17,6 +17,12 @@ fl_menu* fl_create_menu(int x, int y, int w, int h);
 
 void fl_destroy_menu(fl_menu* menu);
 
+fl_menu* fl_get_active_menu(fl_context* context);
+
+void fl_push_menu(fl_context* context, fl_menu* menu);
+
+fl_menu* fl_pop_menu(fl_context* context);
+
 
 
 /* Pause Menu Functions */
@@ -27,6 +33,6 @@ fl_menu* fl_create_pause_submenu(fl_context* context);
 
 fl_menu* fl_create_fish_submenu(fl_context* context);
 
-void fl_render_menu(fl_context* context, fl_menu* menu);
+fl_menu* fl_create_confirmation_menu(fl_context* context);
 
 #endif

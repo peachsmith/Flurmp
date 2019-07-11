@@ -1,28 +1,41 @@
 #include "sign.h"
 #include "entity.h"
 #include "resource.h"
+#include "dialog.h"
+#include "input.h"
+#include "text.h"
 
 #include <stdio.h>
+#include <string.h>
+
+static const char* statements[2] = {
+	"This is a sign.",
+	"It's purpose is to display information."
+};
 
 /* entity function prototypes */
 static void collide(fl_context*, fl_entity*, fl_entity*, int, int);
 static void update(fl_context*, fl_entity*, int);
 static void render(fl_context*, fl_entity*);
 
+/* dialog callbacks */
+static void first_cb(fl_context* context, fl_dialog* self);
+
 fl_entity* fl_create_sign(int x, int y)
 {
-	fl_entity* sign = malloc(sizeof(fl_entity));
+	fl_entity* sign = fl_alloc(fl_entity, 1);
 
 	if (sign == NULL) return sign;
 
 	sign->next = NULL;
 	sign->tail = NULL;
 	sign->type = FLURMP_ENTITY_SIGN;
-	sign->flags = 0;
+	sign->flags = FLURMP_ALIVE_FLAG;
 	sign->x_v = 0;
 	sign->y_v = 0;
 	sign->x = x;
 	sign->y = y;
+	sign->life = 1;
 
 	return sign;
 }
@@ -36,7 +49,7 @@ void fl_register_sign_type(fl_context* context, fl_entity_type* et)
 	et->update = update;
 	et->render = render;
 
-	et->texture = fl_load_bmp(context, "resources/images/sign.bmp");
+	et->texture = NULL;
 }
 
 static void collide(fl_context* context, fl_entity* self, fl_entity* other, int collided, int axis)
@@ -44,11 +57,18 @@ static void collide(fl_context* context, fl_entity* self, fl_entity* other, int 
 	if (other->flags & FLURMP_INTERACT_FLAG)
 	{
 		other->flags &= ~(FLURMP_INTERACT_FLAG);
-		if (!context->dialogs[0]->open)
-		{
-			context->dialogs[0]->open = 1;
-			context->active_dialog = context->dialogs[0];
-		}
+
+
+
+		fl_dialog* dialog = fl_create_dialog(context);
+
+		dialog->counter = 0;
+		dialog->msg = statements[0];
+		dialog->len = strlen(statements[0]);
+		dialog->callback = first_cb;
+
+		context->active_dialog = dialog;
+		fl_push_input_handler(context, dialog->input_handler);
 	}
 }
 
@@ -77,4 +97,16 @@ static void render(fl_context* context, fl_entity* self)
 	dest.h = self_h;
 
 	SDL_RenderCopy(context->renderer, tex, &src, &dest);
+}
+
+static void first_cb(fl_context* context, fl_dialog* self)
+{
+	fl_dialog* dialog = fl_create_dialog(context);
+
+	dialog->counter = 0;
+	dialog->msg = statements[1];
+	dialog->len = strlen(statements[1]);
+
+	context->active_dialog = dialog;
+	fl_push_input_handler(context, dialog->input_handler);
 }

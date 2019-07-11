@@ -1,19 +1,33 @@
+/**
+ * Scancodes, input flags and functions for handling user input.
+ *
+ * Scancodes indicate the actuation of certain keys on the keyboard.
+ *
+ * Input flags are used to keep track of what inputs have been actuated.
+ * When an input is actuated, its input flag is toggled on.
+ * By toggling an input flag off, we can allow one action per key press.
+ * Alternatively, by leaving an input flag as toggled, we can perform an
+ * action repeatedly for the duration of a key press.
+ */
 #ifndef FLURMP_INPUT_IMPL_H
 #define FLURMP_INPUT_IMPL_H
 
 #include "flurmp_impl.h"
 
-/* total number of input flags */
-#define FLURMP_INPUT_FLAG_COUNT 55
-
 /* input types */
 #define FLURMP_INPUT_TYPE_KEYBOARD 1
 #define FLURMP_INPUT_TYPE_MOUSE 2
 
+/* total number of scancodes */
+#define FLURMP_SCANCODE_COUNT 56
+
+/* total number of input flags */
+#define FLURMP_INPUT_FLAG_COUNT 55
+
+/* the maximum value a scancode can have */
 #define FLURMP_SC_LIMIT SDL_NUM_SCANCODES
 
 /* scancodes */
-/* there are 56 scancodes */
 #define FLURMP_SC_A SDL_SCANCODE_A /* 1st scancode */
 #define FLURMP_SC_B SDL_SCANCODE_B
 #define FLURMP_SC_C SDL_SCANCODE_C
@@ -174,5 +188,43 @@ int fl_consume_input(fl_context* context, int type, int code);
  *         0 is returned.
  */
 int fl_peek_input(fl_context* context, int type, int code);
+
+/**
+ * Creates an input handler.
+ *
+ * Params:
+ *   void(*handler) (fl_context*, fl_input_handler*) - a pointer to
+ *       an input handler function
+ *
+ * Returns:
+ *   fl_input_handler - a new input handler
+ */
+fl_input_handler* fl_create_input_handler(void(*handler) (fl_context*, fl_input_handler*));
+
+/**
+ * Frees the memory allocated for an input handler.
+ *
+ * Params:
+ *   fl_input_handler - an fl_input_handler
+ */
+void fl_destroy_input_handler(fl_input_handler* input);
+
+/**
+ * Appends an input handler to the current context.
+ *
+ * Params:
+ *   fl_context - a Flurmp context
+ *   fl_input_handler - an input handler
+ */
+void fl_push_input_handler(fl_context* context, fl_input_handler* input);
+
+/**
+ * Removes the most recently added input handler from a context.
+ * This does NOT destroy the input handler that was removed.
+ *
+ * Params:
+ *   fl_context - a Flurmp context
+ */
+void fl_pop_input_handler(fl_context* context);
 
 #endif

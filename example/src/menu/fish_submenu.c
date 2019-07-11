@@ -12,9 +12,11 @@
 
 #include <stdio.h>
 
+#define ITEM_COUNT 2
+
 static void get_cursor_coords(fl_menu* context, int* x, int* y);
 
-static void input_handler(fl_context* context, fl_menu* menu);
+static void input_handler(fl_context* context, fl_input_handler* self);
 
 /* menu actions */
 static void tuna_action(fl_context* context, fl_menu* menu);
@@ -63,7 +65,7 @@ fl_menu* fl_create_fish_submenu(fl_context* context)
 		return NULL;
 	}
 
-	items = (fl_menu_item**)malloc(sizeof(fl_menu_item*) * 2);
+	items = fl_alloc(fl_menu_item*, ITEM_COUNT);
 
 	if (items == NULL)
 	{
@@ -79,7 +81,15 @@ fl_menu* fl_create_fish_submenu(fl_context* context)
 
 	menu->items = items;
 	menu->item_count = 2;
-	menu->input_handler = input_handler;
+
+	/*fl_input_handler* input = fl_create_input_handler();
+
+	input->handler = input_handler;
+
+	menu->input_handler = input;*/
+
+	menu->input_handler = fl_create_input_handler(input_handler);
+
 	menu->get_cursor_coords = get_cursor_coords;
 
 	return menu;
@@ -91,8 +101,16 @@ static void get_cursor_coords(fl_menu* menu, int* x, int* y)
 	*y = menu->pos * 30 + menu->y + 10;
 }
 
-static void input_handler(fl_context* context, fl_menu* menu)
+static void input_handler(fl_context* context, fl_input_handler* self)
 {
+	if (self->child != NULL)
+	{
+		self->child->handler(context, self->child);
+		return;
+	}
+
+	fl_menu* menu = fl_get_active_menu(context);
+
 	if (fl_consume_input(context, FLURMP_INPUT_TYPE_KEYBOARD, FLURMP_SC_W))
 	{
 		cursor_up(context, menu);
@@ -125,9 +143,13 @@ static void input_handler(fl_context* context, fl_menu* menu)
 
 	if (fl_consume_input(context, FLURMP_INPUT_TYPE_KEYBOARD, FLURMP_SC_ESCAPE))
 	{
-		menu->pos = 0;
-		menu->open = 0;
-		menu->parent->child = NULL;
+		/* Relenquish input control */
+		fl_pop_input_handler(context);
+
+		/* Remove the current active menu */
+		fl_menu* menu = fl_pop_menu(context);
+
+		fl_destroy_menu(menu);
 	}
 }
 
@@ -179,7 +201,11 @@ static void cursor_select(fl_context* context, fl_menu* menu)
 
 static void cursor_cancel(fl_context* context, fl_menu* menu)
 {
-	menu->pos = 0;
-	menu->open = 0;
-	menu->parent->child = NULL;
+	/* Relenquish input control */
+	fl_pop_input_handler(context);
+
+	/* Remove the current active menu */
+	fl_menu* active = fl_pop_menu(context);
+
+	fl_destroy_menu(active);
 }

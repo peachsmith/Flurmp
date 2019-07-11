@@ -1,9 +1,16 @@
+/**
+ * A scene represents the current collection of entities and resources
+ * within a context.
+ * 
+ * The contents of a scene may extend beyond the boundaries of the screen.
+ */
 #ifndef FLURMP_SCENE_H
 #define FLURMP_SCENE_H
 
 #include "flurmp_impl.h"
 
-#define FLURMP_SCENE_BASIC 0
+#define FLURMP_SCENE_NONE 0
+#define FLURMP_SCENE_TEST_1 1
 
 /**
  * Populates a context with entities and resources.
@@ -15,8 +22,9 @@
 void fl_load_scene(fl_context* context, int id);
 
 /**
- * Decomissions the entities and resources for the
- * current scene in a context.
+ * Removes entities and unloads resources from a context.
+ * When a scene is cleared, all entities are destroyed, but some
+ * resources may be left to be reused.
  *
  * Params:
  *   fl_context - a Flurmp context
