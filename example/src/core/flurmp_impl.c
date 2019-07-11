@@ -20,9 +20,9 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-/* Counters to keep track of how many times malloc and free
-   have been called. These do NOT take into account the calls
-   to malloc and free made by libraries. */
+ /* Counters to keep track of how many times malloc and free
+	have been called. These do NOT take into account the calls
+	to malloc and free made by libraries. */
 static int allocations_ = 0;
 static int frees_ = 0;
 
@@ -504,15 +504,11 @@ void fl_render(fl_context* context)
 		en = en->next;
 	}
 
-	/* Render the pause menu if the application is paused. */
-	if (context->paused)
-	{
-		if (context->active_menu != NULL)
-			context->active_menu->render(context, context->active_menu);
+	if (context->active_menu != NULL)
+		context->active_menu->render(context, context->active_menu);
 
-		if (context->console != NULL)
-			context->console->render(context, context->console);
-	}
+	if (context->console != NULL)
+		context->console->render(context, context->console);
 
 	/* Render the dialog if it's being used. */
 	if (context->active_dialog != NULL)
