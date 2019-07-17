@@ -11,8 +11,10 @@ fl_menu_item* fl_create_menu_item(fl_context* context,
 	fl_menu_item* item;
 	fl_image* image;
 
+	/* Allocate memory for a menu item. */
 	item = fl_alloc(fl_menu_item, 1);
 
+	/* Verify item allocation. */
 	if (item == NULL)
 		return NULL;
 
@@ -20,17 +22,17 @@ fl_menu_item* fl_create_menu_item(fl_context* context,
 	item->y = y;
 	item->action = action;
 
+	/* Create an image to render for the menu item. */
 	image = fl_create_static_text(context, context->fonts[FLURMP_FONT_VERA], text);
 
-	if (text == NULL)
+	/* Verify image creation. */
+	if (image == NULL)
 	{
 		fl_free(item);
 		return NULL;
 	}
 
 	item->image = image;
-	item->x = x;
-	item->y = y;
 
 	return item;
 }
@@ -61,10 +63,10 @@ fl_menu* fl_create_menu(int x, int y, int w, int h)
 	menu->h = h;
 	menu->pos = 0;
 	menu->item_count = 0;
-	menu->submenu_count = 0;
 	menu->items = NULL;
 	menu->input_handler = NULL;
 	menu->get_cursor_coords = NULL;
+	menu->callback = NULL;
 
 	return menu;
 }

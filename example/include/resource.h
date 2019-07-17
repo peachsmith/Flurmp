@@ -24,8 +24,8 @@ fl_resource* fl_load_bmp(fl_context* context, const char* path);
  * Params:
  *   const char* - a string containing the path to the resource
  *   int - the font size in points
- *   fl_color - the foreground color
- *   fl_color - the background color
+ *   SDL_Color - the foreground color
+ *   SDL_Color - the background color
  *   int - a flag indicating whether or not to use a background color.
  *         If this value is 0, then no background color is used,
  *         otherwise the background color passed in is used.
@@ -34,7 +34,11 @@ fl_resource* fl_load_bmp(fl_context* context, const char* path);
  * Returns:
  *   fl_resource - a reference to a newly created resource
  */
-fl_resource* fl_load_font(const char* path, int p, fl_color fc, fl_color bc, int background);
+fl_resource* fl_load_font(const char* path,
+	int p,
+	SDL_Color fc, 
+	SDL_Color bc,
+	int background);
 
 /**
  * Frees the memory allocated for a resource.

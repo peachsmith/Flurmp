@@ -163,6 +163,7 @@ int fl_code_to_flag(int type, int code);
  * Params:
  *   fl_context - a Flurmp context
  *   int - the input type (e.g. FLURMP_INPUT_TYPE_KEYBOARD)
+ *   int - the input code of the input to check
  *
  * Returns:
  *   int - an integer indicating whether the input was actuated.
@@ -181,6 +182,7 @@ int fl_consume_input(fl_context* context, int type, int code);
  * Params:
  *   fl_context - a Flurmp context
  *   int - the input type (e.g. FLURMP_INPUT_TYPE_KEYBOARD)
+ *   int - the input code of the input to check
  *
  * Returns:
  *   int - an integer indicating whether the input was actuated.
@@ -188,6 +190,28 @@ int fl_consume_input(fl_context* context, int type, int code);
  *         0 is returned.
  */
 int fl_peek_input(fl_context* context, int type, int code);
+
+/**
+ * Checks the state of a keybaord key press.
+ * If this function determines that the input event
+ * has occurred, it flags the input event as consumed.
+ *
+ * This function should be used when an action is required
+ * to happen once in response to a single key press.
+ *
+ * This is the same as calling fl_consume_input while passing
+ * the type FLURMP_INPUT_TYPE_KEYBOARD.
+ *
+ * Params:
+ *   fl_context - a Flurmp context
+ *   int - the scancode code of the key to check
+ *
+ * Returns:
+ *   int - an integer indicating whether the input was actuated.
+ *         1 is returned if the input was actuated, otherwise
+ *         0 is returned.
+ */
+int fl_consume_key(fl_context* context, int code);
 
 /**
  * Creates an input handler.
@@ -208,6 +232,17 @@ fl_input_handler* fl_create_input_handler(void(*handler) (fl_context*, fl_input_
  *   fl_input_handler - an fl_input_handler
  */
 void fl_destroy_input_handler(fl_input_handler* input);
+
+/**
+ * Retrieves the current active input handler.
+ *
+ * Params:
+ *   fl_context - a Flurmp context.
+ *
+ * Returns:
+ *   fl_input_handler - an input handler
+ */
+fl_input_handler* fl_get_input_handler(fl_context* context);
 
 /**
  * Appends an input handler to the current context.

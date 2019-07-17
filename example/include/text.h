@@ -4,11 +4,12 @@
 #include "flurmp_impl.h"
 
 /* total number of fonts available to the application */
-#define FLURMP_FONT_COUNT 2
+#define FLURMP_FONT_COUNT 3
 
 /* undices for font registry */
 #define FLURMP_FONT_VERA 0
 #define FLURMP_FONT_COUSINE 1
+#define FLURMP_FONT_KARMILLA_BOLD 2
 
 /**
  * Creates a new glyph.
@@ -66,7 +67,9 @@ void fl_destroy_font_atlas(fl_font_atlas* atlas);
  * Returns:
  *   fl_static_text - a new static text structure
  */
-fl_image* fl_create_static_text(fl_context* context, fl_resource* res, const char* txt);
+fl_image* fl_create_static_text(fl_context* context,
+	fl_resource* res,
+	const char* txt);
 
 /**
  * Frees resources allocated for static text.

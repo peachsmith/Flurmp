@@ -6,16 +6,45 @@
 #define FLURMP_CONSOLE_MOD_SHIFT 0x01
 #define FLURMP_CONSOLE_MOD_CTRL  0x02
 
+/**
+ * Creates a console.
+ *
+ * Params:
+ *   fl_context - a Flurmp context
+ *
+ * Returns:
+ *   fl_console - a newly created console
+ */
 fl_console* fl_create_console(fl_context* context);
 
+/**
+ * Frees the memory allocated for a console.
+ *
+ * Params:
+ *   fl_console - a console
+ */
 void fl_destroy_console(fl_console* console);
 
-void fl_render_console(fl_context* context, fl_console* console);
-
+/**
+ * Appends a character to the current console command buffer.
+ *
+ * Params:
+ *   fl_console - a console
+ *   char - a character
+ *   unsigned char - a byte containing modifier flags that indicate
+ *     when key combinations have been pressed
+ */
 void fl_putc(fl_console* console, char c, unsigned char mod);
 
-void fl_print(fl_console* console, const char* s);
-
+/**
+ * Submits the current command buffer for a console.
+ * An action is taken based on the contents of the buffer at the
+ * time of submission.
+ *
+ * Params:
+ *   fl_context - a Flurmp context
+ *   fl_console - a console
+ */
 void submit_buffer(fl_context* context, fl_console* console);
 
 /**

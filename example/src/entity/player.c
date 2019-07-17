@@ -1,10 +1,6 @@
 #include "player.h"
 #include "entity.h"
 #include "resource.h"
-#include "input.h"
-
-#include <stdio.h>
-
 
 
 
@@ -20,20 +16,24 @@
  * Params:
  *   fl_context - a Flurmp context
  *   fl_entity - the player entity
+ *   fl_entity - the entity with which the player has collided
+ *   int - the direction from which the collision occurred
+ *   int - the axis
  */
 static void collide(fl_context*, fl_entity*, fl_entity*, int, int);
 
 /**
  * Performs the following operations:
  * horizontal camera adjustment (x axis)
- * horizontal movement          (x axis, input handling)
- * vertical movement            (y axis, input handling)
- * entity interaction           (either axis, input handling)
+ * horizontal movement          (x axis)
+ * vertical movement            (y axis)
+ * entity interaction           (either axis)
  * animation                    (either axis)
  *
  * Params:
  *   fl_context - a Flurmp context
  *   fl_entity - the player entity
+ *   int - an axis
  */
 static void update(fl_context*, fl_entity*, int);
 
@@ -93,7 +93,6 @@ static void animate(fl_context*, fl_entity*);
 
 
 
-
 /* -------------------------------------------------------------- */
 /*                 utility functions functions                    */
 /* -------------------------------------------------------------- */
@@ -101,9 +100,8 @@ static void render_hitbox(fl_context* context, fl_entity* self);
 
 
 
-
 /* -------------------------------------------------------------- */
-/*         entity creation functions (publicly exposed)           */
+/*                    player.h implementation                     */
 /* -------------------------------------------------------------- */
 
 fl_entity* fl_create_player(int x, int y)
@@ -140,9 +138,8 @@ void fl_register_player_type(fl_context* context, fl_entity_type* et)
 
 
 
-
 /* -------------------------------------------------------------- */
-/*                update functions (implementation)               */
+/*            entity behavior function implementations            */
 /* -------------------------------------------------------------- */
 
 static void collide(fl_context* context, fl_entity* self, fl_entity* other, int collided, int axis)
@@ -213,6 +210,12 @@ static void render(fl_context* context, fl_entity* self)
 
 	/* render_hitbox(context, self); */
 }
+
+
+
+/* -------------------------------------------------------------- */
+/*                update function implementations                 */
+/* -------------------------------------------------------------- */
 
 static void adjust_camera_horizontal(fl_context* context, fl_entity* self)
 {
@@ -300,6 +303,9 @@ static void vertical_movement(fl_context* context, fl_entity* self)
 {
 	int self_w = context->entity_types[self->type].w;
 	int self_h = context->entity_types[self->type].h;
+	
+	/* Reset the jump flag. */
+	self->flags |= FLURMP_JUMP_FLAG;
 
 	/* gravity (y axis) */
 	if (self->y_v < 4) self->y_v += 1;

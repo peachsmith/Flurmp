@@ -112,6 +112,11 @@ int fl_peek_input(fl_context* context, int type, int code)
 	return 0;
 }
 
+int fl_consume_key(fl_context* context, int code)
+{
+	return fl_consume_input(context, FLURMP_INPUT_TYPE_KEYBOARD, code);
+}
+
 fl_input_handler* fl_create_input_handler(void(*handler) (fl_context*, fl_input_handler*))
 {
 	fl_input_handler* input;
@@ -121,7 +126,7 @@ fl_input_handler* fl_create_input_handler(void(*handler) (fl_context*, fl_input_
 	if (input == NULL)
 		return NULL;
 
-	input->handler = handler;
+	input->handle_input = handler;
 	input->parent = NULL;
 	input->child = NULL;
 
@@ -138,6 +143,20 @@ void fl_destroy_input_handler(fl_input_handler* input)
 		fl_destroy_input_handler(input->child);
 
 	fl_free(input);
+}
+
+fl_input_handler* fl_get_input_handler(fl_context* context)
+{
+	if (context == NULL || context->input_handler == NULL)
+		return NULL;
+
+	fl_input_handler* input = context->input_handler;
+
+	/* Traverse the input handler list until we find one with no child. */
+	while (input->child != NULL)
+		input = input->child;
+
+	return input;
 }
 
 void fl_push_input_handler(fl_context* context, fl_input_handler* input)

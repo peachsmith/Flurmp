@@ -6,88 +6,20 @@
 #include <stdio.h>
 #include <string.h>
 
-#define FL_CON_WIDTH 48
-#define FL_CON_HEIGHT 4
-#define FL_CHAR_WIDTH 12
-#define FL_CHAR_HEIGHT 18
-#define FL_FONT_SHEET_WIDTH 576
-#define FL_FONT_SHEET_HEIGHT 36
-#define FL_BUFFER_LIMIT FL_CON_WIDTH * FL_CON_HEIGHT
+#define ROW_COUNT 4
+#define FL_BUFFER_LIMIT 208
+
+#define nonsense
 
 /* for now, the buffers and stuff will be static */
+/* TODO: make this a member of the console structure. */
 static char buffer[FL_BUFFER_LIMIT] = { '\0' };
 
-static void clear_buffer(fl_console* console);
+nonsense static void clear_buffer(fl_console* console);
 
-static void input_handler(fl_context* context, fl_input_handler* self);
+static void handle_input(fl_context* context, fl_input_handler* self);
+
 static void render(fl_context* context, fl_console* console);
-
-static int get_font_index(char c, int* x, int* y)
-{
-	if (c >= 'a' && c <= 'z')
-	{
-		*x = (c - 'a') * FL_CHAR_WIDTH;
-		*y = FL_CHAR_HEIGHT * 0;
-		return 1;
-	}
-
-	else if (c >= 'A' && c <= 'Z')
-	{
-		*x = (c - 'A') * FL_CHAR_WIDTH;
-		*y = FL_CHAR_HEIGHT * 1;
-		return 1;
-	}
-
-	else if (c >= '0' && c <= '9')
-	{
-		*x = (c - '0') * FL_CHAR_WIDTH + 26 * FL_CHAR_WIDTH;
-		*y = FL_CHAR_HEIGHT * 0;
-		return 1;
-	}
-
-	switch (c)
-	{
-	case ')':  *x = 26 * FL_CHAR_WIDTH; *y = 1 * FL_CHAR_HEIGHT; break;
-	case '!':  *x = 27 * FL_CHAR_WIDTH; *y = 1 * FL_CHAR_HEIGHT; break;
-	case '@':  *x = 28 * FL_CHAR_WIDTH; *y = 1 * FL_CHAR_HEIGHT; break;
-	case '#':  *x = 29 * FL_CHAR_WIDTH; *y = 1 * FL_CHAR_HEIGHT; break;
-	case '$':  *x = 30 * FL_CHAR_WIDTH; *y = 1 * FL_CHAR_HEIGHT; break;
-	case '%':  *x = 31 * FL_CHAR_WIDTH; *y = 1 * FL_CHAR_HEIGHT; break;
-	case '^':  *x = 32 * FL_CHAR_WIDTH; *y = 1 * FL_CHAR_HEIGHT; break;
-	case '&':  *x = 33 * FL_CHAR_WIDTH; *y = 1 * FL_CHAR_HEIGHT; break;
-	case '*':  *x = 34 * FL_CHAR_WIDTH; *y = 1 * FL_CHAR_HEIGHT; break;
-	case '(':  *x = 35 * FL_CHAR_WIDTH; *y = 1 * FL_CHAR_HEIGHT; break;
-
-	case '-':  *x = 36 * FL_CHAR_WIDTH; *y = 0 * FL_CHAR_HEIGHT; break;
-	case '=':  *x = 37 * FL_CHAR_WIDTH; *y = 0 * FL_CHAR_HEIGHT; break;
-	case '[':  *x = 38 * FL_CHAR_WIDTH; *y = 0 * FL_CHAR_HEIGHT; break;
-	case ']':  *x = 39 * FL_CHAR_WIDTH; *y = 0 * FL_CHAR_HEIGHT; break;
-	case ';':  *x = 40 * FL_CHAR_WIDTH; *y = 0 * FL_CHAR_HEIGHT; break;
-	case '\'': *x = 41 * FL_CHAR_WIDTH; *y = 0 * FL_CHAR_HEIGHT; break;
-	case ',':  *x = 42 * FL_CHAR_WIDTH; *y = 0 * FL_CHAR_HEIGHT; break;
-	case '.':  *x = 43 * FL_CHAR_WIDTH; *y = 0 * FL_CHAR_HEIGHT; break;
-	case '/':  *x = 44 * FL_CHAR_WIDTH; *y = 0 * FL_CHAR_HEIGHT; break;
-	case '\\': *x = 45 * FL_CHAR_WIDTH; *y = 0 * FL_CHAR_HEIGHT; break;
-	case '`':  *x = 46 * FL_CHAR_WIDTH; *y = 0 * FL_CHAR_HEIGHT; break;
-
-	case '_':  *x = 36 * FL_CHAR_WIDTH; *y = 1 * FL_CHAR_HEIGHT; break;
-	case '+':  *x = 37 * FL_CHAR_WIDTH; *y = 1 * FL_CHAR_HEIGHT; break;
-	case '{':  *x = 38 * FL_CHAR_WIDTH; *y = 1 * FL_CHAR_HEIGHT; break;
-	case '}':  *x = 39 * FL_CHAR_WIDTH; *y = 1 * FL_CHAR_HEIGHT; break;
-	case ':':  *x = 40 * FL_CHAR_WIDTH; *y = 1 * FL_CHAR_HEIGHT; break;
-	case '"':  *x = 41 * FL_CHAR_WIDTH; *y = 1 * FL_CHAR_HEIGHT; break;
-	case '<':  *x = 42 * FL_CHAR_WIDTH; *y = 1 * FL_CHAR_HEIGHT; break;
-	case '>':  *x = 43 * FL_CHAR_WIDTH; *y = 1 * FL_CHAR_HEIGHT; break;
-	case '?':  *x = 44 * FL_CHAR_WIDTH; *y = 1 * FL_CHAR_HEIGHT; break;
-	case '|':  *x = 45 * FL_CHAR_WIDTH; *y = 1 * FL_CHAR_HEIGHT; break;
-	case '~':  *x = 46 * FL_CHAR_WIDTH; *y = 1 * FL_CHAR_HEIGHT; break;
-
-	case ' ':
-	default:   *x = 47 * FL_CHAR_WIDTH; *y = 0 * FL_CHAR_HEIGHT; break;
-	}
-
-	return 1;
-}
 
 fl_console* fl_create_console(fl_context* context)
 {
@@ -103,10 +35,8 @@ fl_console* fl_create_console(fl_context* context)
 	con->cursor_x = 0;
 	con->cursor_y = 0;
 	con->char_count = 0;
-	con->font = context->fonts[FLURMP_FONT_COUSINE];
-
-	con->input_handler = fl_create_input_handler(input_handler);
-
+	con->atlas = context->fonts[FLURMP_FONT_COUSINE]->impl.font->atlas;
+	con->input_handler = fl_create_input_handler(handle_input);
 	con->render = render;
 
 	return con;
@@ -124,7 +54,7 @@ void fl_destroy_console(fl_console* console)
 	return;
 }
 
-static void input_handler(fl_context* context, fl_input_handler* self)
+static void handle_input(fl_context* context, fl_input_handler* self)
 {
 	int i;
 	for (i = 0; i < FLURMP_SC_LIMIT; i++)
@@ -166,7 +96,13 @@ static void render(fl_context* context, fl_console* console)
 {
 	SDL_SetRenderDrawColor(context->renderer, 150, 50, 150, 120);
 
+	int i;
+	int cx;
+	int cy;
 	SDL_Rect r;
+	SDL_Rect dest;
+	SDL_Rect src;
+
 	r.x = console->x;
 	r.y = console->y;
 	r.w = console->w;
@@ -176,50 +112,45 @@ static void render(fl_context* context, fl_console* console)
 
 	SDL_SetRenderDrawColor(context->renderer, 250, 250, 250, 255);
 	SDL_RenderDrawRect(context->renderer, &r);
-
-	int w = console->font->impl.font->atlas->glyphs[0]->image->surface->w;
-	int h = console->font->impl.font->atlas->glyphs[0]->image->surface->h;
-
-	/* render buffer contents */
-	SDL_Rect dest;
+	
 	dest.x = 0;
 	dest.y = 0;
-	dest.w = w;
-	dest.h = h;
 
-	SDL_Rect src;
 	src.x = 0;
 	src.y = 0;
-	src.w = w;
-	src.h = h;
 
-	int i;
-	int c_x = 0;
-	int c_y = 0;
-	for (i = 0; i < FL_CON_WIDTH * FL_CON_HEIGHT; i++)
+	for (i = cx = cy = 0; i < FL_BUFFER_LIMIT; i++)
 	{
 		if (buffer[i] >= 0x20)
 		{
-			dest.x = console->x + c_x * w + 2;
-			dest.y = console->y + c_y * h + 2;
+			/* Get the appropriate glyph from the font atlas. */
+			fl_glyph* g = fl_char_to_glyph(console->atlas, buffer[i]);
 
-			fl_glyph* g = fl_char_to_glyph(console->font->impl.font->atlas, buffer[i]);
+			dest.x = console->x + cx + 4;
+			dest.y = console->y + cy * 22 + 4;
+			dest.w = g->image->surface->w;
+			dest.h = g->image->surface->h;
+
+			src.w = g->image->surface->w;
+			src.h = g->image->surface->h;
+
+
 			SDL_RenderCopy(context->renderer, g->image->texture, &src, &dest);
 
-			if (c_x >= FL_CON_WIDTH - 1)
+			if (cx > 500)
 			{
-				c_x = 0;
-				if (c_y < FL_CON_HEIGHT - 1)
-					c_y++;
+				cx = 0;
+				if (cy < ROW_COUNT - 1)
+					cy++;
 			}
 			else
-				c_x++;
+				cx += g->image->surface->w;
 		}
 		else if (buffer[i] == 0x0A)
 		{
-			c_x = 0;
-			if (c_y < FL_CON_HEIGHT - 1)
-				c_y++;
+			cx = 0;
+			if (cy < ROW_COUNT - 1)
+				cy++;
 		}
 	}
 }
@@ -245,7 +176,7 @@ void fl_putc(fl_console* console, char c, unsigned char mod)
 		if (console->char_count < FL_BUFFER_LIMIT - 1)
 		{
 			console->cursor_x = 0;
-			if (console->cursor_y < FL_CON_HEIGHT - 1)
+			if (console->cursor_y < ROW_COUNT - 1)
 			{
 				buffer[console->char_count++] = '\n';
 				console->cursor_y++;
@@ -273,22 +204,6 @@ void fl_putc(fl_console* console, char c, unsigned char mod)
 		return;
 
 	buffer[console->char_count++] = c;
-
-	if (console->cursor_x >= FL_CON_WIDTH - 1)
-	{
-		console->cursor_x = 0;
-		if (console->cursor_y < FL_CON_HEIGHT - 1)
-			console->cursor_y++;
-	}
-	else
-	{
-		console->cursor_x++;
-	}
-}
-
-void fl_print(fl_console* console, const char* s)
-{
-
 }
 
 void submit_buffer(fl_context* context, fl_console* console)

@@ -24,8 +24,8 @@ fl_glyph* fl_create_glyph(fl_context* context, fl_resource* res, char c)
 
 	/* Extract the font data from the resource. */
 	font = res->impl.font->impl;
-	fc = res->impl.font->forecolor.impl;
-	bc = res->impl.font->backcolor.impl;
+	fc = res->impl.font->forecolor;
+	bc = res->impl.font->backcolor;
 
 	/* Convert the text to an SDL_Surface. */
 	if (res->impl.font->background)
@@ -208,8 +208,8 @@ fl_image* fl_create_static_text(fl_context* context, fl_resource* res, const cha
 
 	/* Extract the font data from the resource. */
 	font = res->impl.font->impl;
-	fc = res->impl.font->forecolor.impl;
-	bc = res->impl.font->backcolor.impl;
+	fc = res->impl.font->forecolor;
+	bc = res->impl.font->backcolor;
 
 	/* Convert the text to an SDL_Surface. */
 	if (res->impl.font->background)

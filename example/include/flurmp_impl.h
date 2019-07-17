@@ -1,3 +1,6 @@
+/**
+ * An implementation of flurmp using SDL2
+ */
 #ifndef FLURMP_IMPL_H
 #define FLURMP_IMPL_H
 
@@ -32,15 +35,15 @@
 #define FLURMP_ERR_IMAGES        0x07
 #define FLURMP_ERR_INPUT_HANDLER 0x08
 
-/* memory allocation macro */
-#define fl_alloc(t,n) (t*)fl_alloc_internal_(sizeof(t) * n)
+/**
+ * Memory allocation
+ */
+#define fl_alloc(t,n) (t*)fl_allocate_(sizeof(t) * n)
 
-/* memory release macro */
-#define fl_free(m) fl_free_internal_(m)
-
-struct fl_color {
-	SDL_Color impl;
-};
+/**
+ * Memory release
+ */
+#define fl_free(m) fl_free_(m)
 
 struct fl_image {
 	SDL_Surface* surface;
@@ -60,8 +63,8 @@ struct fl_font_atlas {
 struct fl_font {
 	TTF_Font* impl;
 	fl_font_atlas* atlas;
-	fl_color forecolor;
-	fl_color backcolor;
+	SDL_Color forecolor;
+	SDL_Color backcolor;
 	int background;
 };
 
@@ -100,17 +103,17 @@ struct fl_entity {
  * It contains pointers to parent and child input handlers
  * which allows one input handler to pass control to another.
  */
-typedef struct fl_input_handler {
+struct fl_input_handler {
 
-	void(*handler) (fl_context*, fl_input_handler*);
+	void(*handle_input) (fl_context*, fl_input_handler*);
 
 	fl_input_handler* child;
 	fl_input_handler* parent;
 
-}fl_input_handler;
+};
 
 struct fl_console {
-	fl_resource* font;
+	fl_font_atlas* atlas;
 	int x;
 	int y;
 	int w;
@@ -138,11 +141,11 @@ struct fl_menu {
 	int h;
 	int pos;
 	int item_count;
-	int submenu_count;
 	fl_menu_item** items;
 	fl_input_handler* input_handler;
 	void(*render) (fl_context*, fl_menu*);
 	void(*get_cursor_coords) (fl_menu*, int*, int*);
+	void(*callback) (fl_context*);
 };
 
 struct fl_dialog {
@@ -152,7 +155,6 @@ struct fl_dialog {
 	int w;
 	int h;
 	size_t counter;
-	int open;
 	char* buffer;
 	int buffer_count;
 	void(*update) (fl_context*, fl_dialog*);
@@ -162,8 +164,20 @@ struct fl_dialog {
 	size_t len;
 	int speed;
 	int hold;
-	void(*callback) (fl_context*, fl_dialog*);
+	void(*callback) (fl_context*);
 };
+
+typedef struct fl_data_panel {
+	fl_font_atlas* atlas;
+	int x;
+	int y;
+	int w;
+	int h;
+	char* buffer;
+	int buffer_count;
+	void(*update) (fl_context*, struct fl_data_panel*);
+	void(*render) (fl_context*, struct fl_data_panel*);
+} fl_data_panel;
 
 struct fl_context {
 
@@ -192,6 +206,7 @@ struct fl_context {
 	fl_entity* pco;
 	fl_dialog* active_dialog;
 	fl_menu* active_menu;
+	fl_data_panel* data_panel;
 
 	/* Camera position */
 	int cam_x;
@@ -215,6 +230,7 @@ struct fl_context {
 	/* Error flag */
 	int error;
 
+	/* Pause flag */
 	int paused;
 
 	/* Indicated the current scene */
@@ -228,17 +244,33 @@ struct fl_context {
  * A helper function to set color values.
  *
  * Params:
- *   fl_color - a reference to a color structure
+ *   SDL_Color - a reference to a color structure
  *   int - the red value ranging from 0 - 255
  *   int - the green value ranging from 0 - 255
  *   int - the blue value ranging from 0 - 255
  *   int - the alpha value ranging from 0 - 255
  *
  */
-void fl_set_color(fl_color* color, int r, int g, int b, int a);
+void fl_set_color(SDL_Color* color, int r, int g, int b, int a);
 
-void* fl_alloc_internal_(size_t s);
+/**
+ * A helper function used to manage memory allocation.
+ *
+ * Params:
+ *   size_t - the size of the memory block to allocated
+ *
+ * Returns:
+ *   void* - a pointer to a newly allocated block of memory
+ */
+void* fl_allocate_(size_t s);
 
-void fl_free_internal_(void* m);
+/**
+ * A helper function used to manage the release of dynamically
+ * allocated memory.
+ *
+ * Params:
+ *   void* - a pointer to a dynamically allocated block of memory
+ */
+void fl_free_(void* m);
 
 #endif

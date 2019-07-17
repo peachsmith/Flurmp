@@ -1,6 +1,6 @@
 /**
- * A sign is an entity that displays information
- * when the player interacts with it.
+ * A sign is an entity that displays information when another
+ * entity interacts with it.
  */
 #ifndef FLURMP_SIGN_H
 #define	FLURMP_SIGN_H
@@ -8,12 +8,15 @@
 #include "flurmp_impl.h"
 
 /**
-* Creates a sign entity.
-*
-* Params:
-*   x position
-*   y position
-*/
+ * Creates a sign entity.
+ *
+ * Params:
+ *   x position
+ *   y position
+ *
+ * Returns:
+ *   fl_entity - a sign entity
+ */
 fl_entity* fl_create_sign(int, int);
 
 /**

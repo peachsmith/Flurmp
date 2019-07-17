@@ -1,7 +1,3 @@
-/*
- * an implementation of flurmp using SDL2
- */
-
 #include "flurmp_impl.h"
 #include "input.h"
 #include "resource.h"
@@ -12,6 +8,7 @@
 #include "scene.h"
 #include "menu.h"
 #include "dialog.h"
+#include "data_panel.h"
 
 #include "block_200_50.h"
 #include "sign.h"
@@ -20,9 +17,9 @@
 #include <stdlib.h>
 #include <stdio.h>
 
- /* Counters to keep track of how many times malloc and free
-	have been called. These do NOT take into account the calls
-	to malloc and free made by libraries. */
+/* Counters to keep track of how many times malloc and free
+   have been called. These do NOT take into account the calls
+   to malloc and free made by libraries. */
 static int allocations_ = 0;
 static int frees_ = 0;
 
@@ -195,10 +192,10 @@ fl_context* fl_create_context()
 	}
 
 	/* font colors */
-	fl_color menu_fc;
-	fl_color menu_bc;
-	fl_color console_fc;
-	fl_color console_bc;
+	SDL_Color menu_fc;
+	SDL_Color menu_bc;
+	SDL_Color console_fc;
+	SDL_Color console_bc;
 
 	/* Populate the font colors with RGBA values. */
 	fl_set_color(&menu_fc, 250, 250, 250, 255);
@@ -209,10 +206,12 @@ fl_context* fl_create_context()
 	/* Load fonts into the font registry. */
 	context->fonts[FLURMP_FONT_VERA] = fl_load_font("resources/fonts/VeraMono.ttf", 16, menu_fc, menu_bc, 1);
 	context->fonts[FLURMP_FONT_COUSINE] = fl_load_font("resources/fonts/Cousine.ttf", 16, console_fc, console_bc, 0);
+	context->fonts[FLURMP_FONT_KARMILLA_BOLD] = fl_load_font("resources/fonts/Karmilla-Bold.ttf", 16, console_fc, console_bc, 0);
 
 	/* Create font atlases. */
 	context->fonts[FLURMP_FONT_VERA]->impl.font->atlas = fl_create_font_atlas(context, context->fonts[FLURMP_FONT_VERA]);
 	context->fonts[FLURMP_FONT_COUSINE]->impl.font->atlas = fl_create_font_atlas(context, context->fonts[FLURMP_FONT_COUSINE]);
+	context->fonts[FLURMP_FONT_KARMILLA_BOLD]->impl.font->atlas = fl_create_font_atlas(context, context->fonts[FLURMP_FONT_KARMILLA_BOLD]);
 
 	/* Allocate memory for an image registry. */
 	context->images = fl_alloc(fl_resource*, FLURMP_IMAGE_COUNT);
@@ -239,6 +238,15 @@ fl_context* fl_create_context()
 	if (context->input_handler == NULL)
 	{
 		context->error = FLURMP_ERR_INPUT_HANDLER;
+		return context;
+	}
+
+	/* Create a data panel. */
+	context->data_panel = fl_create_data_panel(420, 20, 200, 150, context->fonts[FLURMP_FONT_COUSINE]->impl.font->atlas);
+
+	if (context->data_panel == NULL)
+	{
+		context->error = 0x09;
 		return context;
 	}
 
@@ -409,9 +417,11 @@ void fl_handle_events(fl_context* context)
 
 void fl_handle_input(fl_context* context)
 {
-	if (context->input_handler != NULL)
+	fl_input_handler* ih = fl_get_input_handler(context);
+
+	if (ih != NULL)
 	{
-		context->input_handler->handler(context, context->input_handler);
+		ih->handle_input(context, ih);
 	}
 }
 
@@ -468,6 +478,9 @@ static void update_and_collide(fl_context* context, int axis)
 
 void fl_update(fl_context* context)
 {
+	if (context->data_panel != NULL)
+		context->data_panel->update(context, context->data_panel);
+
 	/* If a dialog is active, then that's the only
 	   thing that needs to be updated. */
 	if (context->active_dialog != NULL)
@@ -512,6 +525,10 @@ void fl_render(fl_context* context)
 	if (context->console != NULL)
 		context->console->render(context, context->console);
 
+	/* Render the data panel */
+	if (context->data_panel != NULL)
+		context->data_panel->render(context, context->data_panel);
+
 	/* Render the dialog. */
 	if (context->active_dialog != NULL)
 		context->active_dialog->render(context, context->active_dialog);
@@ -549,16 +566,16 @@ static void render_camera_boundaries(fl_context* context)
 	SDL_RenderDrawLine(context->renderer, 0, FLURMP_LOWER_BOUNDARY, FLURMP_WINDOW_WIDTH, FLURMP_LOWER_BOUNDARY);
 }
 
-void fl_set_color(fl_color* color, int r, int g, int b, int a)
+void fl_set_color(SDL_Color* color, int r, int g, int b, int a)
 {
 	if (color == NULL)
 		return;
 
 	/* Clamp the RGBA values to the range 0 to 255. */
-	color->impl.r = r > 255 ? 255 : (r < 0 ? 0 : r);
-	color->impl.g = g > 255 ? 255 : (g < 0 ? 0 : g);
-	color->impl.b = b > 255 ? 255 : (b < 0 ? 0 : b);
-	color->impl.a = a > 255 ? 255 : (a < 0 ? 0 : a);
+	color->r = r > 255 ? 255 : (r < 0 ? 0 : r);
+	color->g = g > 255 ? 255 : (g < 0 ? 0 : g);
+	color->b = b > 255 ? 255 : (b < 0 ? 0 : b);
+	color->a = a > 255 ? 255 : (a < 0 ? 0 : a);
 }
 
 static int is_on_screen(fl_context* context, fl_entity* entity)
@@ -586,12 +603,6 @@ static int is_on_screen(fl_context* context, fl_entity* entity)
 
 static void root_input_handler(fl_context* context, fl_input_handler* self)
 {
-	if (self->child != NULL)
-	{
-		self->child->handler(context, self->child);
-		return;
-	}
-
 	if (fl_consume_input(context, FLURMP_INPUT_TYPE_KEYBOARD, FLURMP_SC_ESCAPE))
 	{
 		context->paused = 1;
@@ -660,7 +671,7 @@ static void root_input_handler(fl_context* context, fl_input_handler* self)
 	}
 }
 
-void* fl_alloc_internal_(size_t s)
+void* fl_allocate_(size_t s)
 {
 	void* p = malloc(s);
 
@@ -672,7 +683,7 @@ void* fl_alloc_internal_(size_t s)
 	return p;
 }
 
-void fl_free_internal_(void* m)
+void fl_free_(void* m)
 {
 	free(m);
 	frees_++;

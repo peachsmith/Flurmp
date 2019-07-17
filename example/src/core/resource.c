@@ -50,7 +50,7 @@ fl_resource* fl_load_bmp(fl_context* context, const char* path)
 	return resource;
 }
 
-fl_resource* fl_load_font(const char* path, int p, fl_color fc, fl_color bc, int background)
+fl_resource* fl_load_font(const char* path, int p, SDL_Color fc, SDL_Color bc, int background)
 {
 	if (path == NULL)
 		return NULL;

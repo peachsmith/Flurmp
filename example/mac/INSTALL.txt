@@ -1,0 +1,36 @@
+#========================================#
+# Flurmp Example Dependencies (Mac OSX)  #
+#========================================#
+
+Note: If using X11, make sure libx11-dev and libxext-dev are installed
+      before building SDL2
+
+TODO: determine environment variables
+environment variables:
+export FLURMP_HOME=$HOME/flurmp_libs_copy/output
+export FL_SDL2_HOME=$FLURMP_HOME/SDL2
+export FL_FREETYPE_HOME=$FLURMP_HOME/freetype
+export FL_SDL2_TTF_HOME=$FLURMP_HOME/SDL2_ttf
+
+SDL2:
+./configure --prefix=$FL_SDL2_HOME
+make
+make install
+
+freetype:
+./configure --prefix=$FL_FREETYPE_HOME --enable-freetype-config
+make
+make install
+
+SDL2_ttf:
+./configure \
+--prefix=$FL_SDL2_TTF_HOME \
+--disable-sdltest \
+--disable-freetypetest \
+--with-ft-prefix=$FL_FREETYPE_HOME \
+--with-sdl-prefix=$FL_SDL2_HOME
+
+TODO: determine SDL2_ttf make goals
+
+rename the directory SDL2 in the SDL output directory to SDL
+copy the SDL_ttf.h file from the SDL2_ttf source directory into the SDL output include directory
