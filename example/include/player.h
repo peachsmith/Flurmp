@@ -28,4 +28,8 @@ fl_entity* fl_create_player(int, int);
  */
 void fl_register_player_type(fl_context* context, fl_entity_type*);
 
+void fl_player_walk(fl_entity* e);
+void fl_player_stand(fl_entity* e);
+void fl_player_jump(fl_entity* e);
+
 #endif

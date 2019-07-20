@@ -2,19 +2,15 @@
 #include "input.h"
 #include "text.h"
 
-#include <string.h>
-
 #define ROW_COUNT 2
 #define BUFFER_LIMIT 120
+#define LINE_WIDTH 450
 
-/**
- * Appends a single character to the current active dialog buffer.
- *
- * Params:
- *   fl_context - a Flurmp context
- *   char - a character
- */
-static void dialog_putc(fl_dialog* dialog, char c);
+
+
+/* -------------------------------------------------------------- */
+/*                   internal dialog functions                    */
+/* -------------------------------------------------------------- */
 
 /**
  * Appends the next set of characters to the dialog buffer.
@@ -52,6 +48,15 @@ static void render(fl_context* context, fl_dialog* self);
 static void handle_input(fl_context* context, fl_input_handler* self);
 
 /**
+ * Appends a single character to the current active dialog buffer.
+ *
+ * Params:
+ *   fl_context - a Flurmp context
+ *   char - a character
+ */
+static void dialog_putc(fl_dialog* dialog, char c);
+
+/**
  * Clears the contents of the current dialog buffer by setting all
  * characters to '\0' and setting the buffer count to 0.
  *
@@ -63,17 +68,8 @@ static void clear_buffer(fl_dialog* dialog);
 
 
 /* -------------------------------------------------------------- */
-/*                   internal dialog functions                    */
+/*             internal dialog functions (implementation)         */
 /* -------------------------------------------------------------- */
-
-static void dialog_putc(fl_dialog* dialog, char c)
-{
-	if (dialog == NULL || dialog->buffer_count >= BUFFER_LIMIT)
-		return;
-
-	/* Add the character to the buffer and increment the buffer count. */
-	dialog->buffer[dialog->buffer_count++] = c;
-}
 
 static void update(fl_context* context, fl_dialog* self)
 {
@@ -128,9 +124,10 @@ static void render(fl_context* context, fl_dialog* self)
 
 			SDL_RenderCopy(context->renderer, g->image->texture, &src, &dest);
 
-			if (cx >= 450)
+			if (cx >= LINE_WIDTH)
 			{
-				/* If the current line exceeds the column count,
+				/* If the current line exceeds the
+				   line width pixel limit,
 				   increment the cursor's y position. */
 				cx = 0;
 				if (cy < ROW_COUNT - 1)
@@ -141,8 +138,8 @@ static void render(fl_context* context, fl_dialog* self)
 		}
 		else if (self->buffer[i] == 0x0A)
 		{
-			/* If we encounter a newline, increment the
-			   cursor's y position. */
+			/* If we encounter a newline,
+			   increment the cursor's y position. */
 			cx = 0;
 			if (cy < ROW_COUNT - 1)
 				cy++;
@@ -232,6 +229,15 @@ static void handle_input(fl_context* context, fl_input_handler* self)
 
 		return;
 	}
+}
+
+static void dialog_putc(fl_dialog* dialog, char c)
+{
+	if (dialog == NULL || dialog->buffer_count >= BUFFER_LIMIT)
+		return;
+
+	/* Add the character to the buffer and increment the buffer count. */
+	dialog->buffer[dialog->buffer_count++] = c;
 }
 
 static void clear_buffer(fl_dialog* dialog)

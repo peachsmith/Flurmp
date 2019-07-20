@@ -2,56 +2,149 @@
 #include "input.h"
 #include "text.h"
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-
 #define ROW_COUNT 4
-#define FL_BUFFER_LIMIT 208
+#define BUFFER_LIMIT 208
+#define LINE_WIDTH 500
 
-#define nonsense
 
-/* for now, the buffers and stuff will be static */
-/* TODO: make this a member of the console structure. */
-static char buffer[FL_BUFFER_LIMIT] = { '\0' };
 
-nonsense static void clear_buffer(fl_console* console);
+/* -------------------------------------------------------------- */
+/*                  internal console functions                    */
+/* -------------------------------------------------------------- */
 
-static void handle_input(fl_context* context, fl_input_handler* self);
-
+/**
+ * Renders a console to the screen.
+ *
+ * Params:
+ *   fl_context - a Flurmp context
+ *   fl_console - a console
+ */
 static void render(fl_context* context, fl_console* console);
 
-fl_console* fl_create_console(fl_context* context)
+/**
+ * The input handler function for a console.
+ * A console allows for text input via a keyboard, so any keys required
+ * to send the desired input must be handled.
+ *
+ * Params:
+ *   fl_context - a Flurmp context
+ *   fl_input_handler - an input handler
+ */
+static void handle_input(fl_context* context, fl_input_handler* self);
+
+/**
+ * Writes a character to a console's buffer.
+ *
+ * Params:
+ *   fl_console - a console
+ *   char - a character
+ *   unsigned char - modifier flags
+ */
+static void console_putc(fl_console* console, char c, unsigned char mod);
+
+/**
+ * Clears the contents of the current console buffer by setting all
+ * characters to '\0' and setting the buffer count to 0.
+ *
+ * Params:
+ *   fl_console - a console
+ */
+static void clear_buffer(fl_console* console);
+
+/**
+ * Submits the current command buffer for a console.
+ * An action is taken based on the contents of the buffer at the
+ * time of submission.
+ *
+ * Params:
+ *   fl_context - a Flurmp context
+ *   fl_console - a console
+ */
+static void submit_buffer(fl_context* context, fl_console* console);
+
+/**
+ * Gets a character based on the scancode from a keypress.
+ * If a combination of keys is pressed, such as Shift+A, then
+ * the appropriate flags should be passed in.
+ *
+ * Params:
+ *   int - a scancode
+ *   unsigned char - modifier flags indicating key combinations
+ *
+ * Return:
+ *   char - a character
+ */
+static char fl_sc_to_char(int sc, unsigned char mod);
+
+
+
+/* -------------------------------------------------------------- */
+/*          internal console functions (implementation)           */
+/* -------------------------------------------------------------- */
+
+static void render(fl_context* context, fl_console* self)
 {
-	fl_console* con = fl_alloc(fl_console, 1);
+	int i;          /* index variable     */
+	int cx;         /* cursor x position  */
+	int cy;         /* cursor y position  */
+	SDL_Rect frame; /* dialog frame       */
+	SDL_Rect src;   /* render source      */
+	SDL_Rect dest;  /* render destination */
 
-	if (con == NULL)
-		return NULL;
+	frame.x = self->x;
+	frame.y = self->y;
+	frame.w = self->w;
+	frame.h = self->h;
 
-	con->x = 10;
-	con->y = 350;
-	con->w = 620;
-	con->h = 120;
-	con->cursor_x = 0;
-	con->cursor_y = 0;
-	con->char_count = 0;
-	con->atlas = context->fonts[FLURMP_FONT_COUSINE]->impl.font->atlas;
-	con->input_handler = fl_create_input_handler(handle_input);
-	con->render = render;
+	/* Render the console frame. */
+	SDL_SetRenderDrawColor(context->renderer, 150, 50, 150, 120);
+	SDL_RenderFillRect(context->renderer, &frame);
+	SDL_SetRenderDrawColor(context->renderer, 250, 250, 250, 255);
+	SDL_RenderDrawRect(context->renderer, &frame);
 
-	return con;
-}
+	dest.x = 0;
+	dest.y = 0;
+	src.x = 0;
+	src.y = 0;
 
-void fl_destroy_console(fl_console* console)
-{
-	if (console == NULL)
-		return;
+	for (i = cx = cy = 0; i < BUFFER_LIMIT; i++)
+	{
+		if (self->buffer[i] >= 0x20 && self->buffer[i] <= 0x7E)
+		{
+			/* Get the appropriate glyph from the font atlas. */
+			fl_glyph* g = fl_char_to_glyph(self->atlas, self->buffer[i]);
 
-	fl_destroy_input_handler(console->input_handler);
+			dest.x = self->x + cx + 4;
+			dest.y = self->y + cy * 22 + 4;
+			dest.w = g->image->surface->w;
+			dest.h = g->image->surface->h;
 
-	fl_free(console);
+			src.w = g->image->surface->w;
+			src.h = g->image->surface->h;
 
-	return;
+			SDL_RenderCopy(context->renderer, g->image->texture, &src, &dest);
+
+			if (cx > LINE_WIDTH)
+			{
+				/* If the current line exceeds the
+				   line width pixel limit,
+				   increment the cursor's y position. */
+				cx = 0;
+				if (cy < ROW_COUNT - 1)
+					cy++;
+			}
+			else
+				cx += g->image->surface->w;
+		}
+		else if (self->buffer[i] == 0x0A)
+		{
+			/* If we encounter a newline,
+			   increment the cursor's y position. */
+			cx = 0;
+			if (cy < ROW_COUNT - 1)
+				cy++;
+		}
+	}
 }
 
 static void handle_input(fl_context* context, fl_input_handler* self)
@@ -80,6 +173,8 @@ static void handle_input(fl_context* context, fl_input_handler* self)
 
 				fl_destroy_console(context->console);
 				context->console = NULL;
+
+				return;
 			}
 
 			/* If return is pressed, submit the current buffer,
@@ -87,103 +182,43 @@ static void handle_input(fl_context* context, fl_input_handler* self)
 			if (c == 0x0A)
 				submit_buffer(context, context->console);
 			else
-				fl_putc(context->console, c, mod);
+				console_putc(context->console, c, mod);
 		}
 	}
 }
 
-static void render(fl_context* context, fl_console* console)
+static void console_putc(fl_console* console, char c, unsigned char mod)
 {
-	SDL_SetRenderDrawColor(context->renderer, 150, 50, 150, 120);
-
-	int i;
-	int cx;
-	int cy;
-	SDL_Rect r;
-	SDL_Rect dest;
-	SDL_Rect src;
-
-	r.x = console->x;
-	r.y = console->y;
-	r.w = console->w;
-	r.h = console->h;
-
-	SDL_RenderFillRect(context->renderer, &r);
-
-	SDL_SetRenderDrawColor(context->renderer, 250, 250, 250, 255);
-	SDL_RenderDrawRect(context->renderer, &r);
-	
-	dest.x = 0;
-	dest.y = 0;
-
-	src.x = 0;
-	src.y = 0;
-
-	for (i = cx = cy = 0; i < FL_BUFFER_LIMIT; i++)
-	{
-		if (buffer[i] >= 0x20)
-		{
-			/* Get the appropriate glyph from the font atlas. */
-			fl_glyph* g = fl_char_to_glyph(console->atlas, buffer[i]);
-
-			dest.x = console->x + cx + 4;
-			dest.y = console->y + cy * 22 + 4;
-			dest.w = g->image->surface->w;
-			dest.h = g->image->surface->h;
-
-			src.w = g->image->surface->w;
-			src.h = g->image->surface->h;
-
-
-			SDL_RenderCopy(context->renderer, g->image->texture, &src, &dest);
-
-			if (cx > 500)
-			{
-				cx = 0;
-				if (cy < ROW_COUNT - 1)
-					cy++;
-			}
-			else
-				cx += g->image->surface->w;
-		}
-		else if (buffer[i] == 0x0A)
-		{
-			cx = 0;
-			if (cy < ROW_COUNT - 1)
-				cy++;
-		}
-	}
-}
-
-void fl_putc(fl_console* console, char c, unsigned char mod)
-{
-	/* buffer position = cursor_x + FL_CON_WIDTH * cursor_y */
-	if (c == '\0')
+	if (console->char_count >= BUFFER_LIMIT || c == '\0')
 		return;
 
-	/* handle backspaces */
+	/* Handle backspaces. */
 	if (c == 0x08)
 	{
 		if (console->char_count > 0)
-			buffer[console->char_count-- - 1] = '\0';
+			console->buffer[console->char_count-- - 1] = '\0';
 
 		return;
 	}
 
-	/* handle newlines */
+	/* Handle newlines. */
 	if (c == 0x0A)
 	{
-		if (console->char_count < FL_BUFFER_LIMIT - 1)
+		if (console->char_count < BUFFER_LIMIT - 1)
 		{
 			console->cursor_x = 0;
 			if (console->cursor_y < ROW_COUNT - 1)
 			{
-				buffer[console->char_count++] = '\n';
+				console->buffer[console->char_count++] = '\n';
 				console->cursor_y++;
 			}
 		}
 		return;
 	}
+
+	/* Skip unprintable characters. */
+	if (c < 0x20)
+		return;
 
 	/* handle Ctrl combos */
 	if (mod & FLURMP_CONSOLE_MOD_CTRL)
@@ -191,32 +226,27 @@ void fl_putc(fl_console* console, char c, unsigned char mod)
 		if ((c == 'c' || c == 'C') && mod == FLURMP_CONSOLE_MOD_CTRL)
 		{
 			clear_buffer(console);
-
 			return;
 		}
 	}
 
-	/* skip the rest of the unprintable characters */
-	if (c < 0x20)
-		return;
-
-	if (console->char_count >= FL_BUFFER_LIMIT || c == '\0')
-		return;
-
-	buffer[console->char_count++] = c;
+	console->buffer[console->char_count++] = c;
 }
 
-void submit_buffer(fl_context* context, fl_console* console)
+static void submit_buffer(fl_context* context, fl_console* console)
 {
-	if (!strcmp("quit", buffer))
-	{
-		context->done = 1;
-	}
+	const char* buf = console->buffer;
 
-	if (!strcmp("info", buffer))
-	{
+	/* Command List
+	   1. quit - flags the context as done.
+	   2. info - prints information about the application to stdout.
+	*/
+
+	if (!strcmp("quit", buf))
+		context->done = 1;
+
+	if (!strcmp("info", buf))
 		printf("Flurmp\nVersion: 1.0.0\nAuthor: John Powell\n");
-	}
 
 	clear_buffer(console);
 }
@@ -224,15 +254,16 @@ void submit_buffer(fl_context* context, fl_console* console)
 static void clear_buffer(fl_console* console)
 {
 	int i;
-	for (i = 0; i < FL_BUFFER_LIMIT; i++)
-		buffer[i] = '\0';
+
+	for (i = 0; i < BUFFER_LIMIT; i++)
+		console->buffer[i] = '\0';
 
 	console->cursor_x = 0;
 	console->cursor_y = 0;
 	console->char_count = 0;
 }
 
-char fl_sc_to_char(int sc, unsigned char mod)
+static char fl_sc_to_char(int sc, unsigned char mod)
 {
 	switch (sc)
 	{
@@ -292,4 +323,76 @@ char fl_sc_to_char(int sc, unsigned char mod)
 
 	default: return '\0';
 	}
+}
+
+
+
+/* -------------------------------------------------------------- */
+/*                    console.h implementation                    */
+/* -------------------------------------------------------------- */
+
+fl_console* fl_create_console(fl_context* context)
+{
+	int i;
+
+	/* Allocate memory for a console. */
+	fl_console* con = fl_alloc(fl_console, 1);
+
+	/* Verify console allocation. */
+	if (con == NULL)
+		return NULL;
+
+	con->x = 10;
+	con->y = 350;
+	con->w = 620;
+	con->h = 120;
+	con->buffer = NULL;
+	con->buffer_count = 0;
+	con->cursor_x = 0;
+	con->cursor_y = 0;
+	con->char_count = 0;
+	con->atlas = context->fonts[FLURMP_FONT_COUSINE]->impl.font->atlas;
+	con->render = render;
+
+	/* Create the input handler for the console. */
+	con->input_handler = fl_create_input_handler(handle_input);
+
+	/* Verify input handler creation. */
+	if (con->input_handler == NULL)
+	{
+		fl_destroy_console(con);
+		return NULL;
+	}
+
+	/* Allocate memory for the console buffer. */
+	con->buffer = fl_alloc(char, BUFFER_LIMIT);
+
+	/* Verify console buffer allocation. */
+	if (con->buffer == NULL)
+	{
+		fl_destroy_console(con);
+		return NULL;
+	}
+
+	/* Set all characters in the buffer to '\0' */
+	for (i = 0; i < BUFFER_LIMIT; i++)
+		con->buffer[i] = '\0';
+
+	return con;
+}
+
+void fl_destroy_console(fl_console* console)
+{
+	if (console == NULL)
+		return;
+
+	if (console->input_handler != NULL)
+		fl_destroy_input_handler(console->input_handler);
+
+	if (console->buffer != NULL)
+		free(console->buffer);
+
+	fl_free(console);
+
+	return;
 }

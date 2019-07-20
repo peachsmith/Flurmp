@@ -33,14 +33,6 @@
 /* -------------------------------------------------------------- */
 
 /**
- * A structure representing a particular color.
- * A color typically consists of red, green, and blue components,
- * and sometimes an alpha value dictating transparency.
- * These values are often referred to as "RGB" or "RGBA".
- */
-typedef struct fl_color fl_color;
-
-/**
  * An image file loaded into memory.
  * This can be something like a BMP used for a sprite sheet,
  * or a backdrop for scenery.

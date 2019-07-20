@@ -3,7 +3,6 @@
 #include "resource.h"
 
 
-
 /* -------------------------------------------------------------- */
 /*                   entity behavior functions                    */
 /* -------------------------------------------------------------- */
@@ -71,6 +70,16 @@ static void adjust_camera_horizontal(fl_context*, fl_entity*);
  *   fl_entity - the player entity
  */
 static void horizontal_movement(fl_context*, fl_entity*);
+
+/**
+ * Updates the camera position to keep the player near the center of the
+ * screen.
+ *
+ * Params:
+ *   fl_context - a Flurmp context
+ *   fl_entity - the player entity
+ */
+static void adjust_camera_vertical(fl_context*, fl_entity*);
 
 /**
  * Handles vertical movement events such as jumping and gravity.
@@ -160,7 +169,8 @@ static void update(fl_context* context, fl_entity* self, int axis)
 
 	if (axis == FLURMP_AXIS_Y)
 	{
-		/* TODO: implement vertical camera adjustment */
+		/* vertical camera adjustment */
+		adjust_camera_vertical(context, self);
 
 		/* vertical movement */
 		vertical_movement(context, self);
@@ -191,7 +201,7 @@ static void render(fl_context* context, fl_entity* self)
 		f = 1;
 	else if (self->frame > 10 && self->frame < 15)
 		f = 2;
-	
+
 	src.x = 50 * f;
 	src.y = 0;
 	src.w = 50;
@@ -221,7 +231,7 @@ static void adjust_camera_horizontal(fl_context* context, fl_entity* self)
 {
 	int cam_d = context->cam_x - self->x;
 
-	/* camera x window: [-221, -399] */
+	/* camera x range: [-221, -399] */
 	if (!(self->flags & FLURMP_LEFT_FLAG))
 	{
 		if (self->x_v == 0 && cam_d < -290)
@@ -280,8 +290,6 @@ static void horizontal_movement(fl_context* context, fl_entity* self)
 	   camera x axis adjustment doesn't occur. */
 	self->x += self->x_v;
 
-	/* int self_w = context->entity_types[self->type].w; */
-
 	if (self->x_v < 0 && self->x - context->cam_x <= FLURMP_LEFT_BOUNDARY)
 	{
 		context->cam_x += self->x_v;
@@ -299,11 +307,39 @@ static void horizontal_movement(fl_context* context, fl_entity* self)
 		self->x_v++;
 }
 
+static void adjust_camera_vertical(fl_context* context, fl_entity* self)
+{
+	int cam_d = context->cam_y - self->y;
+
+	/* camera y range: [-221, -399] */
+
+	if (self->y_v == 0 && cam_d < -250)
+	{
+		context->cam_y += 2;
+
+		if (context->cam_y - self->y > -250)
+		{
+			int correction = (context->cam_y - self->y) + 250;
+			context->cam_y -= correction;
+		}
+	}
+	else if (self->y_v == 0 && cam_d > -250)
+	{
+		context->cam_y -= 2;
+
+		if (context->cam_y - self->y < -250)
+		{
+			int correction = -250 - (context->cam_y - self->y);
+			context->cam_y += correction;
+		}
+	}
+}
+
 static void vertical_movement(fl_context* context, fl_entity* self)
 {
 	int self_w = context->entity_types[self->type].w;
 	int self_h = context->entity_types[self->type].h;
-	
+
 	/* Reset the jump flag. */
 	self->flags |= FLURMP_JUMP_FLAG;
 

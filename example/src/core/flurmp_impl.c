@@ -48,6 +48,13 @@ static int is_on_screen(fl_context* context, fl_entity* entity);
  */
 static void root_input_handler(fl_context* context, fl_input_handler* self);
 
+/**
+ * Renders the camera boundaries to the screen.
+ *
+ * Params:
+ *   fl_context - a Flurmp context
+ */
+static void render_camera_boundaries(fl_context* context);
 
 
 int fl_initialize()
@@ -532,6 +539,8 @@ void fl_render(fl_context* context)
 	/* Render the dialog. */
 	if (context->active_dialog != NULL)
 		context->active_dialog->render(context, context->active_dialog);
+
+	render_camera_boundaries(context);
 
 	/* Put everything on the screen. */
 	SDL_RenderPresent(context->renderer);

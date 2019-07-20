@@ -50,7 +50,7 @@ static void get_cursor_coords(fl_menu*, int*, int*);
  *
  * Params:
  *   fl_context - a Flurmp context
- *   fl_input_handler -
+ *   fl_input_handler - an input handler
  */
 static void handle_input(fl_context*, fl_input_handler*);
 

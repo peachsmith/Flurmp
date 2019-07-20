@@ -137,11 +137,15 @@ static void load_test_1(fl_context* context)
 
 	/* Create a block on which the player can walk. */
 	fl_entity* block_1 = fl_create_block_200_50(280, 300);
+	fl_entity* block_2 = fl_create_block_200_50(80, 350);
+	fl_entity* block_3 = fl_create_block_200_50(480, 250);
 
 	/* Add the entities to the context. */
 	fl_add_entity(context, sign);
 	fl_add_entity(context, player);
 	fl_add_entity(context, block_1);
+	fl_add_entity(context, block_2);
+	fl_add_entity(context, block_3);
 
 	/* Set the primary control object. */
 	context->pco = player;

@@ -6,6 +6,11 @@
 
 #include "flurmp.h"
 
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+#include <stdarg.h>
+
 #include <SDL/SDL.h>
 #include <SDL/SDL_ttf.h>
 
@@ -22,7 +27,7 @@
 /* camera boundaries */
 #define FLURMP_LEFT_BOUNDARY 220
 #define FLURMP_RIGHT_BOUNDARY 430
-#define FLURMP_UPPER_BOUNDARY 230
+#define FLURMP_UPPER_BOUNDARY 180 /* 230 */
 #define FLURMP_LOWER_BOUNDARY 320
 
 /* error codes */
@@ -98,18 +103,12 @@ struct fl_entity {
 	fl_entity* tail;
 };
 
-/**
- * A structure for holding the current input handler function.
- * It contains pointers to parent and child input handlers
- * which allows one input handler to pass control to another.
- */
 struct fl_input_handler {
 
 	void(*handle_input) (fl_context*, fl_input_handler*);
 
 	fl_input_handler* child;
 	fl_input_handler* parent;
-
 };
 
 struct fl_console {
@@ -118,6 +117,8 @@ struct fl_console {
 	int y;
 	int w;
 	int h;
+	char* buffer;
+	int buffer_count;
 	int cursor_x;
 	int cursor_y;
 	int char_count;
