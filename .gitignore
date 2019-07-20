@@ -3,7 +3,6 @@ Example.vc*
 Debug/
 Release/
 .vs/
-Makefile
 example/Example/
 example/example
 .vscode

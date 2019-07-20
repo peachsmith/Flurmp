@@ -6,7 +6,7 @@ Note: If using X11, make sure libx11-dev, libxext-dev, and xorg-dev are installe
       before building SDL2
 
 environment variables:
-export FLURMP_HOME=$HOME/flurmp_libs_copy/output
+export FLURMP_HOME=$HOME/Documents/flurmp_libs/output
 export FL_SDL2_HOME=$FLURMP_HOME/SDL2
 export FL_FREETYPE_HOME=$FLURMP_HOME/freetype
 export FL_SDL2_TTF_HOME=$FLURMP_HOME/SDL2_ttf
