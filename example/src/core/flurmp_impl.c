@@ -111,6 +111,7 @@ fl_context* fl_create_context()
 	context->pco = NULL;
 	context->active_dialog = NULL;
 	context->active_menu = NULL;
+	context->data_panel = NULL;
 	context->cam_x = 0;
 	context->cam_y = 0;
 	context->state = 0;
@@ -318,6 +319,9 @@ void fl_destroy_context(fl_context* context)
 
 		fl_free(context->fonts);
 	}
+
+	if (context->data_panel != NULL)
+		fl_destroy_data_panel(context->data_panel);
 
 	/* Destroy the image registry. */
 	if (context->images != NULL)

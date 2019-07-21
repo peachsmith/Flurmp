@@ -233,7 +233,7 @@ void fl_destroy_data_panel(fl_data_panel* panel)
 		return;
 
 	if (panel->buffer != NULL)
-		free(panel->buffer);
+		fl_free(panel->buffer);
 
-	free(panel);
+	fl_free(panel);
 }
