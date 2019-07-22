@@ -544,7 +544,7 @@ void fl_render(fl_context* context)
 	if (context->active_dialog != NULL)
 		context->active_dialog->render(context, context->active_dialog);
 
-	render_camera_boundaries(context);
+	/* render_camera_boundaries(context); */
 
 	/* Put everything on the screen. */
 	SDL_RenderPresent(context->renderer);
