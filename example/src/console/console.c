@@ -390,7 +390,7 @@ void fl_destroy_console(fl_console* console)
 		fl_destroy_input_handler(console->input_handler);
 
 	if (console->buffer != NULL)
-		free(console->buffer);
+		fl_free(console->buffer);
 
 	fl_free(console);
 

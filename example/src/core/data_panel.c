@@ -95,7 +95,7 @@ static void render(fl_context* context, fl_data_panel* self)
 	frame.h = self->h;
 
 	/* Render the data panel frame. */
-	SDL_SetRenderDrawColor(context->renderer, 20, 150, 20, 80);
+	SDL_SetRenderDrawColor(context->renderer, 20, 100, 20, 120);
 	SDL_RenderFillRect(context->renderer, &frame);
 	SDL_SetRenderDrawColor(context->renderer, 250, 250, 250, 255);
 	SDL_RenderDrawRect(context->renderer, &frame);
