@@ -7,4 +7,4 @@ example/Example/
 example/example
 .vscode
 .DS_Store
-
+example_build/
