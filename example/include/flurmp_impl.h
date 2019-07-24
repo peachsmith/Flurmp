@@ -5,18 +5,14 @@
 #define FLURMP_IMPL_H
 
 #include "flurmp.h"
+#include "flurmp_sdl.h"
 
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include <stdarg.h>
 
-#include <SDL/SDL.h>
-#include <SDL/SDL_ttf.h>
-
-#define FLURMP_QUIT SDL_QUIT
-
-/* window dimensions */
+ /* window dimensions */
 #define FLURMP_WINDOW_WIDTH 640
 #define FLURMP_WINDOW_HEIGHT 480
 
@@ -27,7 +23,7 @@
 /* camera boundaries */
 #define FLURMP_LEFT_BOUNDARY 220
 #define FLURMP_RIGHT_BOUNDARY 430
-#define FLURMP_UPPER_BOUNDARY 180 /* 230 */
+#define FLURMP_UPPER_BOUNDARY 180
 #define FLURMP_LOWER_BOUNDARY 320
 
 /* error codes */
@@ -42,17 +38,46 @@
 
 /**
  * Memory allocation
+ *
+ * Params:
+ *   t - the data type to which the resulting pointer will be cast
+ *   n - the number of elements to allocate
+ *
+ * Returns:
+ *   t - a pointer to a block of memory cast as type t
  */
 #define fl_alloc(t,n) (t*)fl_allocate_(sizeof(t) * n)
 
 /**
  * Memory release
+ *
+ * Params:
+ *   m - a pointer to a block of memory to free.
  */
 #define fl_free(m) fl_free_(m)
 
+ /**
+  * Set all elements in an array to NULL
+  *
+  * Params:
+  *   a - an array
+  *   n - the number of elements in the array
+  */
+#define fl_null(a,n) { int i; for (i = 0; i < n; i++) a[i] = NULL; }
+
+/**
+ * Set all elements in an array to '\0'
+ *
+ * Params:
+ *   a - an array
+ *   n - the number of elements in the array
+ */
+#define fl_zero(a,n) { int i; for (i = 0; i < n; i++) a[i] = '\0'; }
+
 struct fl_image {
-	SDL_Surface* surface;
-	SDL_Texture* texture;
+	int w;
+	int h;
+	fl_texture* texture;
 };
 
 struct fl_glyph {
@@ -66,10 +91,11 @@ struct fl_font_atlas {
 };
 
 struct fl_font {
-	TTF_Font* impl;
+
+	fl_ttf* impl;
 	fl_font_atlas* atlas;
-	SDL_Color forecolor;
-	SDL_Color backcolor;
+	fl_color forecolor;
+	fl_color backcolor;
 	int background;
 };
 
@@ -104,15 +130,12 @@ struct fl_entity {
 };
 
 struct fl_input_handler {
-
 	void(*handle_input) (fl_context*, fl_input_handler*);
-
 	fl_input_handler* child;
 	fl_input_handler* parent;
 };
 
 struct fl_console {
-	fl_font_atlas* atlas;
 	int x;
 	int y;
 	int w;
@@ -121,7 +144,7 @@ struct fl_console {
 	int buffer_count;
 	int cursor_x;
 	int cursor_y;
-	int char_count;
+	fl_font_atlas* atlas;
 	fl_input_handler* input_handler;
 	void(*render) (fl_context*, fl_console*);
 };
@@ -134,8 +157,6 @@ struct fl_menu_item {
 };
 
 struct fl_menu {
-	fl_menu* child;
-	fl_menu* parent;
 	int x;
 	int y;
 	int w;
@@ -147,45 +168,47 @@ struct fl_menu {
 	void(*render) (fl_context*, fl_menu*);
 	void(*get_cursor_coords) (fl_menu*, int*, int*);
 	void(*callback) (fl_context*);
+	fl_menu* child;
+	fl_menu* parent;
 };
 
 struct fl_dialog {
-	fl_font_atlas* atlas;
 	int x;
 	int y;
 	int w;
 	int h;
-	size_t counter;
 	char* buffer;
 	int buffer_count;
-	void(*update) (fl_context*, fl_dialog*);
-	void(*render) (fl_context*, fl_dialog*);
-	fl_input_handler* input_handler;
 	const char* msg;
 	size_t len;
+	size_t counter;
 	int speed;
 	int hold;
+	fl_font_atlas* atlas;
+	fl_input_handler* input_handler;
+	void(*update) (fl_context*, fl_dialog*);
+	void(*render) (fl_context*, fl_dialog*);
 	void(*callback) (fl_context*);
 };
 
-typedef struct fl_data_panel {
-	fl_font_atlas* atlas;
+struct fl_data_panel {
 	int x;
 	int y;
 	int w;
 	int h;
 	char* buffer;
 	int buffer_count;
+	fl_font_atlas* atlas;
 	void(*update) (fl_context*, struct fl_data_panel*);
 	void(*render) (fl_context*, struct fl_data_panel*);
-} fl_data_panel;
+};
 
 struct fl_context {
 
 	/* Windowing, rendering, events, and input */
-	SDL_Window* window;
-	SDL_Renderer* renderer;
-	SDL_Event event;
+	fl_window* window;
+	fl_renderer* renderer;
+	fl_event event;
 	struct {
 		const Uint8* keystates;
 		int* flags;
@@ -245,14 +268,27 @@ struct fl_context {
  * A helper function to set color values.
  *
  * Params:
- *   SDL_Color - a reference to a color structure
+ *   fl_color - a reference to a color structure
  *   int - the red value ranging from 0 - 255
  *   int - the green value ranging from 0 - 255
  *   int - the blue value ranging from 0 - 255
  *   int - the alpha value ranging from 0 - 255
  *
  */
-void fl_set_color(SDL_Color* color, int r, int g, int b, int a);
+void fl_set_color(fl_color* color, int r, int g, int b, int a);
+
+/**
+ * A helper function to set the location and dimensions of a rectangle.
+ *
+ * Params:
+ *   fl_rect - a reference to a rect structure
+ *   int - the x coordinate
+ *   int - the y coordinate
+ *   int - the width
+ *   int - the height
+ *
+ */
+void fl_set_rect(fl_rect* r, int x, int y, int w, int h);
 
 /**
  * A helper function used to manage memory allocation.

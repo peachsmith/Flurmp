@@ -185,10 +185,10 @@ static void render(fl_context* context, fl_entity* self)
 {
 	int self_w = context->entity_types[self->type].w;
 	int self_h = context->entity_types[self->type].h;
-	SDL_Texture* tex = context->entity_types[self->type].texture->impl.image->texture;
+	fl_texture* tex = context->entity_types[self->type].texture->impl.image->texture;
 
-	SDL_Rect src;
-	SDL_Rect dest;
+	fl_rect src;
+	fl_rect dest;
 
 	int f = 0;
 
@@ -213,10 +213,10 @@ static void render(fl_context* context, fl_entity* self)
 	dest.h = self_h + 10;
 
 	if (self->flags & FLURMP_LEFT_FLAG)
-		SDL_RenderCopyEx(context->renderer, tex, &src, &dest, 0, NULL, SDL_FLIP_HORIZONTAL);
+		fl_draw(context, tex, &src, &dest, 1);
 
 	else
-		SDL_RenderCopyEx(context->renderer, tex, &src, &dest, 0, NULL, SDL_FLIP_NONE);
+		fl_draw(context, tex, &src, &dest, 0);
 
 	/* render_hitbox(context, self); */
 }
@@ -387,12 +387,12 @@ static void render_hitbox(fl_context* context, fl_entity* self)
 	int self_w = context->entity_types[self->type].w;
 	int self_h = context->entity_types[self->type].h;
 
-	SDL_Rect hb;
+	fl_rect hb;
 	hb.x = self->x - context->cam_x;
 	hb.y = self->y - context->cam_y;
 	hb.w = self_w;
 	hb.h = self_h;
 
-	SDL_SetRenderDrawColor(context->renderer, 255, 0, 255, 255);
-	SDL_RenderDrawRect(context->renderer, &hb);
+	fl_set_draw_color(context, 255, 0, 255, 255);
+	fl_draw_rect(context, &hb);
 }

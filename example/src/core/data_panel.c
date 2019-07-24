@@ -82,23 +82,20 @@ static void update(fl_context* context, fl_data_panel* panel)
 
 static void render(fl_context* context, fl_data_panel* self)
 {
-	int i;          /* index variable     */
-	int cx;         /* cursor x position  */
-	int cy;         /* cursor y position  */
-	SDL_Rect frame; /* dialog frame       */
-	SDL_Rect src;   /* render source      */
-	SDL_Rect dest;  /* render destination */
+	int i;         /* index variable     */
+	int cx;        /* cursor x position  */
+	int cy;        /* cursor y position  */
+	fl_rect frame; /* dialog frame       */
+	fl_rect src;   /* render source      */
+	fl_rect dest;  /* render destination */
 
-	frame.x = self->x;
-	frame.y = self->y;
-	frame.w = self->w;
-	frame.h = self->h;
+	fl_set_rect(&frame, self->x, self->y, self->w, self->h);
 
 	/* Render the data panel frame. */
-	SDL_SetRenderDrawColor(context->renderer, 20, 150, 20, 80);
-	SDL_RenderFillRect(context->renderer, &frame);
-	SDL_SetRenderDrawColor(context->renderer, 250, 250, 250, 255);
-	SDL_RenderDrawRect(context->renderer, &frame);
+	fl_set_draw_color(context, 20, 100, 20, 120);
+	fl_draw_solid_rect(context, &frame);
+	fl_set_draw_color(context, 250, 250, 250, 255);
+	fl_draw_rect(context, &frame);
 
 	dest.x = 0;
 	dest.y = 0;
@@ -114,13 +111,13 @@ static void render(fl_context* context, fl_data_panel* self)
 
 			dest.x = self->x + cx + 10;
 			dest.y = self->y + cy * 22 + 10;
-			dest.w = g->image->surface->w;
-			dest.h = g->image->surface->h;
+			dest.w = g->image->w;
+			dest.h = g->image->h;
 
-			src.w = g->image->surface->w;
-			src.h = g->image->surface->h;
+			src.w = g->image->w;
+			src.h = g->image->h;
 
-			SDL_RenderCopy(context->renderer, g->image->texture, &src, &dest);
+			fl_draw(context, g->image->texture, &src, &dest, 0);
 
 			if (cx >= LINE_WIDTH)
 			{
@@ -132,7 +129,7 @@ static void render(fl_context* context, fl_data_panel* self)
 					cy++;
 			}
 			else
-				cx += g->image->surface->w;
+				cx += g->image->w;
 		}
 		else if (self->buffer[i] == 0x0A)
 		{
@@ -153,8 +150,7 @@ static int data_panel_printf(fl_data_panel* panel, const char* format, ...)
 	va_list args;
 	char buf[120];
 
-	for (i = 0; i < 120; i++)
-		buf[i] = '\0';
+	fl_zero(buf, 120);
 
 	va_start(args, format);
 	result = vsprintf(buf, format, args);
@@ -185,10 +181,8 @@ static void clear_buffer(fl_data_panel* panel)
 	if (panel == NULL)
 		return;
 
-	/* Set all characters to '\0'. */
-	int i;
-	for (i = 0; i < BUFFER_LIMIT; i++)
-		panel->buffer[i] = '\0';
+	/* Set all characters to in the buffer to '\0'. */
+	fl_zero(panel->buffer, BUFFER_LIMIT);
 
 	/* Reset the buffer count. */
 	panel->buffer_count = 0;
@@ -220,7 +214,7 @@ fl_data_panel* fl_create_data_panel(int x, int y, int w, int h, fl_font_atlas* a
 
 	if (panel->buffer == NULL)
 	{
-		free(panel);
+		fl_free(panel);
 		return NULL;
 	}
 

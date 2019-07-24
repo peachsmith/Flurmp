@@ -19,7 +19,7 @@
  *   fl_context - a Flurmp context
  *   fl_dialog - a dialog
  */
-static void update(fl_context * context, fl_dialog * self);
+static void update(fl_context* context, fl_dialog* self);
 
 /**
  * Renders a dialog to the screen.
@@ -84,23 +84,20 @@ static void update(fl_context* context, fl_dialog* self)
 
 static void render(fl_context* context, fl_dialog* self)
 {
-	int i;          /* index variable     */
-	int cx;         /* cursor x position  */
-	int cy;         /* cursor y position  */
-	SDL_Rect frame; /* dialog frame       */
-	SDL_Rect src;   /* render source      */
-	SDL_Rect dest;  /* render destination */
+	int i;         /* index variable     */
+	int cx;        /* cursor x position  */
+	int cy;        /* cursor y position  */
+	fl_rect frame; /* dialog frame       */
+	fl_rect src;   /* render source      */
+	fl_rect dest;  /* render destination */
 
-	frame.x = self->x;
-	frame.y = self->y;
-	frame.w = self->w;
-	frame.h = self->h;
+	fl_set_rect(&frame, self->x, self->y, self->w, self->h);
 
 	/* Render the dialog frame. */
-	SDL_SetRenderDrawColor(context->renderer, 0, 0, 0, 255);
-	SDL_RenderFillRect(context->renderer, &frame);
-	SDL_SetRenderDrawColor(context->renderer, 250, 250, 250, 255);
-	SDL_RenderDrawRect(context->renderer, &frame);
+	fl_set_draw_color(context, 0, 0, 0, 255);
+	fl_draw_solid_rect(context, &frame);
+	fl_set_draw_color(context, 250, 250, 250, 255);
+	fl_draw_rect(context, &frame);
 
 	dest.x = 0;
 	dest.y = 0;
@@ -116,13 +113,13 @@ static void render(fl_context* context, fl_dialog* self)
 
 			dest.x = self->x + cx + 10;
 			dest.y = self->y + cy * 22 + 10;
-			dest.w = g->image->surface->w;
-			dest.h = g->image->surface->h;
+			dest.w = g->image->w;
+			dest.h = g->image->h;
 
-			src.w = g->image->surface->w;
-			src.h = g->image->surface->h;
+			src.w = g->image->w;
+			src.h = g->image->h;
 
-			SDL_RenderCopy(context->renderer, g->image->texture, &src, &dest);
+			fl_draw(context, g->image->texture, &src, &dest, 0);
 
 			if (cx >= LINE_WIDTH)
 			{
@@ -134,7 +131,7 @@ static void render(fl_context* context, fl_dialog* self)
 					cy++;
 			}
 			else
-				cx += g->image->surface->w;
+				cx += g->image->w;
 		}
 		else if (self->buffer[i] == 0x0A)
 		{
@@ -245,10 +242,8 @@ static void clear_buffer(fl_dialog* dialog)
 	if (dialog == NULL)
 		return;
 
-	/* Set all characters to '\0'. */
-	int i;
-	for (i = 0; i < BUFFER_LIMIT; i++)
-		dialog->buffer[i] = '\0';
+	/* Set all characters in the buffer to '\0'. */
+	fl_zero(dialog->buffer, BUFFER_LIMIT);
 
 	/* Reset the buffer count. */
 	dialog->buffer_count = 0;
@@ -262,7 +257,6 @@ static void clear_buffer(fl_dialog* dialog)
 
 fl_dialog* fl_create_dialog(fl_context* context)
 {
-	int i;
 	fl_dialog* dialog = fl_alloc(fl_dialog, 1);
 
 	if (dialog == NULL)
@@ -306,8 +300,7 @@ fl_dialog* fl_create_dialog(fl_context* context)
 	}
 
 	/* Set the characters in the buffer to '\0'. */
-	for (i = 0; i < BUFFER_LIMIT; i++)
-		buffer[i] = '\0';
+	fl_zero(buffer, BUFFER_LIMIT);
 
 	dialog->buffer = buffer;
 	dialog->input_handler = fl_create_input_handler(handle_input);

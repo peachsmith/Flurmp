@@ -122,8 +122,8 @@ static void load_test_1(fl_context* context)
 
 	/* Load the image resources. */
 	/* TODO: add resource loading check */
-	context->images[FLURMP_IMAGE_SIGN] = fl_load_bmp(context, "resources/images/sign.bmp");
-	context->images[FLURMP_IMAGE_BLOCK_200_50] = fl_load_bmp(context, "resources/images/block_200_50.bmp");
+	context->images[FLURMP_IMAGE_SIGN] = fl_load_image(context, "resources/images/sign.bmp");
+	context->images[FLURMP_IMAGE_BLOCK_200_50] = fl_load_image(context, "resources/images/block_200_50.bmp");
 
 	/* Assign the image resources */
 	context->entity_types[FLURMP_ENTITY_SIGN].texture = context->images[FLURMP_IMAGE_SIGN];

@@ -1,73 +1,29 @@
 #include "text.h"
 
-#include <string.h>
-
 fl_glyph* fl_create_glyph(fl_context* context, fl_resource* res, char c)
 {
 	/* glyph data */
 	fl_glyph* glyph;
 	fl_image* image;
-	SDL_Surface* surface;
-	SDL_Texture* texture;
 
-	/* font data */
-	TTF_Font* font;
-	SDL_Color fc; /* foreground color */
-	SDL_Color bc; /* background color */
+	/* Create an image of the character. */
+	image = fl_create_glyph_image(context, res, c);
+
+	/* Verify image creation. */
+	if (image == NULL)
+		return NULL;
 
 	/* Allocate memory for an fl_glyph structure. */
 	glyph = fl_alloc(fl_glyph, 1);
 
 	/* Verify fl_glyph memory allocation. */
 	if (glyph == NULL)
-		return NULL;
-
-	/* Extract the font data from the resource. */
-	font = res->impl.font->impl;
-	fc = res->impl.font->forecolor;
-	bc = res->impl.font->backcolor;
-
-	/* Convert the text to an SDL_Surface. */
-	if (res->impl.font->background)
-		surface = TTF_RenderGlyph_Shaded(font, (Uint16)c, fc, bc);
-	else
-		surface = TTF_RenderGlyph_Blended(font, (Uint16)c, fc);
-
-	/* Verify SDL_Surface creation. */
-	if (surface == NULL)
 	{
-		fl_free(glyph);
+		fl_destroy_image(image);
 		return NULL;
 	}
 
-	/* Create an SDL_Texture from the SDL_Surface. */
-	texture = SDL_CreateTextureFromSurface(context->renderer, surface);
-
-	/* Verify texture creation. */
-	if (texture == NULL)
-	{
-		SDL_FreeSurface(surface);
-		fl_free(glyph);
-		return NULL;
-	}
-
-	/* Allocate memory for an fl_image structure. */
-	image = fl_alloc(fl_image, 1);
-
-	/* Verify fl_image memory allocation. */
-	if (image == NULL)
-	{
-		SDL_FreeSurface(surface);
-		SDL_DestroyTexture(texture);
-		fl_free(glyph);
-		return NULL;
-	}
-
-	/* Populate the fl_image structure. */
-	image->surface = surface;
-	image->texture = texture;
-
-	/* Populate the fl_glyph structure. */
+	/* Populate the glyph structure. */
 	glyph->c = c;
 	glyph->image = image;
 
@@ -80,15 +36,7 @@ void fl_destroy_glyph(fl_glyph* glyph)
 		return;
 
 	if (glyph->image != NULL)
-	{
-		if (glyph->image->surface != NULL)
-			SDL_FreeSurface(glyph->image->surface);
-
-		if (glyph->image->texture != NULL)
-			SDL_DestroyTexture(glyph->image->texture);
-
-		fl_free(glyph->image);
-	}
+		fl_destroy_image(glyph->image);
 
 	fl_free(glyph);
 }
@@ -178,94 +126,25 @@ fl_image* fl_create_static_text(fl_context* context, fl_resource* res, const cha
 	/* static text data */
 	char* contents;
 	fl_image* image;
-	SDL_Surface* surface;
-	SDL_Texture* texture;
-
-	/* font data */
-	TTF_Font* font;
-	SDL_Color fc;
-	SDL_Color bc;
 
 	if (txt == NULL)
 		return NULL;
-
-	int renderstyle = TTF_STYLE_NORMAL;
-	int outline = 0;
-	int hinting = TTF_HINTING_MONO;
-	int kerning = 1;
 
 	/* Allocate memory for the character string contents. */
 	contents = fl_alloc(char, (strlen(txt) + 1));
 
 	/* Verify character string allocation. */
 	if (contents == NULL)
-	{
 		return NULL;
-	}
 
 	/* Populate the character buffer with the specified text. */
 	strcpy(contents, txt);
 
-	/* Extract the font data from the resource. */
-	font = res->impl.font->impl;
-	fc = res->impl.font->forecolor;
-	bc = res->impl.font->backcolor;
+	/* Create an image of the text. */
+	image = fl_create_text_image(context, res, contents);
 
-	/* Convert the text to an SDL_Surface. */
-	if (res->impl.font->background)
-		surface = TTF_RenderText_Shaded(font, contents, fc, bc);
-	else
-		surface = TTF_RenderText_Blended(font, contents, fc);
-
-	/* Verify SDL_Surface creation. */
-	if (surface == NULL)
-	{
-		fl_free(contents);
-		return NULL;
-	}
-
-	/* Convert the SDL_Surface to an SDL_Texture. */
-	texture = SDL_CreateTextureFromSurface(context->renderer, surface);
-
-	/* Verify texture creation. */
-	if (texture == NULL)
-	{
-		SDL_FreeSurface(surface);
-		fl_free(contents);
-		return NULL;
-	}
-
-	/* Allocate memory for an fl_image structure. */
-	image = fl_alloc(fl_image, 1);
-
-	/* Verify fl_image memory allocation. */
-	if (image == NULL)
-	{
-		SDL_FreeSurface(surface);
-		fl_free(contents);
-		SDL_DestroyTexture(texture);
-		return NULL;
-	}
-
+	/* Dispose of the string. */
 	fl_free(contents);
 
-	/* Populate the fl_image structure. */
-	image->surface = surface;
-	image->texture = texture;
-
 	return image;
-}
-
-void fl_destroy_static_text(fl_image* stat)
-{
-	if (stat == NULL)
-		return;
-
-	if (stat->surface != NULL)
-		SDL_FreeSurface(stat->surface);
-
-	if (stat->texture != NULL)
-		SDL_DestroyTexture(stat->texture);
-
-	fl_free(stat);
 }

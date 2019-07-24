@@ -84,23 +84,20 @@ static char fl_sc_to_char(int sc, unsigned char mod);
 
 static void render(fl_context* context, fl_console* self)
 {
-	int i;          /* index variable     */
-	int cx;         /* cursor x position  */
-	int cy;         /* cursor y position  */
-	SDL_Rect frame; /* dialog frame       */
-	SDL_Rect src;   /* render source      */
-	SDL_Rect dest;  /* render destination */
+	int i;         /* index variable     */
+	int cx;        /* cursor x position  */
+	int cy;        /* cursor y position  */
+	fl_rect frame; /* dialog frame       */
+	fl_rect src;   /* render source      */
+	fl_rect dest;  /* render destination */
 
-	frame.x = self->x;
-	frame.y = self->y;
-	frame.w = self->w;
-	frame.h = self->h;
+	fl_set_rect(&frame, self->x, self->y, self->w, self->h);
 
 	/* Render the console frame. */
-	SDL_SetRenderDrawColor(context->renderer, 150, 50, 150, 120);
-	SDL_RenderFillRect(context->renderer, &frame);
-	SDL_SetRenderDrawColor(context->renderer, 250, 250, 250, 255);
-	SDL_RenderDrawRect(context->renderer, &frame);
+	fl_set_draw_color(context, 150, 50, 150, 120);
+	fl_draw_solid_rect(context, &frame);
+	fl_set_draw_color(context, 250, 250, 250, 255);
+	fl_draw_rect(context, &frame);
 
 	dest.x = 0;
 	dest.y = 0;
@@ -116,15 +113,15 @@ static void render(fl_context* context, fl_console* self)
 
 			dest.x = self->x + cx + 4;
 			dest.y = self->y + cy * 22 + 4;
-			dest.w = g->image->surface->w;
-			dest.h = g->image->surface->h;
+			dest.w = g->image->w;
+			dest.h = g->image->h;
 
-			src.w = g->image->surface->w;
-			src.h = g->image->surface->h;
+			src.w = g->image->w;
+			src.h = g->image->h;
 
-			SDL_RenderCopy(context->renderer, g->image->texture, &src, &dest);
+			fl_draw(context, g->image->texture, &src, &dest, 0);
 
-			if (cx > LINE_WIDTH)
+			if (cx >= LINE_WIDTH)
 			{
 				/* If the current line exceeds the
 				   line width pixel limit,
@@ -134,7 +131,7 @@ static void render(fl_context* context, fl_console* self)
 					cy++;
 			}
 			else
-				cx += g->image->surface->w;
+				cx += g->image->w;
 		}
 		else if (self->buffer[i] == 0x0A)
 		{
@@ -189,14 +186,17 @@ static void handle_input(fl_context* context, fl_input_handler* self)
 
 static void console_putc(fl_console* console, char c, unsigned char mod)
 {
-	if (console->char_count >= BUFFER_LIMIT || c == '\0')
+	if (console->buffer_count >= BUFFER_LIMIT || c == '\0')
 		return;
 
 	/* Handle backspaces. */
 	if (c == 0x08)
 	{
-		if (console->char_count > 0)
-			console->buffer[console->char_count-- - 1] = '\0';
+		/* If there is at least one character in the buffer,
+		   set the current character to '\0' and decrement
+		   the character count. */
+		if (console->buffer_count > 0)
+			console->buffer[console->buffer_count-- - 1] = '\0';
 
 		return;
 	}
@@ -204,12 +204,12 @@ static void console_putc(fl_console* console, char c, unsigned char mod)
 	/* Handle newlines. */
 	if (c == 0x0A)
 	{
-		if (console->char_count < BUFFER_LIMIT - 1)
+		if (console->buffer_count < BUFFER_LIMIT - 1)
 		{
 			console->cursor_x = 0;
 			if (console->cursor_y < ROW_COUNT - 1)
 			{
-				console->buffer[console->char_count++] = '\n';
+				console->buffer[console->buffer_count++] = '\n';
 				console->cursor_y++;
 			}
 		}
@@ -230,7 +230,7 @@ static void console_putc(fl_console* console, char c, unsigned char mod)
 		}
 	}
 
-	console->buffer[console->char_count++] = c;
+	console->buffer[console->buffer_count++] = c;
 }
 
 static void submit_buffer(fl_context* context, fl_console* console)
@@ -253,14 +253,11 @@ static void submit_buffer(fl_context* context, fl_console* console)
 
 static void clear_buffer(fl_console* console)
 {
-	int i;
-
-	for (i = 0; i < BUFFER_LIMIT; i++)
-		console->buffer[i] = '\0';
+	fl_zero(console->buffer, BUFFER_LIMIT);
 
 	console->cursor_x = 0;
 	console->cursor_y = 0;
-	console->char_count = 0;
+	console->buffer_count = 0;
 }
 
 static char fl_sc_to_char(int sc, unsigned char mod)
@@ -333,8 +330,6 @@ static char fl_sc_to_char(int sc, unsigned char mod)
 
 fl_console* fl_create_console(fl_context* context)
 {
-	int i;
-
 	/* Allocate memory for a console. */
 	fl_console* con = fl_alloc(fl_console, 1);
 
@@ -350,7 +345,6 @@ fl_console* fl_create_console(fl_context* context)
 	con->buffer_count = 0;
 	con->cursor_x = 0;
 	con->cursor_y = 0;
-	con->char_count = 0;
 	con->atlas = context->fonts[FLURMP_FONT_COUSINE]->impl.font->atlas;
 	con->render = render;
 
@@ -375,8 +369,7 @@ fl_console* fl_create_console(fl_context* context)
 	}
 
 	/* Set all characters in the buffer to '\0' */
-	for (i = 0; i < BUFFER_LIMIT; i++)
-		con->buffer[i] = '\0';
+	fl_zero(con->buffer, BUFFER_LIMIT);
 
 	return con;
 }
@@ -390,7 +383,7 @@ void fl_destroy_console(fl_console* console)
 		fl_destroy_input_handler(console->input_handler);
 
 	if (console->buffer != NULL)
-		free(console->buffer);
+		fl_free(console->buffer);
 
 	fl_free(console);
 

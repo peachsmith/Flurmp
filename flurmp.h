@@ -123,17 +123,6 @@ typedef struct fl_entity_type fl_entity_type;
 typedef struct fl_input_handler fl_input_handler;
 
 /**
- * A command line interface (CLI).
- * This should be used to receive text input directly from the user
- * or the developer.
- * This can be used as a developer console, in which case it is recommended
- * to disable it in release versions.
- * It could also potentially be used as a normal part of the application
- * to allow the user to type in text input.
- */
-typedef struct fl_console fl_console;
-
-/**
  * Menus allows the user to select from a list of options to perform
  * certain actions.
  * A menu is not obligated to have any particular number of options,
@@ -163,6 +152,23 @@ typedef struct fl_menu_item fl_menu_item;
  * or they may serve to display conversation between entities.
  */
 typedef struct fl_dialog fl_dialog;
+
+/**
+ * A command line interface (CLI).
+ * This should be used to receive text input directly from the user
+ * or the developer.
+ * This can be used as a developer console, in which case it is recommended
+ * to disable it in release versions.
+ * It could also potentially be used as a normal part of the application
+ * to allow the user to type in text input.
+ */
+typedef struct fl_console fl_console;
+
+/**
+ * An overlay that can be used to display debugging information
+ * such as entity positions and application state in real time.
+ */
+typedef struct fl_data_panel fl_data_panel;
 
 
 /* -------------------------------------------------------------- */

@@ -89,10 +89,10 @@ static void render(fl_context* context, fl_entity* self)
 {
 	int self_w = context->entity_types[self->type].w;
 	int self_h = context->entity_types[self->type].h;
-	SDL_Texture* tex = context->entity_types[self->type].texture->impl.image->texture;
+	fl_texture* tex = context->entity_types[self->type].texture->impl.image->texture;
 
-	SDL_Rect src;
-	SDL_Rect dest;
+	fl_rect src;
+	fl_rect dest;
 
 	src.x = 0;
 	src.y = 0;
@@ -104,7 +104,7 @@ static void render(fl_context* context, fl_entity* self)
 	dest.w = self_w;
 	dest.h = self_h;
 
-	SDL_RenderCopy(context->renderer, tex, &src, &dest);
+	fl_draw(context, tex, &src, &dest, 0);
 }
 
 static void first_cb(fl_context* context)

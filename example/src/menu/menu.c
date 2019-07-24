@@ -43,7 +43,7 @@ void fl_destroy_menu_item(fl_menu_item* item)
 		return;
 
 	if (item->image != NULL)
-		fl_destroy_static_text(item->image);
+		fl_destroy_image(item->image);
 
 	fl_free(item);
 }

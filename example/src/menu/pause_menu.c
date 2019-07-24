@@ -232,7 +232,7 @@ static void get_cursor_coords(fl_menu* menu, int* x, int* y)
 
 	/* Determine the cursor's x position. */
 	if (menu->pos < 4)
-		*x = 60;
+		* x = 60;
 	else
 		*x = 180;
 
@@ -301,18 +301,17 @@ static void handle_input(fl_context* context, fl_input_handler* self)
 static void render(fl_context* context, fl_menu* menu)
 {
 	int i;
-	SDL_Rect r;
+	fl_rect r;
 
 	r.x = menu->x;
 	r.y = menu->y;
 	r.w = menu->w;
 	r.h = menu->h;
 
-	SDL_SetRenderDrawColor(context->renderer, 0, 0, 0, 255);
-	SDL_RenderFillRect(context->renderer, &r);
-
-	SDL_SetRenderDrawColor(context->renderer, 250, 250, 250, 255);
-	SDL_RenderDrawRect(context->renderer, &r);
+	fl_set_draw_color(context, 0, 0, 0, 255);
+	fl_draw_solid_rect(context, &r);
+	fl_set_draw_color(context, 250, 250, 250, 255);
+	fl_draw_rect(context, &r);
 
 	if (menu->items != NULL)
 	{
@@ -320,9 +319,9 @@ static void render(fl_context* context, fl_menu* menu)
 		{
 			r.x = menu->items[i]->x;
 			r.y = menu->items[i]->y;
-			r.w = menu->items[i]->image->surface->w;
-			r.h = menu->items[i]->image->surface->h;
-			SDL_RenderCopy(context->renderer, menu->items[i]->image->texture, NULL, &r);
+			r.w = menu->items[i]->image->w;
+			r.h = menu->items[i]->image->h;
+			fl_draw(context, menu->items[i]->image->texture, NULL, &r, 0);
 		}
 	}
 
@@ -332,7 +331,7 @@ static void render(fl_context* context, fl_menu* menu)
 		r.w = 10;
 		r.h = 10;
 
-		SDL_RenderFillRect(context->renderer, &r);
+		fl_draw_solid_rect(context, &r);
 	}
 	else
 	{

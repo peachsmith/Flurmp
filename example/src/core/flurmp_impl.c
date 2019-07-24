@@ -14,9 +14,6 @@
 #include "sign.h"
 #include "player.h"
 
-#include <stdlib.h>
-#include <stdio.h>
-
 /* Counters to keep track of how many times malloc and free
    have been called. These do NOT take into account the calls
    to malloc and free made by libraries. */
@@ -55,26 +52,6 @@ static void root_input_handler(fl_context* context, fl_input_handler* self);
  *   fl_context - a Flurmp context
  */
 static void render_camera_boundaries(fl_context* context);
-
-
-int fl_initialize()
-{
-	if (SDL_Init(SDL_INIT_VIDEO)) return 0;
-
-	if (TTF_Init())
-	{
-		SDL_Quit();
-		return 0;
-	}
-
-	return 1;
-}
-
-void fl_terminate()
-{
-	TTF_Quit();
-	SDL_Quit();
-}
 
 const char* fl_get_error()
 {
@@ -125,10 +102,8 @@ fl_context* fl_create_context()
 	context->ret_val = 0;
 
 	/* Create the application window. */
-	context->window = SDL_CreateWindow("Flurmp", 100, 100,
-		FLURMP_WINDOW_WIDTH,
-		FLURMP_WINDOW_HEIGHT,
-		SDL_WINDOW_SHOWN);
+	context->window = fl_create_window("Flurmp",
+		100, 100, FLURMP_WINDOW_WIDTH, FLURMP_WINDOW_HEIGHT);
 
 	/* Verify window creation. */
 	if (context->window == NULL)
@@ -138,8 +113,7 @@ fl_context* fl_create_context()
 	}
 
 	/* Create the renderer. */
-	context->renderer = SDL_CreateRenderer(context->window, -1,
-		SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+	context->renderer = fl_create_renderer(context->window);
 
 	/* Verify renderer creation. */
 	if (context->renderer == NULL)
@@ -147,11 +121,6 @@ fl_context* fl_create_context()
 		context->error = FLURMP_ERR_RENDERER;
 		return context;
 	}
-
-	/* Configure the renderer. */
-	SDL_SetRenderDrawBlendMode(context->renderer, SDL_BLENDMODE_BLEND);
-
-
 
 	/* Get a reference to an array of key states. */
 	context->input.keystates = SDL_GetKeyboardState(NULL);
@@ -190,9 +159,12 @@ fl_context* fl_create_context()
 	context->entity_types[FLURMP_ENTITY_SIGN] = sign_type;
 	context->entity_types[FLURMP_ENTITY_BLOCK_200_50] = block_200_50_type;
 
+
+
 	/* Create a font registry */
 	context->fonts = fl_alloc(fl_resource*, FLURMP_FONT_COUNT);
 
+	/* Verify font registry creation. */
 	if (context->fonts == NULL)
 	{
 		context->error = FLURMP_ERR_FONTS;
@@ -200,10 +172,10 @@ fl_context* fl_create_context()
 	}
 
 	/* font colors */
-	SDL_Color menu_fc;
-	SDL_Color menu_bc;
-	SDL_Color console_fc;
-	SDL_Color console_bc;
+	fl_color menu_fc;
+	fl_color menu_bc;
+	fl_color console_fc;
+	fl_color console_bc;
 
 	/* Populate the font colors with RGBA values. */
 	fl_set_color(&menu_fc, 250, 250, 250, 255);
@@ -232,11 +204,10 @@ fl_context* fl_create_context()
 	}
 
 	/* Set all images to NULL. */
-	for (i = 0; i < FLURMP_IMAGE_COUNT; i++)
-		context->images[i] = NULL;
+	fl_null(context->images, FLURMP_IMAGE_COUNT);
 
 	/* Load common images. */
-	context->images[FLURMP_IMAGE_PLAYER] = fl_load_bmp(context, "resources/images/person.bmp");
+	context->images[FLURMP_IMAGE_PLAYER] = fl_load_image(context, "resources/images/person.bmp");
 
 	context->entity_types[FLURMP_ENTITY_PLAYER].texture = context->images[FLURMP_IMAGE_PLAYER];
 
@@ -513,10 +484,10 @@ void fl_update(fl_context* context)
 void fl_render(fl_context* context)
 {
 	/* Set the background color. */
-	SDL_SetRenderDrawColor(context->renderer, 145, 219, 255, 255);
+	fl_set_draw_color(context, 145, 219, 255, 255);
 
 	/* Remove the previous screen contents. */
-	SDL_RenderClear(context->renderer);
+	fl_render_clear(context);
 
 	fl_entity* en = context->entities;
 
@@ -544,10 +515,10 @@ void fl_render(fl_context* context)
 	if (context->active_dialog != NULL)
 		context->active_dialog->render(context, context->active_dialog);
 
-	render_camera_boundaries(context);
+	/* render_camera_boundaries(context); */
 
 	/* Put everything on the screen. */
-	SDL_RenderPresent(context->renderer);
+	fl_render_show(context);
 }
 
 void fl_sleep(int ms)
@@ -570,16 +541,16 @@ void fl_end_frame(fl_context* context)
 
 static void render_camera_boundaries(fl_context* context)
 {
-	SDL_SetRenderDrawColor(context->renderer, 255, 255, 0, 255);
-	SDL_RenderDrawLine(context->renderer, FLURMP_LEFT_BOUNDARY, 0, FLURMP_LEFT_BOUNDARY, FLURMP_WINDOW_HEIGHT);
-	SDL_RenderDrawLine(context->renderer, FLURMP_RIGHT_BOUNDARY, 0, FLURMP_RIGHT_BOUNDARY, FLURMP_WINDOW_HEIGHT);
+	fl_set_draw_color(context, 255, 255, 0, 255);
+	fl_draw_line(context, FLURMP_LEFT_BOUNDARY, 0, FLURMP_LEFT_BOUNDARY, FLURMP_WINDOW_HEIGHT);
+	fl_draw_line(context, FLURMP_RIGHT_BOUNDARY, 0, FLURMP_RIGHT_BOUNDARY, FLURMP_WINDOW_HEIGHT);
 
-	SDL_SetRenderDrawColor(context->renderer, 110, 100, 255, 255);
-	SDL_RenderDrawLine(context->renderer, 0, FLURMP_UPPER_BOUNDARY, FLURMP_WINDOW_WIDTH, FLURMP_UPPER_BOUNDARY);
-	SDL_RenderDrawLine(context->renderer, 0, FLURMP_LOWER_BOUNDARY, FLURMP_WINDOW_WIDTH, FLURMP_LOWER_BOUNDARY);
+	fl_set_draw_color(context, 110, 100, 255, 255);
+	fl_draw_line(context, 0, FLURMP_UPPER_BOUNDARY, FLURMP_WINDOW_WIDTH, FLURMP_UPPER_BOUNDARY);
+	fl_draw_line(context, 0, FLURMP_LOWER_BOUNDARY, FLURMP_WINDOW_WIDTH, FLURMP_LOWER_BOUNDARY);
 }
 
-void fl_set_color(SDL_Color* color, int r, int g, int b, int a)
+void fl_set_color(fl_color* color, int r, int g, int b, int a)
 {
 	if (color == NULL)
 		return;
@@ -589,6 +560,17 @@ void fl_set_color(SDL_Color* color, int r, int g, int b, int a)
 	color->g = g > 255 ? 255 : (g < 0 ? 0 : g);
 	color->b = b > 255 ? 255 : (b < 0 ? 0 : b);
 	color->a = a > 255 ? 255 : (a < 0 ? 0 : a);
+}
+
+void fl_set_rect(fl_rect* r, int x, int y, int w, int h)
+{
+	if (r == NULL)
+		return;
+
+	r->x = x;
+	r->y = y;
+	r->w = w;
+	r->h = h;
 }
 
 static int is_on_screen(fl_context* context, fl_entity* entity)

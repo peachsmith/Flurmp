@@ -107,12 +107,13 @@ static void update(fl_context* context, fl_entity* self, int axis)
 
 static void render(fl_context* context, fl_entity* self)
 {
+	int i;
 	int self_w = context->entity_types[self->type].w;
 	int self_h = context->entity_types[self->type].h;
-	SDL_Texture* tex = context->entity_types[self->type].texture->impl.image->texture;
+	fl_texture* tex = context->entity_types[self->type].texture->impl.image->texture;
 
-	SDL_Rect src;
-	SDL_Rect dest;
+	fl_rect src;
+	fl_rect dest;
 
 	src.x = 0;
 	src.y = 0;
@@ -126,17 +127,11 @@ static void render(fl_context* context, fl_entity* self)
 
 	/* This entity is 200 pixels wide, so copy a 50 pixel
 	   tile 4 times */
-
-	SDL_RenderCopy(context->renderer, tex, &src, &dest);
-
-	dest.x += dest.w;
-	SDL_RenderCopy(context->renderer, tex, &src, &dest);
-
-	dest.x += dest.w;
-	SDL_RenderCopy(context->renderer, tex, &src, &dest);
-
-	dest.x += dest.w;
-	SDL_RenderCopy(context->renderer, tex, &src, &dest);
+	for (i = 0; i < 4; i++)
+	{
+		fl_draw(context, tex, &src, &dest, 0);
+		dest.x += dest.w;
+	}
 }
 
 
