@@ -170,6 +170,20 @@ typedef struct fl_console fl_console;
  */
 typedef struct fl_data_panel fl_data_panel;
 
+/**
+ * An animation represents the selection of certain areas of an
+ * image to render for a given entity.
+ * In the context of animation, a "frame" is any one single image.
+ */
+typedef struct fl_animation fl_animation;
+
+/**
+ * A waiter performs a series of actions over the course of a
+ * specified number of main loop iterations.
+ * TODO: come up with a better name for this.
+ */
+typedef struct fl_waiter fl_waiter;
+
 
 /* -------------------------------------------------------------- */
 /*                           Functions                            */

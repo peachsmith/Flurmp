@@ -74,6 +74,8 @@
  */
 #define fl_zero(a,n) { int i; for (i = 0; i < n; i++) a[i] = '\0'; }
 
+#define fl_void(x) (void*)(x)
+
 struct fl_image {
 	int w;
 	int h;
@@ -111,6 +113,8 @@ struct fl_entity_type {
 	int w;
 	int h;
 	fl_resource* texture;
+	fl_animation** animations;
+	int animation_count;
 	void(*collide) (fl_context*, fl_entity*, fl_entity*, int, int);
 	void(*update) (fl_context*, fl_entity*, int);
 	void(*render) (fl_context*, fl_entity*);
@@ -123,7 +127,7 @@ struct fl_entity {
 	int y;
 	int x_v;
 	int y_v;
-	int frame;
+	fl_rect* frame;
 	int life;
 	fl_entity* next;
 	fl_entity* tail;
@@ -199,8 +203,24 @@ struct fl_data_panel {
 	char* buffer;
 	int buffer_count;
 	fl_font_atlas* atlas;
-	void(*update) (fl_context*, struct fl_data_panel*);
-	void(*render) (fl_context*, struct fl_data_panel*);
+	void(*update) (fl_context*, fl_data_panel*);
+	void(*render) (fl_context*, fl_data_panel*);
+};
+
+struct fl_animation {
+	fl_rect* frames;
+	int frame_count;
+	int counter;
+};
+
+struct fl_waiter {
+	int done;
+	int current;
+	int limit;
+	void* target;
+	void(*action)(fl_context*, fl_waiter*, void*);
+	fl_waiter* next;
+	fl_waiter* prev;
 };
 
 struct fl_context {
@@ -221,6 +241,9 @@ struct fl_context {
 
 	/* Linked list of entities */
 	fl_entity* entities;
+
+	/* Linked list of waiters */
+	fl_waiter* waiters;
 
 	/* Input handling callback */
 	fl_input_handler* input_handler;
@@ -309,5 +332,9 @@ void* fl_allocate_(size_t s);
  *   void* - a pointer to a dynamically allocated block of memory
  */
 void fl_free_(void* m);
+
+fl_animation* fl_create_animation(int f);
+
+void fl_destroy_animation(fl_animation* a);
 
 #endif

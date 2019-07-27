@@ -147,4 +147,6 @@ void fl_register_sign_type(fl_context* context, fl_entity_type* et)
 	et->render = render;
 
 	et->texture = NULL;
+	et->animations = NULL;
+	et->animation_count = 0;
 }

@@ -28,8 +28,16 @@ fl_entity* fl_create_player(int, int);
  */
 void fl_register_player_type(fl_context* context, fl_entity_type*);
 
-void fl_player_walk(fl_entity* e);
-void fl_player_stand(fl_entity* e);
-void fl_player_jump(fl_entity* e);
+/**
+ * Creates the waiters for a player entity and adds them to a context.
+ *
+ * Params:
+ *   fl_context - a Flurmp context
+ *   fl_entity - a player entity
+ *
+ * Returns:
+ *   int - 1 on success, or 0 on failure
+ */
+int fl_load_player_waiters(fl_context* context, fl_entity* player);
 
 #endif

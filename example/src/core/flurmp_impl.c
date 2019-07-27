@@ -9,6 +9,7 @@
 #include "menu.h"
 #include "dialog.h"
 #include "data_panel.h"
+#include "waiter.h"
 
 #include "block_200_50.h"
 #include "sign.h"
@@ -53,6 +54,12 @@ static void root_input_handler(fl_context* context, fl_input_handler* self);
  */
 static void render_camera_boundaries(fl_context* context);
 
+/* example wait action */
+static void taco_wait(fl_context*, fl_waiter*, void*);
+
+/* example wait action */
+static void juice_wait(fl_context*, fl_waiter*, void*);
+
 const char* fl_get_error()
 {
 	return SDL_GetError();
@@ -83,6 +90,7 @@ fl_context* fl_create_context()
 	context->fonts = NULL;
 	context->images = NULL;
 	context->entities = NULL;
+	context->waiters = NULL;
 	context->input_handler = NULL;
 	context->console = NULL;
 	context->pco = NULL;
@@ -238,6 +246,7 @@ fl_context* fl_create_context()
 void fl_destroy_context(fl_context* context)
 {
 	int i; /* Our good friend, the index variable. */
+	int j;
 
 	fl_entity* en;
 	fl_entity* next;
@@ -269,7 +278,22 @@ void fl_destroy_context(fl_context* context)
 
 	/* Destroy the entity type registry. */
 	if (context->entity_types != NULL)
+	{
+		for (i = 0; i < FLURMP_ENTITY_TYPE_COUNT; i++)
+		{
+			fl_entity_type et = context->entity_types[i];
+			if (et.animations != NULL)
+			{
+				for (j = 0; j < et.animation_count; j++)
+				{
+					fl_destroy_animation(et.animations[j]);
+				}
+			}
+		}
+
 		fl_free(context->entity_types);
+	}
+		
 
 	/* Destroy the active menu. */
 	if (context->active_menu != NULL)
@@ -291,6 +315,7 @@ void fl_destroy_context(fl_context* context)
 		fl_free(context->fonts);
 	}
 
+	/* Destroy the data panel. */
 	if (context->data_panel != NULL)
 		fl_destroy_data_panel(context->data_panel);
 
@@ -304,6 +329,20 @@ void fl_destroy_context(fl_context* context)
 		}
 
 		fl_free(context->images);
+	}
+
+	/* Destroy any waiters. */
+	if (context->waiters != NULL)
+	{
+		fl_waiter* w = context->waiters;
+		fl_waiter* next;
+
+		while (w != NULL)
+		{
+			next = w->next;
+			fl_destroy_waiter(w);
+			w = next;
+		}
 	}
 
 	/* Destroy the input flags. */
@@ -479,6 +518,26 @@ void fl_update(fl_context* context)
 	/* Update the entities and handle collisions. */
 	update_and_collide(context, FLURMP_AXIS_X);
 	update_and_collide(context, FLURMP_AXIS_Y);
+
+	if (context->waiters != NULL)
+	{
+		fl_waiter* w = context->waiters;
+		fl_waiter* next;
+
+		while (w != NULL)
+		{
+			w->action(context, w, w->target);
+			next = w->next;
+
+			if (w->done)
+			{
+				fl_remove_waiter(context, w);
+				fl_destroy_waiter(w);
+			}
+
+			w = next;
+		}
+	}
 }
 
 void fl_render(fl_context* context)
@@ -664,6 +723,18 @@ static void root_input_handler(fl_context* context, fl_input_handler* self)
 		context->cam_x = 0;
 		context->cam_y = 0;
 	}
+
+	if (fl_peek_input(context, FLURMP_INPUT_TYPE_KEYBOARD, FLURMP_SC_T))
+	{
+		if (!(context->pco->flags & FLURMP_TACO_FLAG) && !(context->pco->flags & FLURMP_JUICE_FLAG))
+		{
+			fl_waiter* taco = fl_create_waiter(taco_wait, 300, fl_void(context->pco));
+			fl_waiter* juice = fl_create_waiter(juice_wait, 150, fl_void(context->pco));
+
+			fl_add_waiter(context, taco);
+			fl_add_waiter(context, juice);
+		}
+	}
 }
 
 void* fl_allocate_(size_t s)
@@ -682,4 +753,79 @@ void fl_free_(void* m)
 {
 	free(m);
 	frees_++;
+}
+
+fl_animation* fl_create_animation(int f)
+{
+	fl_animation* a = fl_alloc(fl_animation, 1);
+
+	if (a == NULL)
+		return NULL;
+
+	fl_rect* frames = fl_alloc(fl_rect, f);
+
+	if (frames == NULL)
+	{
+		fl_free(a);
+		return NULL;
+	}
+
+	a->frames = frames;
+	a->frame_count = f;
+	a->counter = 0;
+
+	return a;
+}
+
+void fl_destroy_animation(fl_animation* a)
+{
+	if (a == NULL)
+		return;
+
+	if (a->frames != NULL)
+		fl_free(a->frames);
+
+	fl_free(a);
+}
+
+/* example wait action */
+static void taco_wait(fl_context* context, fl_waiter* w, void* self)
+{
+	fl_entity* en = (fl_entity*)self;
+
+	if (w->current == 0)
+	{
+		printf("This is the first iteration of the taco waiter.\n");
+		en->flags |= FLURMP_TACO_FLAG;
+	}
+
+	if (w->current == w->limit - 1)
+	{
+		printf("This is the last iteration of the taco waiter.\n");
+		en->flags &= ~(FLURMP_TACO_FLAG);
+		w->done = 1;
+	}
+
+	w->current++;
+}
+
+/* example wait action */
+static void juice_wait(fl_context* context, fl_waiter* w, void* self)
+{
+	fl_entity* en = (fl_entity*)self;
+
+	if (w->current == 0)
+	{
+		printf("This is the first iteration of the juice waiter.\n");
+		en->flags |= FLURMP_JUICE_FLAG;
+	}
+
+	if (w->current == w->limit - 1)
+	{
+		printf("This is the last iteration of the juice waiter.\n");
+		en->flags &= ~(FLURMP_JUICE_FLAG);
+		w->done = 1;
+	}
+
+	w->current++;
 }

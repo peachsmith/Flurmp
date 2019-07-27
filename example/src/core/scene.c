@@ -131,11 +131,11 @@ static void load_test_1(fl_context* context)
 
 	/* Create a player entity. */
 	fl_entity* player = fl_create_player(300, 100);
-
+	
 	/* Create a sign that will display a dialog. */
 	fl_entity* sign = fl_create_sign(420, 260);
 
-	/* Create a block on which the player can walk. */
+	/* Create terrain on which the player can walk. */
 	fl_entity* block_1 = fl_create_block_200_50(280, 300);
 	fl_entity* block_2 = fl_create_block_200_50(80, 350);
 	fl_entity* block_3 = fl_create_block_200_50(480, 250);
@@ -146,6 +146,9 @@ static void load_test_1(fl_context* context)
 	fl_add_entity(context, block_1);
 	fl_add_entity(context, block_2);
 	fl_add_entity(context, block_3);
+
+	/* Create the waiter for the player. */
+	fl_load_player_waiters(context, player);
 
 	/* Set the primary control object. */
 	context->pco = player;

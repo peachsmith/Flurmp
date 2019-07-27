@@ -1,5 +1,6 @@
 #include "data_panel.h"
 #include "text.h"
+#include "entity.h"
 
 #define ROW_COUNT 8
 #define BUFFER_LIMIT 240
@@ -74,10 +75,21 @@ static void update(fl_context* context, fl_data_panel* panel)
 
 	data_panel_printf(panel, "x: %d\n", context->pco->x);
 	data_panel_printf(panel, "y: %d\n", context->pco->y);
-	data_panel_printf(panel, "cam x: %d\n", context->cam_x);
+
+	/* data_panel_printf(panel, "cam x: %d\n", context->cam_x);
 	data_panel_printf(panel, "cam y: %d\n", context->cam_y);
 	data_panel_printf(panel, "diff x: %d\n", context->cam_x - context->pco->x);
-	data_panel_printf(panel, "diff y: %d\n", context->cam_y - context->pco->y);
+	data_panel_printf(panel, "diff y: %d\n", context->cam_y - context->pco->y); */
+
+	if (context->pco->flags & FLURMP_TACO_FLAG)
+		data_panel_printf(panel, "taco: true\n");
+	else
+		data_panel_printf(panel, "taco: false\n");
+
+	if (context->pco->flags & FLURMP_JUICE_FLAG)
+		data_panel_printf(panel, "juice: true\n");
+	else
+		data_panel_printf(panel, "juice: false\n");
 }
 
 static void render(fl_context* context, fl_data_panel* self)

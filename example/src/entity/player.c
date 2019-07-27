@@ -1,6 +1,7 @@
 #include "player.h"
 #include "entity.h"
 #include "resource.h"
+#include "waiter.h"
 
 
 /* -------------------------------------------------------------- */
@@ -90,21 +91,36 @@ static void adjust_camera_vertical(fl_context*, fl_entity*);
  */
 static void vertical_movement(fl_context*, fl_entity*);
 
+
+
+/* -------------------------------------------------------------- */
+/*                       waiter functions                         */
+/* -------------------------------------------------------------- */
+
 /**
- * This function determines which section of a sprite sheet should be used
- * when rendering the player entity at any given time.
+ * Determines which section of the player texture to use when
+ * rendering a player entity.
  *
  * Params:
  *   fl_context - a Flurmp context
- *   fl_entity - the player entity
+ *   fl_waiter - a waiter
+ *   void* - a reference to a player entity cast as a void pointer
  */
-static void animate(fl_context*, fl_entity*);
+static void animate(fl_context*, fl_waiter*, void*);
 
 
 
 /* -------------------------------------------------------------- */
-/*                 utility functions functions                    */
+/*                      utility functions                         */
 /* -------------------------------------------------------------- */
+
+/**
+ * Renders the hitbox of a player entity.
+ *
+ * Params:
+ *   fl_context - a Flurmp context
+ *   fl_entity - a player entity
+ */
 static void render_hitbox(fl_context* context, fl_entity* self);
 
 
@@ -133,6 +149,18 @@ fl_entity* fl_create_player(int x, int y)
 	return player;
 }
 
+int fl_load_player_waiters(fl_context* context, fl_entity* player)
+{
+	fl_waiter* w = fl_create_waiter(animate, -1, player);
+
+	if (w == NULL)
+		return 0;
+
+	fl_add_waiter(context, w);
+	
+	return 1;
+}
+
 void fl_register_player_type(fl_context* context, fl_entity_type* et)
 {
 	et->w = 30;
@@ -143,12 +171,56 @@ void fl_register_player_type(fl_context* context, fl_entity_type* et)
 	et->render = render;
 
 	et->texture = NULL;
+
+	fl_animation** animations = fl_alloc(fl_animation*, 3);
+
+	if (animations == NULL)
+		return;
+
+	/* Create the standing animation. */
+	fl_animation* stand = fl_create_animation(1);
+	if (stand == NULL)
+	{
+		fl_free(animations);
+		return;
+	}
+	fl_set_rect(&(stand->frames[0]), 0, 0, 50, 50);
+
+	/* Create the walking animation. */
+	fl_animation* walk = fl_create_animation(3);
+	if (walk == NULL)
+	{
+		fl_free(animations);
+		fl_destroy_animation(stand);
+		return;
+	}
+	fl_set_rect(&(walk->frames[0]), 0, 0, 50, 50);
+	fl_set_rect(&(walk->frames[1]), 50, 0, 50, 50);
+	fl_set_rect(&(walk->frames[2]), 100, 0, 50, 50);
+
+	/* Create the jumping animation. */
+	fl_animation* jump = fl_create_animation(1);
+	if (jump == NULL)
+	{
+		fl_free(animations);
+		fl_destroy_animation(stand);
+		fl_destroy_animation(jump);
+		return;
+	}
+	fl_set_rect(&(jump->frames[0]), 50, 0, 50, 50);
+
+	animations[0] = stand;
+	animations[1] = walk;
+	animations[2] = jump;
+
+	et->animations = animations;
+	et->animation_count = 3;
 }
 
 
 
 /* -------------------------------------------------------------- */
-/*            entity behavior function implementations            */
+/*           entity behavior functions (implementation)           */
 /* -------------------------------------------------------------- */
 
 static void collide(fl_context* context, fl_entity* self, fl_entity* other, int collided, int axis)
@@ -175,10 +247,6 @@ static void update(fl_context* context, fl_entity* self, int axis)
 		/* vertical movement */
 		vertical_movement(context, self);
 	}
-
-	/* animation */
-	if (axis == FLURMP_AXIS_X)
-		animate(context, self);
 }
 
 static void render(fl_context* context, fl_entity* self)
@@ -187,25 +255,9 @@ static void render(fl_context* context, fl_entity* self)
 	int self_h = context->entity_types[self->type].h;
 	fl_texture* tex = context->entity_types[self->type].texture->impl.image->texture;
 
-	fl_rect src;
 	fl_rect dest;
 
 	int f = 0;
-
-	/* calculate the sprite coordinate based on
-	 * frame count and entity state
-	 */
-	if (self->flags & FLURMP_JUMP_FLAG)
-		f = 1;
-	else if (self->frame > 5 && self->frame < 10)
-		f = 1;
-	else if (self->frame > 10 && self->frame < 15)
-		f = 2;
-
-	src.x = 50 * f;
-	src.y = 0;
-	src.w = 50;
-	src.h = 50;
 
 	dest.x = self->x - 10 - context->cam_x;
 	dest.y = self->y - 8 - context->cam_y;
@@ -213,10 +265,10 @@ static void render(fl_context* context, fl_entity* self)
 	dest.h = self_h + 10;
 
 	if (self->flags & FLURMP_LEFT_FLAG)
-		fl_draw(context, tex, &src, &dest, 1);
+		fl_draw(context, tex, self->frame, &dest, 1);
 
 	else
-		fl_draw(context, tex, &src, &dest, 0);
+		fl_draw(context, tex, self->frame, &dest, 0);
 
 	/* render_hitbox(context, self); */
 }
@@ -224,7 +276,7 @@ static void render(fl_context* context, fl_entity* self)
 
 
 /* -------------------------------------------------------------- */
-/*                update function implementations                 */
+/*                update functions (implementation)               */
 /* -------------------------------------------------------------- */
 
 static void adjust_camera_horizontal(fl_context* context, fl_entity* self)
@@ -359,29 +411,12 @@ static void vertical_movement(fl_context* context, fl_entity* self)
 	}
 }
 
-static void animate(fl_context* context, fl_entity* self)
-{
-	if (self->flags & FLURMP_JUMP_FLAG)
-	{
-		/* in the air */
-		self->frame = 1;
-	}
-	else if (self->x_v != 0)
-	{
-		/* walking */
-		if (self->frame < 15) self->frame++;
-		else self->frame = 0;
-	}
-	else
-	{
-		/* standing */
-		self->frame = 0;
-	}
-}
+
 
 /* -------------------------------------------------------------- */
 /*                utility functions (implementation)              */
 /* -------------------------------------------------------------- */
+
 static void render_hitbox(fl_context* context, fl_entity* self)
 {
 	int self_w = context->entity_types[self->type].w;
@@ -395,4 +430,49 @@ static void render_hitbox(fl_context* context, fl_entity* self)
 
 	fl_set_draw_color(context, 255, 0, 255, 255);
 	fl_draw_rect(context, &hb);
+}
+
+
+
+/* -------------------------------------------------------------- */
+/*                waiter functions (implementation)               */
+/* -------------------------------------------------------------- */
+
+static void animate(fl_context* context, fl_waiter* w, void* self)
+{
+	fl_entity* en = (fl_entity*)self;
+	fl_animation* a;
+
+	if (en->flags & FLURMP_JUMP_FLAG)
+	{
+		/* in the air */
+		a = context->entity_types[en->type].animations[2];
+
+		if (w->current > 0)
+			w->current = 0;
+
+		en->frame = &(a->frames[w->current]);
+	}
+	else if (en->x_v != 0)
+	{
+		/* walking */
+		a = context->entity_types[en->type].animations[1];
+
+		if (w->current / 4 >= a->frame_count)
+			w->current = 0;
+
+		en->frame = &(a->frames[w->current / 4]);
+
+		w->current++;
+	}
+	else
+	{
+		/* standing */
+		a = context->entity_types[en->type].animations[0];
+
+		if (w->current > 0)
+			w->current = 0;
+
+		en->frame = &(a->frames[w->current]);
+	}
 }
