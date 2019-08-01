@@ -1,8 +1,10 @@
-#include "menu.h"
-#include "input.h"
-#include "dialog.h"
-#include "text.h"
-#include "console.h"
+#include "menu/pause_menu.h"
+#include "menu/pause_submenu.h"
+#include "menu/confirmation.h"
+#include "core/input.h"
+#include "core/dialog.h"
+#include "core/text.h"
+#include "core/console.h"
 
 /* amount of menu items */
 #define ITEM_COUNT 5

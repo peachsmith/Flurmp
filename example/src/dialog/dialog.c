@@ -1,6 +1,6 @@
-#include "dialog.h"
-#include "input.h"
-#include "text.h"
+#include "core/dialog.h"
+#include "core/input.h"
+#include "core/text.h"
 
 #define ROW_COUNT 2
 #define BUFFER_LIMIT 120
@@ -109,17 +109,17 @@ static void render(fl_context* context, fl_dialog* self)
 		if (self->buffer[i] >= 0x20 && self->buffer[i] <= 0x7E)
 		{
 			/* Get the appropriate glyph from the font atlas. */
-			fl_glyph* g = fl_char_to_glyph(self->atlas, self->buffer[i]);
+			fl_image* g = fl_char_to_glyph(self->font, self->buffer[i]);
 
 			dest.x = self->x + cx + 10;
 			dest.y = self->y + cy * 22 + 10;
-			dest.w = g->image->w;
-			dest.h = g->image->h;
+			dest.w = g->w;
+			dest.h = g->h;
 
-			src.w = g->image->w;
-			src.h = g->image->h;
+			src.w = g->w;
+			src.h = g->h;
 
-			fl_draw(context, g->image->texture, &src, &dest, 0);
+			fl_draw(context, g->texture, &src, &dest, 0);
 
 			if (cx >= LINE_WIDTH)
 			{
@@ -131,7 +131,7 @@ static void render(fl_context* context, fl_dialog* self)
 					cy++;
 			}
 			else
-				cx += g->image->w;
+				cx += g->w;
 		}
 		else if (self->buffer[i] == 0x0A)
 		{
@@ -271,7 +271,7 @@ fl_dialog* fl_create_dialog(fl_context* context)
 		 height:     100
 	*/
 
-	dialog->atlas = context->fonts[FLURMP_FONT_VERA]->impl.font->atlas;
+	dialog->font = context->fonts[FLURMP_FONT_VERA]->impl.font;
 	dialog->x = 75;
 	dialog->y = 320;
 	dialog->w = 500;

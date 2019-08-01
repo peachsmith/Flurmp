@@ -1,5 +1,5 @@
-#include "menu.h"
-#include "input.h"
+#include "menu/confirmation.h"
+#include "core/input.h"
 
 /* amount of menu items */
 #define ITEM_COUNT 2

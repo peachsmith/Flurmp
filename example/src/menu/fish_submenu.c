@@ -1,5 +1,5 @@
-#include "menu.h"
-#include "input.h"
+#include "menu/fish_submenu.h"
+#include "core/input.h"
 
 /* amount of menu items */
 #define ITEM_COUNT 2

@@ -1,11 +1,35 @@
-#include "flurmp_impl.h"
-#include "flurmp_sdl.h"
+/**
+ * Implementation of the Flurmp SDL wrapper.
+ * Contains implementation of functions for creating rendering contexts,
+ * loading images and fonts, and rendering data to the screen.
+ *
+ * This file also contains the implementation of the following functions
+ * from the flurmp.h header file:
+ *   fl_sleep
+ *   fl_handle_events
+ *   fl_begin_frame
+ *   fl_end_frame
+ *   fl_initialize
+ *   fl_terminate
+ */
+#include "core/flurmp_impl.h"
+#include "core/flurmp_sdl.h"
+
+
+
+/* -------------------------------------------------------------- */
+/*                        Core Functions                          */
+/* -------------------------------------------------------------- */
 
 fl_window* fl_create_window(const char* title, int x, int y, int w, int h)
 {
 	return SDL_CreateWindow(title, x, y, w, h, SDL_WINDOW_SHOWN);
 }
 
+void fl_destroy_window(fl_window* window)
+{
+	SDL_DestroyWindow(window);
+}
 
 fl_renderer* fl_create_renderer(fl_window* window)
 {
@@ -20,6 +44,21 @@ fl_renderer* fl_create_renderer(fl_window* window)
 	return ren;
 }
 
+void fl_destroy_renderer(fl_renderer* renderer)
+{
+	SDL_DestroyRenderer(renderer);
+}
+
+const unsigned char* fl_get_key_states()
+{
+	return SDL_GetKeyboardState(NULL);
+}
+
+
+
+/* -------------------------------------------------------------- */
+/*                        Image Functions                         */
+/* -------------------------------------------------------------- */
 
 int fl_load_bmp(fl_context* context, const char* path, fl_image* img)
 {
@@ -57,24 +96,27 @@ int fl_load_bmp(fl_context* context, const char* path, fl_image* img)
 	return 1;
 }
 
-
 void fl_destroy_image(fl_image* image)
 {
 	if (image == NULL)
 		return;
 
 	if (image->texture != NULL)
-		fl_destroy_texture(image->texture);
+		SDL_DestroyTexture(image->texture);
 
 	fl_free(image);
 }
 
 
+
+/* -------------------------------------------------------------- */
+/*                        Text Functions                          */
+/* -------------------------------------------------------------- */
+
 fl_ttf* fl_load_ttf(const char* path, int p)
 {
 	return TTF_OpenFont(path, p);
 }
-
 
 void fl_close_ttf(fl_ttf* font)
 {
@@ -83,7 +125,6 @@ void fl_close_ttf(fl_ttf* font)
 
 	TTF_CloseFont(font);
 }
-
 
 fl_image* fl_create_glyph_image(fl_context* context, fl_resource* res, char c)
 {
@@ -126,7 +167,7 @@ fl_image* fl_create_glyph_image(fl_context* context, fl_resource* res, char c)
 	if (image == NULL)
 	{
 		SDL_FreeSurface(surface);
-		fl_destroy_texture(texture);
+		SDL_DestroyTexture(texture);
 		return NULL;
 	}
 
@@ -140,7 +181,6 @@ fl_image* fl_create_glyph_image(fl_context* context, fl_resource* res, char c)
 
 	return image;
 }
-
 
 fl_image* fl_create_text_image(fl_context* context, fl_resource* res, const char* str)
 {
@@ -183,7 +223,7 @@ fl_image* fl_create_text_image(fl_context* context, fl_resource* res, const char
 	if (image == NULL)
 	{
 		SDL_FreeSurface(surface);
-		fl_destroy_texture(texture);
+		SDL_DestroyTexture(texture);
 		return NULL;
 	}
 
@@ -199,35 +239,29 @@ fl_image* fl_create_text_image(fl_context* context, fl_resource* res, const char
 }
 
 
-void fl_destroy_texture(fl_texture* texture)
-{
-	SDL_DestroyTexture(texture);
-}
-
+/* -------------------------------------------------------------- */
+/*                      Rendering Functions                       */
+/* -------------------------------------------------------------- */
 
 void fl_set_draw_color(fl_context* context, int r, int g, int b, int a)
 {
 	SDL_SetRenderDrawColor(context->renderer, r, g, b, a);
 }
 
-
 void fl_draw_rect(fl_context* context, fl_rect* r)
 {
 	SDL_RenderDrawRect(context->renderer, r);
 }
-
 
 void fl_draw_solid_rect(fl_context* context, fl_rect* r)
 {
 	SDL_RenderFillRect(context->renderer, r);
 }
 
-
 void fl_draw_line(fl_context* context, int x1, int y1, int x2, int y2)
 {
 	SDL_RenderDrawLine(context->renderer, x1, y1, x2, y2);
 }
-
 
 void fl_draw(fl_context* context, fl_texture* tex, fl_rect* src, fl_rect* dest, int flip)
 {
@@ -241,18 +275,49 @@ void fl_draw(fl_context* context, fl_texture* tex, fl_rect* src, fl_rect* dest, 
 	}
 }
 
-
 void fl_render_clear(fl_context* context)
 {
 	SDL_RenderClear(context->renderer);
 }
-
 
 void fl_render_show(fl_context* context)
 {
 	SDL_RenderPresent(context->renderer);
 }
 
+
+
+/* -------------------------------------------------------------- */
+/*                    flurmp.h implementation                     */
+/* -------------------------------------------------------------- */
+
+void fl_sleep(int ms)
+{
+	SDL_Delay(ms);
+}
+
+void fl_handle_events(fl_context* context)
+{
+	while (SDL_PollEvent(&(context->event)))
+	{
+		/* This happens when the user closes the window. */
+		if (context->event.type == FLURMP_QUIT)
+			context->done = 1;
+	}
+}
+
+void fl_begin_frame(fl_context* context)
+{
+	context->ticks = SDL_GetTicks();
+}
+
+void fl_end_frame(fl_context* context)
+{
+	if (1000U / context->fps > SDL_GetTicks() - context->ticks)
+	{
+		SDL_Delay(1000U / context->fps - (SDL_GetTicks() - context->ticks));
+	}
+}
 
 int fl_initialize()
 {
@@ -266,7 +331,6 @@ int fl_initialize()
 
 	return 1;
 }
-
 
 void fl_terminate()
 {

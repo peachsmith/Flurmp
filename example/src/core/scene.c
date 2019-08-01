@@ -2,20 +2,21 @@
  * This file contains functions for loading and unloading scenes.
  * Giving each scnene loader its own source file may improve readability.
  */
-#include "scene.h"
+#include "scene/scene.h"
 
-#include "input.h"
-#include "entity.h"
-#include "console.h"
-#include "text.h"
-#include "menu.h"
-#include "dialog.h"
-#include "resource.h"
-#include "image.h"
+#include "core/input.h"
+#include "core/console.h"
+#include "core/text.h"
+#include "core/dialog.h"
+#include "core/resource.h"
+#include "core/image.h"
 
-#include "block_200_50.h"
-#include "sign.h"
-#include "player.h"
+#include "menu/menu.h"
+
+#include "entity/entity.h"
+#include "entity/block_200_50.h"
+#include "entity/sign.h"
+#include "entity/player.h"
 
 /**
  * Determines if an image resource is used often.
@@ -147,8 +148,8 @@ static void load_test_1(fl_context* context)
 	fl_add_entity(context, block_2);
 	fl_add_entity(context, block_3);
 
-	/* Create the waiter for the player. */
-	fl_load_player_waiters(context, player);
+	/* Create the schedule for the player. */
+	fl_load_player_schedules(context, player);
 
 	/* Set the primary control object. */
 	context->pco = player;

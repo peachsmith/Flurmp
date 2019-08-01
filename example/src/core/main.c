@@ -1,24 +1,3 @@
-/*
- * An example of Flurmp usage.
- *
- * The general flow should be something like this:
- *
- *   initialize framework
- *   create the context
- *   while not done
- *   {
- *     begin frame
- *     handle events
- *     handle input
- *     update state
- *     render
- *     end frame
- *   }
- *   destroy the context
- *   terminate the framework
- *
- * Author: John Powell
- */
 #include <stdio.h>
 
 #include "flurmp.h"

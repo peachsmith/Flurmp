@@ -1,19 +1,23 @@
-#include "flurmp_impl.h"
-#include "input.h"
-#include "resource.h"
-#include "text.h"
-#include "image.h"
-#include "entity.h"
-#include "console.h"
-#include "scene.h"
-#include "menu.h"
-#include "dialog.h"
-#include "data_panel.h"
-#include "waiter.h"
+#include "core/flurmp_impl.h"
+#include "core/input.h"
+#include "core/resource.h"
+#include "core/text.h"
+#include "core/image.h"
+#include "core/console.h"
+#include "core/dialog.h"
+#include "core/data_panel.h"
+#include "core/schedule.h"
+#include "core/animation.h"
 
-#include "block_200_50.h"
-#include "sign.h"
-#include "player.h"
+#include "scene/scene.h"
+
+#include "menu/menu.h"
+#include "menu/pause_menu.h"
+
+#include "entity/entity.h"
+#include "entity/block_200_50.h"
+#include "entity/sign.h"
+#include "entity/player.h"
 
 /* Counters to keep track of how many times malloc and free
    have been called. These do NOT take into account the calls
@@ -54,11 +58,7 @@ static void root_input_handler(fl_context* context, fl_input_handler* self);
  */
 static void render_camera_boundaries(fl_context* context);
 
-/* example wait action */
-static void taco_wait(fl_context*, fl_waiter*, void*);
 
-/* example wait action */
-static void juice_wait(fl_context*, fl_waiter*, void*);
 
 const char* fl_get_error()
 {
@@ -67,8 +67,6 @@ const char* fl_get_error()
 
 fl_context* fl_create_context()
 {
-	int i; /* index variable */
-
 	fl_context* context;
 
 	/* entity types */
@@ -90,7 +88,7 @@ fl_context* fl_create_context()
 	context->fonts = NULL;
 	context->images = NULL;
 	context->entities = NULL;
-	context->waiters = NULL;
+	context->schedules = NULL;
 	context->input_handler = NULL;
 	context->console = NULL;
 	context->pco = NULL;
@@ -131,7 +129,7 @@ fl_context* fl_create_context()
 	}
 
 	/* Get a reference to an array of key states. */
-	context->input.keystates = SDL_GetKeyboardState(NULL);
+	context->input.keystates = fl_get_key_states();
 
 	/* Allocate memory for the input flag array. */
 	context->input.flags = fl_alloc(int, FLURMP_INPUT_FLAG_COUNT);
@@ -144,8 +142,7 @@ fl_context* fl_create_context()
 	}
 
 	/* Set all of the input flags to 0. */
-	for (i = 0; i < FLURMP_INPUT_FLAG_COUNT; i++)
-		context->input.flags[i] = 0;
+	fl_zero(context->input.flags, FLURMP_INPUT_FLAG_COUNT);
 
 	/* Allocate memory for the entity type registry. */
 	context->entity_types = fl_alloc(fl_entity_type, FLURMP_ENTITY_TYPE_COUNT);
@@ -197,9 +194,9 @@ fl_context* fl_create_context()
 	context->fonts[FLURMP_FONT_KARMILLA_BOLD] = fl_load_font("resources/fonts/Karmilla-Bold.ttf", 16, console_fc, console_bc, 0);
 
 	/* Create font atlases. */
-	context->fonts[FLURMP_FONT_VERA]->impl.font->atlas = fl_create_font_atlas(context, context->fonts[FLURMP_FONT_VERA]);
-	context->fonts[FLURMP_FONT_COUSINE]->impl.font->atlas = fl_create_font_atlas(context, context->fonts[FLURMP_FONT_COUSINE]);
-	context->fonts[FLURMP_FONT_KARMILLA_BOLD]->impl.font->atlas = fl_create_font_atlas(context, context->fonts[FLURMP_FONT_KARMILLA_BOLD]);
+	fl_create_font_atlas(context, context->fonts[FLURMP_FONT_VERA]);
+	fl_create_font_atlas(context, context->fonts[FLURMP_FONT_COUSINE]);
+	fl_create_font_atlas(context, context->fonts[FLURMP_FONT_KARMILLA_BOLD]);
 
 	/* Allocate memory for an image registry. */
 	context->images = fl_alloc(fl_resource*, FLURMP_IMAGE_COUNT);
@@ -229,7 +226,7 @@ fl_context* fl_create_context()
 	}
 
 	/* Create a data panel. */
-	context->data_panel = fl_create_data_panel(420, 20, 200, 150, context->fonts[FLURMP_FONT_COUSINE]->impl.font->atlas);
+	context->data_panel = fl_create_data_panel(420, 20, 200, 150, context->fonts[FLURMP_FONT_COUSINE]->impl.font);
 
 	if (context->data_panel == NULL)
 	{
@@ -245,8 +242,7 @@ fl_context* fl_create_context()
 
 void fl_destroy_context(fl_context* context)
 {
-	int i; /* Our good friend, the index variable. */
-	int j;
+	int i, j;
 
 	fl_entity* en;
 	fl_entity* next;
@@ -293,7 +289,7 @@ void fl_destroy_context(fl_context* context)
 
 		fl_free(context->entity_types);
 	}
-		
+
 
 	/* Destroy the active menu. */
 	if (context->active_menu != NULL)
@@ -331,16 +327,16 @@ void fl_destroy_context(fl_context* context)
 		fl_free(context->images);
 	}
 
-	/* Destroy any waiters. */
-	if (context->waiters != NULL)
+	/* Destroy any schedules. */
+	if (context->schedules != NULL)
 	{
-		fl_waiter* w = context->waiters;
-		fl_waiter* next;
+		fl_schedule* w = context->schedules;
+		fl_schedule* next;
 
 		while (w != NULL)
 		{
 			next = w->next;
-			fl_destroy_waiter(w);
+			fl_destroy_schedule(w);
 			w = next;
 		}
 	}
@@ -351,11 +347,11 @@ void fl_destroy_context(fl_context* context)
 
 	/* Destroy the renderer. */
 	if (context->renderer != NULL)
-		SDL_DestroyRenderer(context->renderer);
+		fl_destroy_renderer(context->renderer);
 
 	/* Destroy the window. */
 	if (context->window != NULL)
-		SDL_DestroyWindow(context->window);
+		fl_destroy_window(context->window);
 
 	fl_free(context);
 
@@ -426,21 +422,11 @@ int fl_detect_collision(fl_context* context, fl_entity* a, fl_entity* b)
 	return collision;
 }
 
-void fl_handle_events(fl_context* context)
-{
-	while (SDL_PollEvent(&(context->event)))
-	{
-		/* This happens when the user closes the window. */
-		if (context->event.type == FLURMP_QUIT)
-			context->done = 1;
-	}
-}
-
 void fl_handle_input(fl_context* context)
 {
 	fl_input_handler* ih = fl_get_input_handler(context);
 
-	if (ih != NULL)
+	if (ih != NULL && ih->handle_input != NULL)
 	{
 		ih->handle_input(context, ih);
 	}
@@ -499,6 +485,7 @@ static void update_and_collide(fl_context* context, int axis)
 
 void fl_update(fl_context* context)
 {
+	/* Updating the data panel takes priority over all other updates. */
 	if (context->data_panel != NULL)
 		context->data_panel->update(context, context->data_panel);
 
@@ -519,20 +506,24 @@ void fl_update(fl_context* context)
 	update_and_collide(context, FLURMP_AXIS_X);
 	update_and_collide(context, FLURMP_AXIS_Y);
 
-	if (context->waiters != NULL)
+	/* Call the schedules' action functions. */
+	if (context->schedules != NULL)
 	{
-		fl_waiter* w = context->waiters;
-		fl_waiter* next;
+		fl_schedule* w = context->schedules;
+		fl_schedule* next;
 
 		while (w != NULL)
 		{
 			w->action(context, w, w->target);
+
 			next = w->next;
 
+			/* Dispose of the schedule
+			   if it has completed its action. */
 			if (w->done)
 			{
-				fl_remove_waiter(context, w);
-				fl_destroy_waiter(w);
+				fl_remove_schedule(context, w);
+				fl_destroy_schedule(w);
 			}
 
 			w = next;
@@ -578,24 +569,6 @@ void fl_render(fl_context* context)
 
 	/* Put everything on the screen. */
 	fl_render_show(context);
-}
-
-void fl_sleep(int ms)
-{
-	SDL_Delay(ms);
-}
-
-void fl_begin_frame(fl_context* context)
-{
-	context->ticks = SDL_GetTicks();
-}
-
-void fl_end_frame(fl_context* context)
-{
-	if (1000U / context->fps > SDL_GetTicks() - context->ticks)
-	{
-		SDL_Delay(1000U / context->fps - (SDL_GetTicks() - context->ticks));
-	}
 }
 
 static void render_camera_boundaries(fl_context* context)
@@ -657,7 +630,7 @@ static int is_on_screen(fl_context* context, fl_entity* entity)
 
 static void root_input_handler(fl_context* context, fl_input_handler* self)
 {
-	if (fl_consume_input(context, FLURMP_INPUT_TYPE_KEYBOARD, FLURMP_SC_ESCAPE))
+	if (fl_consume_key(context, FLURMP_SC_ESCAPE))
 	{
 		context->paused = 1;
 
@@ -674,8 +647,9 @@ static void root_input_handler(fl_context* context, fl_input_handler* self)
 	/* Walk to the left */
 	if (fl_peek_input(context, FLURMP_INPUT_TYPE_KEYBOARD, FLURMP_SC_A))
 	{
-		if (!(context->pco->flags & FLURMP_LEFT_FLAG))
-			context->pco->flags |= FLURMP_LEFT_FLAG;
+		if (!(context->pco->flags & FLURMP_MIRROR_FLAG))
+			context->pco->flags |= FLURMP_MIRROR_FLAG;
+
 
 		if (context->pco->x_v > -2)
 			context->pco->x_v -= 2;
@@ -684,20 +658,20 @@ static void root_input_handler(fl_context* context, fl_input_handler* self)
 	/* Walk to the right */
 	if (fl_peek_input(context, FLURMP_INPUT_TYPE_KEYBOARD, FLURMP_SC_D))
 	{
-		if (context->pco->flags & FLURMP_LEFT_FLAG)
-			context->pco->flags &= ~(FLURMP_LEFT_FLAG);
+		if ((context->pco->flags & FLURMP_MIRROR_FLAG))
+			context->pco->flags &= ~(FLURMP_MIRROR_FLAG);
 
 		if (context->pco->x_v < 2)
 			context->pco->x_v += 2;
 	}
 
 	/* Jumping */
-	if (fl_consume_input(context, FLURMP_INPUT_TYPE_KEYBOARD, FLURMP_SC_SPACE))
+	if (fl_consume_key(context, FLURMP_SC_SPACE))
 	{
-		if (!(context->pco->flags & FLURMP_JUMP_FLAG))
+		if (!(context->pco->flags & FLURMP_AIR_FLAG))
 		{
 			context->pco->y_v -= 12;
-			context->pco->flags |= FLURMP_JUMP_FLAG;
+			context->pco->flags |= FLURMP_AIR_FLAG;
 		}
 	}
 
@@ -705,7 +679,7 @@ static void root_input_handler(fl_context* context, fl_input_handler* self)
 	if (context->pco->flags & FLURMP_INTERACT_FLAG)
 		context->pco->flags &= ~(FLURMP_INTERACT_FLAG);
 
-	if (fl_consume_input(context, FLURMP_INPUT_TYPE_KEYBOARD, FLURMP_SC_J))
+	if (fl_consume_key(context, FLURMP_SC_J))
 	{
 		if (!(context->pco->flags & FLURMP_INTERACT_FLAG))
 		{
@@ -724,16 +698,9 @@ static void root_input_handler(fl_context* context, fl_input_handler* self)
 		context->cam_y = 0;
 	}
 
-	if (fl_peek_input(context, FLURMP_INPUT_TYPE_KEYBOARD, FLURMP_SC_T))
+	if (fl_consume_key(context, FLURMP_SC_T))
 	{
-		if (!(context->pco->flags & FLURMP_TACO_FLAG) && !(context->pco->flags & FLURMP_JUICE_FLAG))
-		{
-			fl_waiter* taco = fl_create_waiter(taco_wait, 300, fl_void(context->pco));
-			fl_waiter* juice = fl_create_waiter(juice_wait, 150, fl_void(context->pco));
-
-			fl_add_waiter(context, taco);
-			fl_add_waiter(context, juice);
-		}
+		fl_schedule_walk(context, context->pco);
 	}
 }
 
@@ -753,79 +720,4 @@ void fl_free_(void* m)
 {
 	free(m);
 	frees_++;
-}
-
-fl_animation* fl_create_animation(int f)
-{
-	fl_animation* a = fl_alloc(fl_animation, 1);
-
-	if (a == NULL)
-		return NULL;
-
-	fl_rect* frames = fl_alloc(fl_rect, f);
-
-	if (frames == NULL)
-	{
-		fl_free(a);
-		return NULL;
-	}
-
-	a->frames = frames;
-	a->frame_count = f;
-	a->counter = 0;
-
-	return a;
-}
-
-void fl_destroy_animation(fl_animation* a)
-{
-	if (a == NULL)
-		return;
-
-	if (a->frames != NULL)
-		fl_free(a->frames);
-
-	fl_free(a);
-}
-
-/* example wait action */
-static void taco_wait(fl_context* context, fl_waiter* w, void* self)
-{
-	fl_entity* en = (fl_entity*)self;
-
-	if (w->current == 0)
-	{
-		printf("This is the first iteration of the taco waiter.\n");
-		en->flags |= FLURMP_TACO_FLAG;
-	}
-
-	if (w->current == w->limit - 1)
-	{
-		printf("This is the last iteration of the taco waiter.\n");
-		en->flags &= ~(FLURMP_TACO_FLAG);
-		w->done = 1;
-	}
-
-	w->current++;
-}
-
-/* example wait action */
-static void juice_wait(fl_context* context, fl_waiter* w, void* self)
-{
-	fl_entity* en = (fl_entity*)self;
-
-	if (w->current == 0)
-	{
-		printf("This is the first iteration of the juice waiter.\n");
-		en->flags |= FLURMP_JUICE_FLAG;
-	}
-
-	if (w->current == w->limit - 1)
-	{
-		printf("This is the last iteration of the juice waiter.\n");
-		en->flags &= ~(FLURMP_JUICE_FLAG);
-		w->done = 1;
-	}
-
-	w->current++;
 }

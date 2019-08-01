@@ -1,6 +1,6 @@
-#include "console.h"
-#include "input.h"
-#include "text.h"
+#include "core/console.h"
+#include "core/input.h"
+#include "core/text.h"
 
 #define ROW_COUNT 4
 #define BUFFER_LIMIT 208
@@ -109,17 +109,17 @@ static void render(fl_context* context, fl_console* self)
 		if (self->buffer[i] >= 0x20 && self->buffer[i] <= 0x7E)
 		{
 			/* Get the appropriate glyph from the font atlas. */
-			fl_glyph* g = fl_char_to_glyph(self->atlas, self->buffer[i]);
+			fl_image* g = fl_char_to_glyph(self->font, self->buffer[i]);
 
 			dest.x = self->x + cx + 4;
 			dest.y = self->y + cy * 22 + 4;
-			dest.w = g->image->w;
-			dest.h = g->image->h;
+			dest.w = g->w;
+			dest.h = g->h;
 
-			src.w = g->image->w;
-			src.h = g->image->h;
+			src.w = g->w;
+			src.h = g->h;
 
-			fl_draw(context, g->image->texture, &src, &dest, 0);
+			fl_draw(context, g->texture, &src, &dest, 0);
 
 			if (cx >= LINE_WIDTH)
 			{
@@ -131,7 +131,7 @@ static void render(fl_context* context, fl_console* self)
 					cy++;
 			}
 			else
-				cx += g->image->w;
+				cx += g->w;
 		}
 		else if (self->buffer[i] == 0x0A)
 		{
@@ -152,16 +152,18 @@ static void handle_input(fl_context* context, fl_input_handler* self)
 		unsigned char mod = 0x00;
 
 		/* Handle key combinations like shift and ctrl. */
-		if (context->input.keystates[FLURMP_SC_LSHIFT] || context->input.keystates[FLURMP_SC_RSHIFT])
+		if (fl_peek_key(context, FLURMP_SC_LSHIFT) || fl_peek_key(context, FLURMP_SC_RSHIFT))
 			mod |= FLURMP_CONSOLE_MOD_SHIFT;
-		if (context->input.keystates[FLURMP_SC_LCTRL] || context->input.keystates[FLURMP_SC_RCTRL])
+
+		if (fl_peek_key(context, FLURMP_SC_LCTRL) || fl_peek_key(context, FLURMP_SC_RCTRL))
 			mod |= FLURMP_CONSOLE_MOD_CTRL;
 
-		/* Get the character that corresponds to the current scancode. */
-		char c = fl_sc_to_char(i, mod);
-
-		if (fl_consume_input(context, FLURMP_INPUT_TYPE_KEYBOARD, i))
+		if (fl_consume_key(context, i))
 		{
+			/* Get the character that corresponds
+			   to the current scancode. */
+			char c = fl_sc_to_char(i, mod);
+
 			/* If escape is rpessed, close the console. */
 			if (i == FLURMP_SC_ESCAPE)
 			{
@@ -345,7 +347,7 @@ fl_console* fl_create_console(fl_context* context)
 	con->buffer_count = 0;
 	con->cursor_x = 0;
 	con->cursor_y = 0;
-	con->atlas = context->fonts[FLURMP_FONT_COUSINE]->impl.font->atlas;
+	con->font = context->fonts[FLURMP_FONT_COUSINE]->impl.font;
 	con->render = render;
 
 	/* Create the input handler for the console. */

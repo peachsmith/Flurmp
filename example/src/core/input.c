@@ -1,4 +1,4 @@
-#include "input.h"
+#include "core/input.h"
 
 int fl_code_to_flag(int type, int code)
 {
@@ -115,6 +115,11 @@ int fl_peek_input(fl_context* context, int type, int code)
 int fl_consume_key(fl_context* context, int code)
 {
 	return fl_consume_input(context, FLURMP_INPUT_TYPE_KEYBOARD, code);
+}
+
+int fl_peek_key(fl_context* context, int code)
+{
+	return fl_peek_input(context, FLURMP_INPUT_TYPE_KEYBOARD, code);
 }
 
 fl_input_handler* fl_create_input_handler(void(*handler) (fl_context*, fl_input_handler*))

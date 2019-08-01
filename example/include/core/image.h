@@ -1,7 +1,7 @@
 #ifndef FLURMP_IMAGE_H
 #define FLURMP_IMAGE_H
 
-#include "flurmp_impl.h"
+#include "core/flurmp_impl.h"
 
 #define FLURMP_IMAGE_COUNT 3
 

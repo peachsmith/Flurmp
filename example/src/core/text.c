@@ -1,9 +1,8 @@
-#include "text.h"
+#include "core/text.h"
 
-fl_glyph* fl_create_glyph(fl_context* context, fl_resource* res, char c)
+fl_image* fl_create_glyph(fl_context* context, fl_resource* res, char c)
 {
 	/* glyph data */
-	fl_glyph* glyph;
 	fl_image* image;
 
 	/* Create an image of the character. */
@@ -13,104 +12,59 @@ fl_glyph* fl_create_glyph(fl_context* context, fl_resource* res, char c)
 	if (image == NULL)
 		return NULL;
 
-	/* Allocate memory for an fl_glyph structure. */
-	glyph = fl_alloc(fl_glyph, 1);
+	return image;
+}
 
-	/* Verify fl_glyph memory allocation. */
-	if (glyph == NULL)
+int fl_create_font_atlas(fl_context* context, fl_resource* res)
+{
+	if (res == NULL)
 	{
-		fl_destroy_image(image);
-		return NULL;
+		context->error = FLURMP_ERR_FONTS;
+		return 0;
 	}
 
-	/* Populate the glyph structure. */
-	glyph->c = c;
-	glyph->image = image;
-
-	return glyph;
-}
-
-void fl_destroy_glyph(fl_glyph* glyph)
-{
-	if (glyph == NULL)
-		return;
-
-	if (glyph->image != NULL)
-		fl_destroy_image(glyph->image);
-
-	fl_free(glyph);
-}
-
-fl_font_atlas* fl_create_font_atlas(fl_context* context, fl_resource* res)
-{
-	/* font atlas data */
-	fl_font_atlas* atlas;
-	fl_glyph** glyphs;
-
-	int i; /* index variable */
-
-	/* Allocate memory for the font atlas. */
-	atlas = fl_alloc(fl_font_atlas, 1);
-
-	/* Verify font atlas memory allocation. */
-	if (atlas == NULL)
-		return NULL;
-
-	atlas->count = 0;
+	int i, j; /* index variables */
 
 	/* We are using the character range 32 to 126 of the ASCII chart
 	   as printable characters. This is why we allocate space for
 	   95 glyphs. This range starts with the space character ' '
 	   and ends with the tilde character '~'. */
-	glyphs = fl_alloc(fl_glyph*, 95);
+	res->impl.font->glyphs = fl_alloc(fl_image*, 95);
 
 	/* Verify glyph memory allocation. */
-	if (glyphs == NULL)
+	if (res->impl.font->glyphs == NULL)
 	{
-		fl_free(atlas);
-		return NULL;
+		context->error = FLURMP_ERR_FONTS;
+		return 0;
 	}
-
-	atlas->glyphs = glyphs;
 
 	/* Create the glyphs and add them to the atlas. */
 	for (i = 32; i < 127; i++)
 	{
-		fl_glyph* glyph = fl_create_glyph(context, res, (char)i);
+		fl_image* glyph = fl_create_glyph(context, res, (char)i);
 
 		if (glyph == NULL)
 		{
-			fl_destroy_font_atlas(atlas);
-			return NULL;
+			for (j = 0; j < res->impl.font->count; i++)
+				fl_destroy_image(res->impl.font->glyphs[i]);
+
+			fl_free(res->impl.font->glyphs);
+			res->impl.font->glyphs = NULL;
+			res->impl.font->count = 0;
+
+			context->error = FLURMP_ERR_FONTS;
+			return 0;
 		}
 
-		atlas->glyphs[atlas->count++] = glyph;
+		res->impl.font->glyphs[res->impl.font->count++] = glyph;
 	}
 
-	return atlas;
+	return 1;
 }
 
-void fl_destroy_font_atlas(fl_font_atlas* atlas)
+fl_image* fl_char_to_glyph(fl_font* font, char c)
 {
-	int i;
-
-	if (atlas == NULL)
-		return;
-
-	if (atlas->glyphs != NULL)
-	{
-		for (i = 0; i < atlas->count; i++)
-			fl_destroy_glyph(atlas->glyphs[i]);
-
-		fl_free(atlas->glyphs);
-	}
-
-	fl_free(atlas);
-}
-
-fl_glyph* fl_char_to_glyph(fl_font_atlas* atlas, char c)
-{
-	if (atlas == NULL || atlas->glyphs == NULL || atlas->count == 0)
+	if (font == NULL || font->glyphs == NULL || font->count == 0)
 		return NULL;
 
 	int i = (int)c;
@@ -118,7 +72,7 @@ fl_glyph* fl_char_to_glyph(fl_font_atlas* atlas, char c)
 	/* If the character c is within the range of printable characters,
 	   return the glyph of that character,
 	   otherwise return a space glyph. */
-	return (i >= 32 && i <= 126) ? atlas->glyphs[i - 32] : atlas->glyphs[0];
+	return (i >= 32 && i <= 126) ? font->glyphs[i - 32] : font->glyphs[0];
 }
 
 fl_image* fl_create_static_text(fl_context* context, fl_resource* res, const char* txt)

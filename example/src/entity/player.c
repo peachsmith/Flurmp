@@ -1,7 +1,9 @@
-#include "player.h"
-#include "entity.h"
-#include "resource.h"
-#include "waiter.h"
+#include "entity/player.h"
+#include "entity/entity.h"
+#include "core/resource.h"
+#include "core/schedule.h"
+#include "core/input.h"
+#include "core/animation.h"
 
 
 /* -------------------------------------------------------------- */
@@ -94,7 +96,7 @@ static void vertical_movement(fl_context*, fl_entity*);
 
 
 /* -------------------------------------------------------------- */
-/*                       waiter functions                         */
+/*                      schedule functions                        */
 /* -------------------------------------------------------------- */
 
 /**
@@ -103,10 +105,10 @@ static void vertical_movement(fl_context*, fl_entity*);
  *
  * Params:
  *   fl_context - a Flurmp context
- *   fl_waiter - a waiter
+ *   fl_schedule - a schedule
  *   void* - a reference to a player entity cast as a void pointer
  */
-static void animate(fl_context*, fl_waiter*, void*);
+static void animate(fl_context*, fl_schedule*, void*);
 
 
 
@@ -149,14 +151,14 @@ fl_entity* fl_create_player(int x, int y)
 	return player;
 }
 
-int fl_load_player_waiters(fl_context* context, fl_entity* player)
+int fl_load_player_schedules(fl_context* context, fl_entity* player)
 {
-	fl_waiter* w = fl_create_waiter(animate, -1, player);
+	fl_schedule* w = fl_create_schedule(animate, -1, player);
 
 	if (w == NULL)
 		return 0;
 
-	fl_add_waiter(context, w);
+	fl_add_schedule(context, w);
 	
 	return 1;
 }
@@ -190,8 +192,8 @@ void fl_register_player_type(fl_context* context, fl_entity_type* et)
 	fl_animation* walk = fl_create_animation(3);
 	if (walk == NULL)
 	{
-		fl_free(animations);
 		fl_destroy_animation(stand);
+		fl_free(animations);
 		return;
 	}
 	fl_set_rect(&(walk->frames[0]), 0, 0, 50, 50);
@@ -202,9 +204,9 @@ void fl_register_player_type(fl_context* context, fl_entity_type* et)
 	fl_animation* jump = fl_create_animation(1);
 	if (jump == NULL)
 	{
-		fl_free(animations);
 		fl_destroy_animation(stand);
 		fl_destroy_animation(jump);
+		fl_free(animations);
 		return;
 	}
 	fl_set_rect(&(jump->frames[0]), 50, 0, 50, 50);
@@ -264,7 +266,7 @@ static void render(fl_context* context, fl_entity* self)
 	dest.w = self_w + 20;
 	dest.h = self_h + 10;
 
-	if (self->flags & FLURMP_LEFT_FLAG)
+	if (self->flags & FLURMP_MIRROR_FLAG)
 		fl_draw(context, tex, self->frame, &dest, 1);
 
 	else
@@ -392,8 +394,8 @@ static void vertical_movement(fl_context* context, fl_entity* self)
 	int self_w = context->entity_types[self->type].w;
 	int self_h = context->entity_types[self->type].h;
 
-	/* Reset the jump flag. */
-	self->flags |= FLURMP_JUMP_FLAG;
+	/* Reset the air flag. */
+	self->flags |= FLURMP_AIR_FLAG;
 
 	/* gravity (y axis) */
 	if (self->y_v < 4) self->y_v += 1;
@@ -435,44 +437,94 @@ static void render_hitbox(fl_context* context, fl_entity* self)
 
 
 /* -------------------------------------------------------------- */
-/*                waiter functions (implementation)               */
+/*               schedule functions (implementation)              */
 /* -------------------------------------------------------------- */
 
-static void animate(fl_context* context, fl_waiter* w, void* self)
+static void animate(fl_context* context, fl_schedule* w, void* self)
 {
 	fl_entity* en = (fl_entity*)self;
 	fl_animation* a;
 
-	if (en->flags & FLURMP_JUMP_FLAG)
+	if (en->flags & FLURMP_AIR_FLAG)
 	{
 		/* in the air */
 		a = context->entity_types[en->type].animations[2];
 
-		if (w->current > 0)
-			w->current = 0;
+		if (w->counter > 0)
+			w->counter = 0;
 
-		en->frame = &(a->frames[w->current]);
+		en->frame = &(a->frames[w->counter]);
 	}
 	else if (en->x_v != 0)
 	{
 		/* walking */
 		a = context->entity_types[en->type].animations[1];
 
-		if (w->current / 4 >= a->frame_count)
-			w->current = 0;
+		if (w->counter / 4 >= a->frame_count)
+			w->counter = 0;
 
-		en->frame = &(a->frames[w->current / 4]);
+		en->frame = &(a->frames[w->counter / 4]);
 
-		w->current++;
+		w->counter++;
 	}
 	else
 	{
 		/* standing */
 		a = context->entity_types[en->type].animations[0];
 
-		if (w->current > 0)
-			w->current = 0;
+		if (w->counter > 0)
+			w->counter = 0;
 
-		en->frame = &(a->frames[w->current]);
+		en->frame = &(a->frames[w->counter]);
 	}
+}
+
+/**
+ * A scheduled action for walking to the right and jumping once.
+ * For the first 80 iterations, the target will move to the right.
+ *
+ * On the 60th iteration, the target will jump.
+ */
+static void walk_to_the_right_and_jump(fl_context* context, fl_schedule* w, void* self)
+{
+	fl_entity* en = (fl_entity*)self;
+
+	if (w->counter < 80)
+	{
+		if (en->x_v < 2)
+			en->x_v += 2;
+
+		en->flags |= FLURMP_RIGHT_FLAG;
+	}
+
+	if (w->counter == 60)
+	{
+		en->y_v -= 12;
+		en->flags |= FLURMP_AIR_FLAG;
+	}
+	else if (w->counter == w->limit)
+	{
+		fl_input_handler* ih = fl_get_input_handler(context);
+		fl_pop_input_handler(context);
+		fl_destroy_input_handler(ih);
+		w->done = 1;
+	}
+
+	w->counter++;
+}
+
+int fl_schedule_walk(fl_context* context, fl_entity* player)
+{
+	fl_schedule* w = fl_create_schedule(walk_to_the_right_and_jump, 120, player);
+
+	if (w == NULL)
+		return 0;
+
+	fl_add_schedule(context, w);
+
+	fl_input_handler* ih = fl_create_input_handler(NULL);
+
+	fl_push_input_handler(context, ih);
+
+	return 1;
 }

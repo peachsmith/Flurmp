@@ -1,6 +1,6 @@
-#include "menu.h"
-#include "text.h"
-#include "input.h"
+#include "menu/menu.h"
+#include "core/text.h"
+#include "core/input.h"
 
 fl_menu_item* fl_create_menu_item(fl_context* context,
 	int x,

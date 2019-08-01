@@ -1,7 +1,5 @@
 /**
  * Flurmp
- * A recommendation of concepts for a framework for 2D graphical user
- * interaction.
  *
  * Author: John Powell
  */
@@ -38,18 +36,6 @@
  * or a backdrop for scenery.
  */
 typedef struct fl_image fl_image;
-
-/**
- * A graphical representation of an individual character.
- */
-typedef struct fl_glyph fl_glyph;
-
-/**
- * A collection of all printable characters in a font.
- * It is up to the implementation to determine which characters
- * are considered printable.
- */
-typedef struct fl_font_atlas fl_font_atlas;
 
 /**
  * Represents a font object.
@@ -116,7 +102,7 @@ typedef struct fl_entity fl_entity;
 typedef struct fl_entity_type fl_entity_type;
 
 /**
- * Provides visibility into user input events.
+ * Performs actions in response to user input events.
  * A context and any entity in that context should be able to observe
  * user input events through an input handler.
  */
@@ -167,22 +153,43 @@ typedef struct fl_console fl_console;
 /**
  * An overlay that can be used to display debugging information
  * such as entity positions and application state in real time.
+ *
+ * Since a data panel is meant for debugging, there's no need to
+ * allow the user to specify what information is displayed. The
+ * information displayed should be determined programatically.
+ *
+ * The user may be allowed to view the data panel, but viewing the
+ * data panel should not be required for using the application.
  */
 typedef struct fl_data_panel fl_data_panel;
 
 /**
- * An animation represents the selection of certain areas of an
- * image to render for a given entity.
- * In the context of animation, a "frame" is any one single image.
+ * An animation represents a series of sections of an image.
+ * On any given iteration of the main loop, the section of an image
+ * that is rendered to the screen for an entity is pulled from an animation
+ * structure.
+ *
+ * If rendering is done as part of the main loop, then each iteration of the
+ * main loop should advance the current image section to the next section in
+ * the animation.
  */
 typedef struct fl_animation fl_animation;
 
 /**
- * A waiter performs a series of actions over the course of a
- * specified number of main loop iterations.
- * TODO: come up with a better name for this.
+ * A schedule is an action or series of actions to that take place over
+ * the course of a specified number of iterations of the main loop.
+ * A schedule may take control from the user and manipulate application
+ * state.
+ *
+ * There may be multiple schedules performing actions during any given
+ * iteration of the main loop. A schedule may run for a finite
+ * number of iterations, or for the duration of a context's life cycle.
+ *
+ * Once a schedule has completed what it was meant to do, it should
+ * be removed from the context and destroyed. Any schedules remaining
+ * when their context is destroyed should be destroyed with the context.
  */
-typedef struct fl_waiter fl_waiter;
+typedef struct fl_schedule fl_schedule;
 
 
 /* -------------------------------------------------------------- */

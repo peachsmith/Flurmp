@@ -1,5 +1,5 @@
-#include "resource.h"
-#include "text.h"
+#include "core/resource.h"
+#include "core/text.h"
 
 fl_resource* fl_load_image(fl_context* context, const char* path)
 {
@@ -63,7 +63,8 @@ fl_resource* fl_load_font(const char* path, int p, fl_color fc, fl_color bc, int
 	}
 
 	font->impl = impl;
-	font->atlas = NULL;
+	font->count = 0;
+	font->glyphs = NULL;
 	font->forecolor = fc;
 	font->backcolor = bc;
 	font->background = background;
@@ -88,8 +89,14 @@ void fl_destroy_resource(fl_resource* resource)
 			if (resource->impl.font->impl != NULL)
 				fl_close_ttf(resource->impl.font->impl);
 
-			if (resource->impl.font->atlas != NULL)
-				fl_destroy_font_atlas(resource->impl.font->atlas);
+			if (resource->impl.font->glyphs != NULL)
+			{
+				int i;
+				for (i = 0; i < resource->impl.font->count; i++)
+					fl_destroy_image(resource->impl.font->glyphs[i]);
+
+				fl_free(resource->impl.font->glyphs);
+			}
 
 			fl_free(resource->impl.font);
 		}

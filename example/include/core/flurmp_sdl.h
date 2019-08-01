@@ -1,5 +1,11 @@
 /**
- * A wrapper around SDL functionality.
+ * A wrapper around SDL.
+ * This API provides functions for the following actions:
+ *   creating a window
+ *   creating a renderer
+ *   loading bmp image files
+ *   loading ttf font files
+ *   rendering data to the screen
  */
 #ifndef FLURMP_SDL_H
 #define FLURMP_SDL_H
@@ -88,12 +94,67 @@ typedef SDL_Event    fl_event;
 
 
 /* -------------------------------------------------------------- */
-/*                           Functions                            */
+/*                        Core Functions                          */
 /* -------------------------------------------------------------- */
 
+/**
+ * Creates a window that encompases the area of the screen that can
+ * potentially be used for rendering.
+ *
+ * Params:
+ *   const char* - a window title
+ *   int - the x position
+ *   int - the y position
+ *   int - the width
+ *   int - the height
+ *
+ * Returns:
+ *   fl_window - a new window
+ */
 fl_window* fl_create_window(const char*, int, int, int, int);
 
+/**
+ * Frees the memory allocated for a window.
+ *
+ * Params:
+ *   fl_window - a window
+ */
+void fl_destroy_window(fl_window* window);
+
+/**
+ * Creates a renderer.
+ * 
+ * Params:
+ *   fl_window - the window to contain the results of rendering.
+ * 
+ * Returns:
+ *   fl_renderer - a new renderer
+ */
 fl_renderer* fl_create_renderer(fl_window*);
+
+/**
+ * Frees the memory allocated for a renderer.
+ *
+ * Params:
+ *   fl_renderer - a renderer
+ */
+void fl_destroy_renderer(fl_renderer* renderer);
+
+/**
+ * Gets an array of key states.
+ * Each element will have a value of zero if the corresponding
+ * key is not actuated, otherwise it will have a non zero value.
+ *
+ * Returns:
+ *   const unsigned char* an array of key states
+ */
+const unsigned char* fl_get_key_states();
+
+
+
+/* -------------------------------------------------------------- */
+/*                        Image Functions                         */
+/* -------------------------------------------------------------- */
 
 /**
  * Loads a bmp file into an image structure.
@@ -115,6 +176,12 @@ int fl_load_bmp(fl_context*, const char*, fl_image*);
  *   fl_image - a reference to an image
  */
 void fl_destroy_image(fl_image*);
+
+
+
+/* -------------------------------------------------------------- */
+/*                        Text Functions                          */
+/* -------------------------------------------------------------- */
 
 /**
  * Loads a TTF font file into a ttf structure.
@@ -162,13 +229,11 @@ fl_image* fl_create_glyph_image(fl_context*, fl_resource*, char);
  */
 fl_image* fl_create_text_image(fl_context*, fl_resource*, const char*);
 
-/**
- * Frees the memory allocated for a texture.
- *
- * Params:
- *   fl_texture - a texture
- */
-void fl_destroy_texture(fl_texture*);
+
+
+/* -------------------------------------------------------------- */
+/*                      Rendering Functions                       */
+/* -------------------------------------------------------------- */
 
 /**
  * Sets the current color to be used when rendering primitives.
@@ -181,6 +246,18 @@ void fl_destroy_texture(fl_texture*);
  *   int - the alpha value
  */
 void fl_set_draw_color(fl_context*, int, int, int, int);
+
+/**
+ * Draws a line to the screen.
+ *
+ * Params:
+ *   fl_context - a Flurmp context
+ *   int - the first x coordinate
+ *   int - the first y coordinate
+ *   int - the second x coordinate
+ *   int - the second y coordinate
+ */
+void fl_draw_line(fl_context*, int, int, int, int);
 
 /**
  * Draws a rectangular border to the screen.
@@ -199,18 +276,6 @@ void fl_draw_rect(fl_context*, fl_rect*);
  *   fl_rext - a rectangle
  */
 void fl_draw_solid_rect(fl_context*, fl_rect*);
-
-/**
- * Draws a line to the screen.
- *
- * Params:
- *   fl_context - a Flurmp context
- *   int - the first x coordinate
- *   int - the first y coordinate
- *   int - the second x coordinate
- *   int - the second y coordinate
- */
-void fl_draw_line(fl_context*, int, int, int, int);
 
 /**
  * Renders a texture to the screen.

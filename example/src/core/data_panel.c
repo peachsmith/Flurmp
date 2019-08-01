@@ -1,6 +1,6 @@
-#include "data_panel.h"
-#include "text.h"
-#include "entity.h"
+#include "core/data_panel.h"
+#include "core/text.h"
+#include "entity/entity.h"
 
 #define ROW_COUNT 8
 #define BUFFER_LIMIT 240
@@ -75,21 +75,11 @@ static void update(fl_context* context, fl_data_panel* panel)
 
 	data_panel_printf(panel, "x: %d\n", context->pco->x);
 	data_panel_printf(panel, "y: %d\n", context->pco->y);
+	data_panel_printf(panel, "x_v: %d\n", context->pco->x_v);
+	data_panel_printf(panel, "y_v: %d\n", context->pco->y_v);
 
-	/* data_panel_printf(panel, "cam x: %d\n", context->cam_x);
+	data_panel_printf(panel, "cam x: %d\n", context->cam_x);
 	data_panel_printf(panel, "cam y: %d\n", context->cam_y);
-	data_panel_printf(panel, "diff x: %d\n", context->cam_x - context->pco->x);
-	data_panel_printf(panel, "diff y: %d\n", context->cam_y - context->pco->y); */
-
-	if (context->pco->flags & FLURMP_TACO_FLAG)
-		data_panel_printf(panel, "taco: true\n");
-	else
-		data_panel_printf(panel, "taco: false\n");
-
-	if (context->pco->flags & FLURMP_JUICE_FLAG)
-		data_panel_printf(panel, "juice: true\n");
-	else
-		data_panel_printf(panel, "juice: false\n");
 }
 
 static void render(fl_context* context, fl_data_panel* self)
@@ -119,17 +109,17 @@ static void render(fl_context* context, fl_data_panel* self)
 		if (self->buffer[i] >= 0x20 && self->buffer[i] <= 0x7E)
 		{
 			/* Get the appropriate glyph from the font atlas. */
-			fl_glyph* g = fl_char_to_glyph(self->atlas, self->buffer[i]);
+			fl_image* g = fl_char_to_glyph(self->font, self->buffer[i]);
 
 			dest.x = self->x + cx + 10;
 			dest.y = self->y + cy * 22 + 10;
-			dest.w = g->image->w;
-			dest.h = g->image->h;
+			dest.w = g->w;
+			dest.h = g->h;
 
-			src.w = g->image->w;
-			src.h = g->image->h;
+			src.w = g->w;
+			src.h = g->h;
 
-			fl_draw(context, g->image->texture, &src, &dest, 0);
+			fl_draw(context, g->texture, &src, &dest, 0);
 
 			if (cx >= LINE_WIDTH)
 			{
@@ -141,7 +131,7 @@ static void render(fl_context* context, fl_data_panel* self)
 					cy++;
 			}
 			else
-				cx += g->image->w;
+				cx += g->w;
 		}
 		else if (self->buffer[i] == 0x0A)
 		{
@@ -206,7 +196,7 @@ static void clear_buffer(fl_data_panel* panel)
 /*                   data_panel.h implementation                  */
 /* -------------------------------------------------------------- */
 
-fl_data_panel* fl_create_data_panel(int x, int y, int w, int h, fl_font_atlas* atlas)
+fl_data_panel* fl_create_data_panel(int x, int y, int w, int h, fl_font* font)
 {
 	fl_data_panel* panel = fl_alloc(fl_data_panel, 1);
 
@@ -217,7 +207,7 @@ fl_data_panel* fl_create_data_panel(int x, int y, int w, int h, fl_font_atlas* a
 	panel->y = y;
 	panel->w = w;
 	panel->h = h;
-	panel->atlas = atlas;
+	panel->font = font;
 	panel->update = update;
 	panel->render = render;
 	panel->buffer_count = 0;

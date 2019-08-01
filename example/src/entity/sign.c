@@ -1,7 +1,7 @@
-#include "sign.h"
-#include "entity.h"
-#include "resource.h"
-#include "dialog.h"
+#include "entity/sign.h"
+#include "entity/entity.h"
+#include "core/resource.h"
+#include "core/dialog.h"
 
 
 
@@ -94,10 +94,7 @@ static void render(fl_context* context, fl_entity* self)
 	fl_rect src;
 	fl_rect dest;
 
-	src.x = 0;
-	src.y = 0;
-	src.w = 50;
-	src.h = 50;
+	fl_set_rect(&src, 0, 0, 50, 50);
 
 	dest.x = self->x - context->cam_x;
 	dest.y = self->y - context->cam_y;
