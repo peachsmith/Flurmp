@@ -12,16 +12,19 @@ LIB=-L$(SDL2_HOME)/lib -L$(SDL2_TTF_HOME)/lib -L$(FREETYPE_HOME)/lib
 LNK=-lSDL2 -lSDL2_ttf -lfreetype
 
 OBJ=example_build/obj
-OBJECTS=$(OBJ)/main.o $(OBJ)/flurmp_impl.o $(OBJ)/input.o $(OBJ)/resource.o $(OBJ)/data_panel.o $(OBJ)/scene.o $(OBJ)/text.o $(OBJ)/console.o $(OBJ)/dialog.o $(OBJ)/player.o $(OBJ)/block_200_50.o $(OBJ)/sign.o $(OBJ)/menu.o $(OBJ)/pause_menu.o $(OBJ)/pause_submenu.o $(OBJ)/fish_submenu.o $(OBJ)/confirmation.o
+OBJECTS=$(OBJ)/main.o $(OBJ)/flurmp_impl.o $(OBJ)/flurmp_sdl.o $(OBJ)/input.o $(OBJ)/resource.o $(OBJ)/data_panel.o  $(OBJ)/scene.o $(OBJ)/schedule.o $(OBJ)/text.o $(OBJ)/animation.o $(OBJ)/console.o $(OBJ)/dialog.o $(OBJ)/player.o $(OBJ)/block_200_50.o $(OBJ)/sign.o $(OBJ)/menu.o $(OBJ)/pause_menu.o $(OBJ)/pause_submenu.o $(OBJ)/fish_submenu.o $(OBJ)/confirmation.o
 
 all:
 	$(CC) -c ../src/core/main.c           -o $(OBJ)/main.o          $(INC)
 	$(CC) -c ../src/core/flurmp_impl.c    -o $(OBJ)/flurmp_impl.o   $(INC)
+	$(CC) -c ../src/core/flurmp_sdl.c     -o $(OBJ)/flurmp_sdl.o    $(INC)
 	$(CC) -c ../src/core/input.c          -o $(OBJ)/input.o         $(INC)
 	$(CC) -c ../src/core/resource.c       -o $(OBJ)/resource.o      $(INC)
 	$(CC) -c ../src/core/data_panel.c     -o $(OBJ)/data_panel.o    $(INC)
 	$(CC) -c ../src/core/scene.c          -o $(OBJ)/scene.o         $(INC)
+	$(CC) -c ../src/core/schedule.c       -o $(OBJ)/schedule.o      $(INC)
 	$(CC) -c ../src/core/text.c           -o $(OBJ)/text.o          $(INC)
+	$(CC) -c ../src/core/animation.c      -o $(OBJ)/animation.o     $(INC)
 	$(CC) -c ../src/console/console.c     -o $(OBJ)/console.o       $(INC)
 	$(CC) -c ../src/dialog/dialog.c       -o $(OBJ)/dialog.o        $(INC)
 	$(CC) -c ../src/entity/player.c       -o $(OBJ)/player.o        $(INC)
