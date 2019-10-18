@@ -210,6 +210,12 @@ struct fl_schedule {
 	fl_schedule* prev;
 };
 
+typedef struct fl_transition {
+	int scheduled;
+	int from_scene;
+	int to_scene;
+}fl_transition;
+
 struct fl_context {
 
 	/* Windowing, rendering, events, and input */
@@ -228,6 +234,9 @@ struct fl_context {
 
 	/* Linked list of entities */
 	fl_entity* entities;
+
+	/* Pointer to the projectile entities */
+	fl_entity* projectiles;
 
 	/* Linked list of schedules */
 	fl_schedule* schedules;
@@ -272,6 +281,9 @@ struct fl_context {
 
 	/* A return value */
 	int ret_val;
+
+	/* scene transition */
+	fl_transition transition;
 };
 
 /**

@@ -37,7 +37,7 @@ static void update(fl_context*, fl_entity*, int);
  *
  * Params:
  *   fl_context - a Flurmp context
- *   fl_entity - the player entity
+ *   fl_entity - the 200 x 50 block entity
  */
 static void render(fl_context*, fl_entity*);
 

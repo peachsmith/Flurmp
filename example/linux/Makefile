@@ -12,7 +12,7 @@ LIB=-L$(SDL2_HOME)/lib -L$(SDL2_TTF_HOME)/lib -L$(FREETYPE_HOME)/lib
 LNK=-lSDL2 -lSDL2_ttf -lfreetype -Wl,-rpath=$(SDL2_HOME)/lib -Wl,-rpath=$(SDL2_TTF_HOME)/lib -Wl,-rpath=$(FREETYPE_HOME)/lib
 
 OBJ=obj
-OBJECTS=$(OBJ)/main.o $(OBJ)/flurmp_impl.o $(OBJ)/input.o $(OBJ)/resource.o $(OBJ)/data_panel.o $(OBJ)/scene.o $(OBJ)/text.o $(OBJ)/console.o $(OBJ)/dialog.o $(OBJ)/player.o $(OBJ)/block_200_50.o $(OBJ)/sign.o $(OBJ)/menu.o $(OBJ)/pause_menu.o $(OBJ)/pause_submenu.o $(OBJ)/fish_submenu.o $(OBJ)/confirmation.o
+OBJECTS=$(OBJ)/main.o $(OBJ)/flurmp_impl.o $(OBJ)/input.o $(OBJ)/resource.o $(OBJ)/data_panel.o $(OBJ)/scene.o $(OBJ)/text.o $(OBJ)/console.o $(OBJ)/dialog.o $(OBJ)/player.o $(OBJ)/block_200_50.o $(OBJ)/sign.o $(OBJ)/menu.o $(OBJ)/pause_menu.o $(OBJ)/pause_submenu.o $(OBJ)/fish_submenu.o $(OBJ)/confirmation.o $(OBJ)/door.o $(OBJ)/spike.o $(OBJ)/pellet.o
 
 all:
 	$(CC) -c ../src/core/main.c           -o $(OBJ)/main.o          $(INC) $(LIB) $(LNK)
@@ -32,6 +32,9 @@ all:
 	$(CC) -c ../src/menu/pause_submenu.c  -o $(OBJ)/pause_submenu.o $(INC) $(LIB) $(LNK)
 	$(CC) -c ../src/menu/fish_submenu.c   -o $(OBJ)/fish_submenu.o  $(INC) $(LIB) $(LNK)
 	$(CC) -c ../src/menu/confirmation.c   -o $(OBJ)/confirmation.o  $(INC) $(LIB) $(LNK)
+	$(CC) -c ../src/menu/door.c           -o $(OBJ)/door.o          $(INC) $(LIB) $(LNK)
+	$(CC) -c ../src/menu/spike.c          -o $(OBJ)/spike.o         $(INC) $(LIB) $(LNK)
+	$(CC) -c ../src/menu/pellet.c         -o $(OBJ)/pellet.o        $(INC) $(LIB) $(LNK)
 	$(CC) $(OBJECTS) -o example $(INC) $(LIB) $(LNK)
 
 clean:

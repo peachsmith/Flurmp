@@ -18,6 +18,23 @@
 #include "entity/block_200_50.h"
 #include "entity/sign.h"
 #include "entity/player.h"
+#include "entity/spike.h"
+#include "entity/door.h"
+#include "entity/pellet.h"
+
+/*
+  TODO:
+
+  new features:
+	hostile
+	start screen
+	end screen
+	audio
+
+  modifications:
+	multiple types of projectiles
+	multiple textures per image file
+*/
 
 /* Counters to keep track of how many times malloc and free
    have been called. These do NOT take into account the calls
@@ -58,6 +75,20 @@ static void root_input_handler(fl_context* context, fl_input_handler* self);
  */
 static void render_camera_boundaries(fl_context* context);
 
+/**
+ * Locates the next available projectile in a context.
+ * For a projectile to be considered usable, it must have
+ * its alive flag toggled off.
+ *
+ * Params:
+ *   fl_context - a Flurmp context
+ *
+ * Returns:
+ *   fl_entity - a reference to the next available projectile
+ *               or NULL if no projectile is found.
+ */
+static fl_entity* find_projectile(fl_context* context);
+
 
 
 const char* fl_get_error()
@@ -73,6 +104,9 @@ fl_context* fl_create_context()
 	fl_entity_type player_type;
 	fl_entity_type sign_type;
 	fl_entity_type block_200_50_type;
+	fl_entity_type spike_type;
+	fl_entity_type door_type;
+	fl_entity_type pellet_type;
 
 	/* Allocate memory for a Flurmp context. */
 	context = fl_alloc(fl_context, 1);
@@ -88,6 +122,7 @@ fl_context* fl_create_context()
 	context->fonts = NULL;
 	context->images = NULL;
 	context->entities = NULL;
+	context->projectiles = NULL;
 	context->schedules = NULL;
 	context->input_handler = NULL;
 	context->console = NULL;
@@ -106,6 +141,9 @@ fl_context* fl_create_context()
 	context->paused = 0;
 	context->scene = 0;
 	context->ret_val = 0;
+	context->transition.scheduled = 0;
+	context->transition.to_scene = 0;
+	context->transition.from_scene = 0;
 
 	/* Create the application window. */
 	context->window = fl_create_window("Flurmp",
@@ -158,12 +196,17 @@ fl_context* fl_create_context()
 	fl_register_player_type(context, &player_type);
 	fl_register_sign_type(context, &sign_type);
 	fl_register_block_200_50_type(context, &block_200_50_type);
+	fl_register_spike_type(context, &spike_type);
+	fl_register_door_type(context, &door_type);
+	fl_register_pellet_type(context, &pellet_type);
 
 	/* Add the entity types to the registry. */
 	context->entity_types[FLURMP_ENTITY_PLAYER] = player_type;
 	context->entity_types[FLURMP_ENTITY_SIGN] = sign_type;
 	context->entity_types[FLURMP_ENTITY_BLOCK_200_50] = block_200_50_type;
-
+	context->entity_types[FLURMP_ENTITY_SPIKE] = spike_type;
+	context->entity_types[FLURMP_ENTITY_DOOR] = door_type;
+	context->entity_types[FLURMP_ENTITY_PELLET] = pellet_type;
 
 
 	/* Create a font registry */
@@ -529,6 +572,15 @@ void fl_update(fl_context* context)
 			w = next;
 		}
 	}
+
+	if (context->transition.scheduled)
+	{
+		fl_clear_scene(context);
+		fl_load_scene(context, context->transition.to_scene);
+		context->transition.scheduled = 0;
+		context->transition.from_scene = 0;
+		context->transition.to_scene = 0;
+	}
 }
 
 void fl_render(fl_context* context)
@@ -545,7 +597,9 @@ void fl_render(fl_context* context)
 	   from the entity type registry. */
 	while (en != NULL)
 	{
-		context->entity_types[en->type].render(context, en);
+		if (en->flags & FLURMP_ALIVE_FLAG)
+			context->entity_types[en->type].render(context, en);
+
 		en = en->next;
 	}
 
@@ -687,6 +741,13 @@ static void root_input_handler(fl_context* context, fl_input_handler* self)
 		}
 	}
 
+	if (fl_consume_key(context, FLURMP_SC_K))
+	{
+		fl_entity* p = find_projectile(context);
+		if (p != NULL)
+			fl_schedule_pellet(context, p);
+	}
+
 	/* Temporary code to reset player position.
 	   This should probable be performed via a command
 	   issued to the dev console. */
@@ -703,6 +764,21 @@ static void root_input_handler(fl_context* context, fl_input_handler* self)
 		fl_schedule_walk(context, context->pco);
 	}
 }
+
+static fl_entity* find_projectile(fl_context* context)
+{
+	if (context == NULL || context->projectiles == NULL)
+		return NULL;
+
+	fl_entity* next = context->projectiles;
+
+	while (next != NULL && (next->flags & FLURMP_ALIVE_FLAG))
+		next = next->next;
+
+	return next;
+}
+
+
 
 void* fl_allocate_(size_t s)
 {

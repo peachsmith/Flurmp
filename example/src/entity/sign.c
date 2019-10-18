@@ -51,7 +51,7 @@ static void update(fl_context*, fl_entity*, int);
  *
  * Params:
  *   fl_context - a Flurmp context
- *   fl_entity - the player entity
+ *   fl_entity - the sign entity
  */
 static void render(fl_context*, fl_entity*);
 

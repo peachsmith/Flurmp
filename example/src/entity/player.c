@@ -266,6 +266,9 @@ static void render(fl_context* context, fl_entity* self)
 	dest.w = self_w + 20;
 	dest.h = self_h + 10;
 
+	if (self->flags & FLURMP_BLINK_FLAG)
+		dest.w = 0;
+
 	if (self->flags & FLURMP_MIRROR_FLAG)
 		fl_draw(context, tex, self->frame, &dest, 1);
 

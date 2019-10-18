@@ -77,9 +77,10 @@ static void update(fl_context* context, fl_data_panel* panel)
 	data_panel_printf(panel, "y: %d\n", context->pco->y);
 	data_panel_printf(panel, "x_v: %d\n", context->pco->x_v);
 	data_panel_printf(panel, "y_v: %d\n", context->pco->y_v);
-
-	data_panel_printf(panel, "cam x: %d\n", context->cam_x);
-	data_panel_printf(panel, "cam y: %d\n", context->cam_y);
+	data_panel_printf(panel, "life: %d\n", context->pco->life);
+	data_panel_printf(panel, "scene: %d\n", context->scene);
+	/* data_panel_printf(panel, "cam x: %d\n", context->cam_x); */
+	/* data_panel_printf(panel, "cam y: %d\n", context->cam_y); */
 }
 
 static void render(fl_context* context, fl_data_panel* self)
