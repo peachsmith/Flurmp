@@ -30,14 +30,14 @@ all:
 	$(CC) -c ../src/entity/player.c       -o $(OBJ)/player.o        $(INC)
 	$(CC) -c ../src/entity/block_200_50.c -o $(OBJ)/block_200_50.o  $(INC)
 	$(CC) -c ../src/entity/sign.c         -o $(OBJ)/sign.o          $(INC)
+	$(CC) -c ../src/entity/door.c         -o $(OBJ)/door.o          $(INC)
+	$(CC) -c ../src/entity/spike.c        -o $(OBJ)/spike.o         $(INC)
+	$(CC) -c ../src/entity/pellet.c       -o $(OBJ)/pellet.o        $(INC)
 	$(CC) -c ../src/menu/menu.c           -o $(OBJ)/menu.o          $(INC)
 	$(CC) -c ../src/menu/pause_menu.c     -o $(OBJ)/pause_menu.o    $(INC)
 	$(CC) -c ../src/menu/pause_submenu.c  -o $(OBJ)/pause_submenu.o $(INC)
 	$(CC) -c ../src/menu/fish_submenu.c   -o $(OBJ)/fish_submenu.o  $(INC)
 	$(CC) -c ../src/menu/confirmation.c   -o $(OBJ)/confirmation.o  $(INC)
-	$(CC) -c ../src/menu/door.c           -o $(OBJ)/door.o          $(INC)
-	$(CC) -c ../src/menu/spike.c          -o $(OBJ)/spike.o         $(INC)
-	$(CC) -c ../src/menu/pellet.c         -o $(OBJ)/pellet.o        $(INC)
 	$(CC) $(OBJECTS) -o example_build/example $(INC) $(LIB) $(LNK)
 
 clean:
